@@ -30,14 +30,15 @@ export function FormField({ label, children, error, hint, required, id, classNam
 
   return (
     <div data-slot="form-field" className={cn('flex flex-col gap-2', className)}>
-      <Label htmlFor={controlId}>
-        {label}
+      {/* O asterisco fica fora do <label>: o texto do rótulo é exatamente o nome do campo. */}
+      <div className="flex items-center gap-1">
+        <Label htmlFor={controlId}>{label}</Label>
         {required ? (
-          <span aria-hidden="true" className="text-coral">
+          <span aria-hidden="true" className="text-body-sm text-coral">
             *
           </span>
         ) : null}
-      </Label>
+      </div>
       <Slot.Root
         id={controlId}
         aria-describedby={describedBy}

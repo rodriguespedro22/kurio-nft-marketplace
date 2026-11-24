@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { ScanLine } from 'lucide-react';
 
-import { HomeIcon } from '@/shared/ui/icons';
+import { HomeIcon, UserIcon } from '@/shared/ui/icons';
 
 const itemClass =
   'flex min-h-12 min-w-12 flex-col items-center justify-center gap-0.5 rounded-field text-micro font-medium text-muted transition-colors hover:text-secondary data-[status=active]:text-accent';
@@ -28,6 +28,12 @@ export function MobileNav() {
             className="-mt-8 grid size-16 place-items-center rounded-full bg-linear-to-b from-primary-light to-primary-dark text-ink shadow-bar ring-4 ring-ink"
           >
             <ScanLine aria-hidden="true" className="size-7" strokeWidth={1.5} />
+          </Link>
+        </li>
+        <li className="col-start-5 flex justify-center">
+          <Link to="/perfil" className={itemClass}>
+            <UserIcon className="size-6" />
+            <span>Perfil</span>
           </Link>
         </li>
       </ul>

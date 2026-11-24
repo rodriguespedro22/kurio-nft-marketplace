@@ -1,4 +1,5 @@
 import { HttpResponse } from 'msw';
+import type { z } from 'zod';
 
 import type { ErrorEnvelope, ServerErrorCode } from '@/contracts';
 
@@ -12,6 +13,16 @@ type ErrorExtras = { fields?: Record<string, string>; details?: unknown };
 export function apiError(status: number, code: ServerErrorCode, message: string, extras: ErrorExtras = {}) {
   const body: ErrorEnvelope = { error: { code, message, ...extras } };
   return HttpResponse.json(body, { status });
+}
+
+/** 422 com a primeira mensagem de cada campo inválido (mesmas mensagens pt-BR do cliente). */
+export function validationError(error: z.ZodError, message = 'Verifique os campos destacados.') {
+  const fields: Record<string, string> = {};
+  for (const issue of error.issues) {
+    const key = issue.path.join('.') || '_';
+    fields[key] ??= issue.message;
+  }
+  return apiError(422, 'VALIDATION_ERROR', message, { fields });
 }
 
 /** Lê JSON do corpo sem lançar (corpo vazio ou inválido → `null`). */

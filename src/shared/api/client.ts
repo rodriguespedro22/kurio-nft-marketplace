@@ -3,6 +3,13 @@ import type { z } from 'zod';
 
 import { ApiError, toApiError } from './api-error';
 
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    /** O chamador trata o 401 sozinho (ex.: validação da sessão no boot). */
+    skipUnauthorizedHandler?: boolean;
+  }
+}
+
 const RAW_API_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
 
 /** Base absoluta: `fetch` fora do navegador (testes) não aceita URL relativa. */
@@ -56,8 +63,9 @@ apiClient.interceptors.request.use((config) => {
 
 apiClient.interceptors.response.use(undefined, (error: unknown) => {
   const apiError = toApiError(error);
-  const sentToken = axios.isAxiosError(error) && Boolean(error.config?.headers?.get?.('Authorization'));
-  if (apiError.status === 401 && sentToken) {
+  const config = axios.isAxiosError(error) ? error.config : undefined;
+  const sentToken = Boolean(config?.headers?.get?.('Authorization'));
+  if (apiError.status === 401 && sentToken && !config?.skipUnauthorizedHandler) {
     for (const listener of [...unauthorizedListeners]) listener(apiError);
   }
   return Promise.reject(apiError);

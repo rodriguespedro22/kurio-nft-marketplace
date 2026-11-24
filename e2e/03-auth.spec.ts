@@ -1,0 +1,169 @@
+import type { Page } from '@playwright/test';
+
+import { loginViaUi, logoutViaUi, submitLogin, USERS } from './support/auth';
+import { expect, test } from './support/fixtures';
+import { bootScenario, expireSession } from './support/mock';
+
+const registerForm = (page: Page) => page.getByRole('form', { name: 'Criar conta' });
+
+async function fillRegister(
+  page: Page,
+  data: { username: string; email: string; password: string; confirmPassword?: string },
+) {
+  const form = registerForm(page);
+  await form.getByLabel('Nome de usuário').fill(data.username);
+  await form.getByLabel('E-mail').fill(data.email);
+  await form.getByLabel('Senha', { exact: true }).fill(data.password);
+  await form.getByLabel('Confirmar senha').fill(data.confirmPassword ?? data.password);
+  await form.getByRole('button', { name: /^Criar (conta|perfil)$/ }).click();
+}
+
+/** Mensagem ligada ao campo por aria-describedby (não basta estar perto visualmente). */
+async function describedText(page: Page, label: string): Promise<string> {
+  const field = registerForm(page).getByLabel(label, { exact: true });
+  const ids = (await field.getAttribute('aria-describedby')) ?? '';
+  const texts = await Promise.all(
+    ids
+      .split(' ')
+      .filter(Boolean)
+      .map((id) => page.locator(`[id="${id}"]`).innerText()),
+  );
+  return texts.join(' ');
+}
+
+const unique = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+
+test.beforeEach(async ({ page }) => {
+  await bootScenario(page, 'default');
+});
+
+test('cadastro vazio mostra erros por campo, associados e com foco no primeiro inválido', async ({
+  page,
+}) => {
+  await page.goto('/cadastro');
+  await registerForm(page)
+    .getByRole('button', { name: /^Criar (conta|perfil)$/ })
+    .click();
+
+  for (const label of ['Nome de usuário', 'E-mail', 'Senha', 'Confirmar senha']) {
+    await expect(registerForm(page).getByLabel(label, { exact: true })).toHaveAttribute(
+      'aria-invalid',
+      'true',
+    );
+    expect(await describedText(page, label)).toContain('Obrigatório');
+  }
+  await expect(registerForm(page).getByLabel('Nome de usuário')).toBeFocused();
+});
+
+test('cadastro com e-mail existente mostra "E-mail já cadastrado" no campo', async ({ page }) => {
+  await page.goto('/cadastro');
+  await fillRegister(page, {
+    username: `novo_${unique()}`,
+    email: USERS.colecionador.email,
+    password: 'Senha@123',
+  });
+
+  await expect(registerForm(page).getByLabel('E-mail')).toHaveAttribute('aria-invalid', 'true');
+  await expect.poll(() => describedText(page, 'E-mail')).toContain('E-mail já cadastrado');
+  await expect(page).toHaveURL(/\/cadastro/);
+});
+
+test('senhas diferentes e senha fraca são apontadas nos campos certos', async ({ page }) => {
+  await page.goto('/cadastro');
+  await fillRegister(page, {
+    username: `fraca_${unique()}`,
+    email: `fraca_${unique()}@exemplo.com`,
+    password: 'senhafraca',
+    confirmPassword: 'outra',
+  });
+  expect(await describedText(page, 'Senha')).toMatch(/maiúscula|número|símbolo/);
+  await expect(registerForm(page).getByLabel('Senha', { exact: true })).toHaveAttribute(
+    'aria-invalid',
+    'true',
+  );
+});
+
+test('cenário register-conflict: nome de usuário em uso aparece no campo', async ({ page }) => {
+  await bootScenario(page, 'register-conflict');
+  await page.goto('/cadastro');
+  const id = unique();
+  await fillRegister(page, {
+    username: `livre_${id}`,
+    email: `livre_${id}@exemplo.com`,
+    password: 'Senha@123',
+  });
+
+  await expect(registerForm(page).getByLabel('Nome de usuário')).toHaveAttribute('aria-invalid', 'true');
+  await expect.poll(() => describedText(page, 'Nome de usuário')).toContain('Nome de usuário já em uso');
+});
+
+test('cadastro válido loga, reload mantém a sessão e logout volta a "Entrar"', async ({ page }) => {
+  const id = unique();
+  const username = `colec_${id}`;
+  await page.goto('/cadastro');
+  await fillRegister(page, { username, email: `${username}@exemplo.com`, password: 'Senha@123' });
+
+  await expect(page).toHaveURL('/');
+  const header = page.getByRole('banner');
+  await expect(header).toContainText(username);
+
+  await page.reload();
+  await expect(header).toContainText(username);
+
+  await logoutViaUi(page);
+  await page.reload();
+  await expect(header.getByRole('link', { name: 'Entrar' })).toBeVisible();
+});
+
+test('login com senha errada mostra erro genérico sem revelar qual campo falhou', async ({ page }) => {
+  await page.goto('/login');
+  await submitLogin(page, { email: USERS.colecionador.email, password: 'Errada@123' });
+  await expect(page.getByRole('alert')).toContainText('E-mail ou senha inválidos');
+  await expect(page).toHaveURL(/\/login/);
+});
+
+test('/perfil deslogado vai a /login?redirect=%2Fperfil e volta após o login', async ({ page }) => {
+  await page.goto('/perfil');
+  await expect(page).toHaveURL(/\/login\?redirect=%2Fperfil$/);
+
+  await submitLogin(page, USERS.colecionador);
+  await expect(page).toHaveURL('/perfil');
+  await expect(page.getByRole('heading', { level: 1, name: 'Meu perfil' })).toBeVisible();
+  await expect(page.getByRole('main')).toContainText(USERS.colecionador.displayName);
+});
+
+test('sessão expirada no servidor: aviso "Sua sessão expirou" e retomada do ponto após login', async ({
+  page,
+}) => {
+  await loginViaUi(page, USERS.colecionador, '/perfil');
+  await expect(page).toHaveURL('/perfil');
+
+  await expireSession(page);
+  await page.goto('/perfil');
+
+  await expect(page).toHaveURL(/\/login\?.*redirect=%2Fperfil/);
+  await expect(page.getByText('Sua sessão expirou. Entre novamente para continuar.')).toBeVisible();
+  await expect(page.getByRole('banner').getByRole('link', { name: 'Entrar' })).toBeVisible();
+
+  await submitLogin(page, USERS.colecionador);
+  await expect(page).toHaveURL('/perfil');
+});
+
+test('login A → logout → login B mostra só os dados de B', async ({ page }) => {
+  await loginViaUi(page, USERS.colecionador, '/perfil');
+  await expect(page.getByRole('main')).toContainText(USERS.colecionador.displayName);
+
+  await logoutViaUi(page);
+  await loginViaUi(page, USERS.ana, '/perfil');
+
+  await expect(page).toHaveURL('/perfil');
+  await expect(page.getByRole('main')).toContainText(USERS.ana.displayName);
+  await expect(page.getByRole('main')).not.toContainText(USERS.colecionador.displayName);
+  await expect(page.getByRole('banner')).not.toContainText(USERS.colecionador.displayName);
+});
+
+test('logado, /login redireciona para o destino em vez de mostrar o formulário', async ({ page }) => {
+  await loginViaUi(page, USERS.ana);
+  await page.goto('/login?redirect=%2Fperfil');
+  await expect(page).toHaveURL('/perfil');
+});

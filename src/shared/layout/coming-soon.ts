@@ -16,6 +16,7 @@ export const COMING_SOON_SECTIONS = {
   politica: 'Política do mercado',
   denunciar: 'Denunciar item',
   'redes-sociais': 'Redes sociais',
+  'recuperar-senha': 'Recuperação de senha',
 } as const;
 
 export type ComingSoonSection = keyof typeof COMING_SOON_SECTIONS;

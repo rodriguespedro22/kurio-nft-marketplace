@@ -1,5 +1,7 @@
 import { Link } from '@tanstack/react-router';
 
+import { AccountMenu } from '@/features/auth/components/AccountMenu';
+
 import { MainNavLinks } from './MainNavLinks';
 import { MobileMenu } from './MobileMenu';
 
@@ -20,6 +22,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2 justify-self-end">
+          <AccountMenu />
           <MobileMenu />
         </div>
       </div>

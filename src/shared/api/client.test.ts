@@ -115,6 +115,16 @@ describe('onUnauthorized()', () => {
     expect(seen).toEqual(['SESSION_EXPIRED']);
   });
 
+  test('skipUnauthorizedHandler: o chamador trata o 401 e ninguém é notificado', async () => {
+    setAuthTokenGetter(() => 'tok-abc');
+    const seen: string[] = [];
+    const unsubscribe = onUnauthorized((err) => seen.push(err.code));
+    const error = await failure(request({ url: '/__test/expired', skipUnauthorizedHandler: true }, Ok));
+    expect(error.code).toBe('SESSION_EXPIRED');
+    expect(seen).toEqual([]);
+    unsubscribe();
+  });
+
   test('401 sem token enviado (ex.: login com senha errada) não notifica', async () => {
     const seen: string[] = [];
     const unsubscribe = onUnauthorized((err) => seen.push(err.code));
