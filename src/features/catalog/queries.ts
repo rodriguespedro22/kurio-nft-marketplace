@@ -18,8 +18,6 @@ export const catalogQueries = {
   categories: () =>
     queryOptions({ queryKey: qk.categories(), queryFn: ({ signal }) => catalogApi.categories(signal) }),
   facets: () => queryOptions({ queryKey: qk.facets(), queryFn: ({ signal }) => catalogApi.facets(signal) }),
-  nft: (id: string) =>
-    queryOptions({ queryKey: qk.nft(id), queryFn: ({ signal }) => catalogApi.nft(id, signal) }),
 };
 
 export const useCatalog = (params: CatalogSearch) => useQuery(catalogQueries.list(params));

@@ -11,7 +11,10 @@ export function TabsList({ className, ...props }: ComponentProps<typeof TabsPrim
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"
-      className={cn('flex items-end gap-6 overflow-x-auto border-b border-border', className)}
+      className={cn(
+        'flex [scrollbar-width:none] items-end gap-6 overflow-x-auto overflow-y-hidden border-b border-border [&::-webkit-scrollbar]:hidden',
+        className,
+      )}
       {...props}
     />
   );
@@ -23,7 +26,7 @@ export function TabsTrigger({ className, ...props }: ComponentProps<typeof TabsP
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        '-mb-px inline-flex min-h-11 items-center border-b-[3px] border-transparent pb-2 text-body-lg whitespace-nowrap text-secondary transition-colors hover:text-foreground data-[state=active]:border-primary data-[state=active]:font-bold data-[state=active]:text-foreground',
+        'inline-flex min-h-11 items-center border-b-[3px] border-transparent pb-2 text-body-lg whitespace-nowrap text-secondary transition-colors hover:text-foreground data-[state=active]:border-primary data-[state=active]:font-bold data-[state=active]:text-foreground',
         className,
       )}
       {...props}

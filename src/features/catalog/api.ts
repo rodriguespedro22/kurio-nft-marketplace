@@ -3,11 +3,9 @@ import {
   CategoryListSchema,
   FeaturedNftsSchema,
   NftPageSchema,
-  NftSchema,
   type CatalogFacets,
   type CatalogSearch,
   type Category,
-  type Nft,
   type NftListItem,
   type Paginated,
 } from '@/contracts';
@@ -19,9 +17,6 @@ export const catalogApi = {
 
   featured: (signal?: AbortSignal): Promise<NftListItem[]> =>
     request({ url: '/nfts/featured', signal }, FeaturedNftsSchema),
-
-  nft: (id: string, signal?: AbortSignal): Promise<Nft> =>
-    request({ url: `/nfts/${encodeURIComponent(id)}`, signal }, NftSchema),
 
   categories: (signal?: AbortSignal): Promise<Category[]> =>
     request({ url: '/categories', signal }, CategoryListSchema),
