@@ -44,6 +44,9 @@ export const NftSchema = z.object({
   category: IdSchema,
   network: NetworkSchema,
   images: z.array(NftImageSchema).min(1),
+  /** Texto curto de "Sobre este NFT:". */
+  summary: z.string(),
+  /** Texto longo da aba "Detalhes do NFT". */
   description: z.string(),
   attributes: z.array(z.string()),
   rating: z.object({ average: z.number().min(0).max(5), count: z.number().int().min(0) }),
