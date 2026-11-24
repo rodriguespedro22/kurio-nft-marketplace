@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 
 import type { NftListItem } from '@/contracts';
+import { FavoriteButton } from '@/features/favorites/components/FavoriteButton';
 import { formatEth } from '@/shared/money/eth';
 import { NftImage } from '@/shared/ui/nft-image';
 
@@ -9,8 +10,8 @@ const CARD_IMAGE_SIZES = '(min-width: 1280px) 258px, (min-width: 768px) 30vw, 46
 type NftCardProps = { nft: NftListItem };
 
 /**
- * Card do catálogo. O nome é o único link (esticado sobre o card inteiro), então o card
- * todo é clicável sem aninhar controles. Alturas fixas no texto: o skeleton tem a mesma altura.
+ * Card do catálogo. O nome é o link (esticado sobre o card inteiro), então o card todo é
+ * clicável; o coração de favorito fica acima do link (`z-10`), sem aninhar controles. Alturas fixas no texto: o skeleton tem a mesma altura.
  */
 export function NftCard({ nft }: NftCardProps) {
   return (
@@ -34,6 +35,7 @@ export function NftCard({ nft }: NftCardProps) {
             Esgotado
           </span>
         ) : null}
+        <FavoriteButton item={nft} className="absolute right-1.5 bottom-0.5" />
       </div>
 
       <div className="flex flex-col gap-1 px-0.5">

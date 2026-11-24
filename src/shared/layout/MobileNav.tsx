@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { ScanLine } from 'lucide-react';
+import { Heart, ScanLine } from 'lucide-react';
 
 import { HomeIcon, UserIcon } from '@/shared/ui/icons';
 
@@ -18,6 +18,12 @@ export function MobileNav() {
           <Link to="/" activeOptions={{ exact: true, includeHash: true }} className={itemClass}>
             <HomeIcon className="size-6" />
             <span>Início</span>
+          </Link>
+        </li>
+        <li className="col-start-2 flex justify-center">
+          <Link to="/favoritos" className={itemClass}>
+            <Heart aria-hidden="true" className="size-6" strokeWidth={1.75} />
+            <span>Favoritos</span>
           </Link>
         </li>
         <li className="col-start-3 flex justify-center">

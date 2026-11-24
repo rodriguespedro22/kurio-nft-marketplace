@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useCanGoBack, useRouter } from '@tanstack/react-router';
 import { ChevronLeft } from 'lucide-react';
 
 import type { Nft } from '@/contracts';
+import { FavoriteButton } from '@/features/favorites/components/FavoriteButton';
 import { ApiError } from '@/shared/api/api-error';
+import { toListItem } from '@/shared/nft/list-item';
 import { PageError } from '@/shared/ui/page-error';
 import { QuantityStepper } from '@/shared/ui/quantity-stepper';
 
@@ -63,6 +65,7 @@ function LoadedNft({ nft }: { nft: Nft }) {
   const available = edition?.available ?? 0;
   // O estoque pode cair depois (tempo real): a quantidade nunca passa do disponível.
   const effectiveQuantity = Math.min(quantity, Math.max(available, 1));
+  const listItem = useMemo(() => toListItem(nft), [nft]);
 
   return (
     <div className="container-page flex flex-col gap-12 py-4 md:py-8 xl:gap-20">
@@ -77,14 +80,19 @@ function LoadedNft({ nft }: { nft: Nft }) {
             edition={edition}
             onEditionChange={setEditionId}
             purchase={
-              <QuantityStepper
-                label="Quantidade"
-                value={effectiveQuantity}
-                min={1}
-                max={Math.max(available, 1)}
-                onChange={setQuantity}
-                disabled={available === 0}
-              />
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <QuantityStepper
+                  label="Quantidade"
+                  value={effectiveQuantity}
+                  min={1}
+                  max={Math.max(available, 1)}
+                  onChange={setQuantity}
+                  disabled={available === 0}
+                />
+                <div className="flex flex-wrap items-center gap-2">
+                  <FavoriteButton item={listItem} variant="full" />
+                </div>
+              </div>
             }
           />
         </div>

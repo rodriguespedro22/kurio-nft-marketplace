@@ -12,6 +12,7 @@ import {
   type Paginated,
 } from '@/contracts';
 import { cmpEth } from '@/shared/money/eth';
+import { displayPrice, toListItem } from '@/shared/nft/list-item';
 
 import { db } from '../db/store';
 import { buildCategories } from '../fixtures/categories';
@@ -34,33 +35,6 @@ export function normalizeText(value: string): string {
     .replace(/\p{Diacritic}/gu, '')
     .toLowerCase()
     .trim();
-}
-
-/** Preço de vitrine: menor preço entre as edições disponíveis (esgotado → menor preço geral). */
-export function displayPrice(nft: Nft): string {
-  const available = nft.editions.filter((e) => e.available > 0);
-  const pool = available.length > 0 ? available : nft.editions;
-  return pool.reduce((min, e) => (cmpEth(e.price, min) < 0 ? e.price : min), pool[0]?.price ?? '0');
-}
-
-export function toListItem(nft: Nft): NftListItem {
-  const { id, name, tokenNumber, collection, category, network, isRare, previousPrice, status, version } =
-    nft;
-  const image = nft.images[0] ?? { asset: 'ape-emerald-a', alt: nft.name };
-  return {
-    id,
-    name,
-    tokenNumber,
-    collection,
-    category,
-    network,
-    isRare,
-    previousPrice,
-    status,
-    version,
-    image,
-    price: displayPrice(nft),
-  };
 }
 
 const byId = (a: Nft, b: Nft) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);

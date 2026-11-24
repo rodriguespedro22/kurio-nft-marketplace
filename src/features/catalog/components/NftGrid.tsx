@@ -10,12 +10,14 @@ type NftGridProps = {
   items: NftListItem[];
   /** Mostrando o resultado anterior enquanto o novo carrega. */
   busy?: boolean;
+  /** Nome acessível da lista. */
+  label?: string;
 };
 
-export function NftGrid({ items, busy = false }: NftGridProps) {
+export function NftGrid({ items, busy = false, label = 'NFTs do catálogo' }: NftGridProps) {
   return (
     <ul
-      aria-label="NFTs do catálogo"
+      aria-label={label}
       aria-busy={busy}
       className={cn(GRID_CLASSES, 'transition-opacity duration-200', busy && 'opacity-60')}
     >

@@ -59,3 +59,26 @@ export async function setNetwork(page: Page, profile: NetworkProfileName): Promi
 export async function expireSession(page: Page): Promise<void> {
   await mockControl(page, '/__mock/session/expire', {});
 }
+
+// Espelha `SESSION_STORAGE_KEY` de src/features/auth/session.ts.
+const SESSION_STORAGE_KEY = 'kurio:session';
+
+/** GET autenticado com a sessão salva na página — lê o estado do servidor simulado. */
+export async function apiAsUser<T = unknown>(page: Page, path: string): Promise<T> {
+  return page.evaluate(
+    async ({ url, key }) => {
+      const raw = localStorage.getItem(key);
+      const token = raw ? (JSON.parse(raw) as { token: string }).token : '';
+      const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      if (!response.ok) throw new Error(`apiAsUser ${url} → ${response.status}`);
+      return (await response.json()) as T;
+    },
+    { url: `${API_BASE}${path}`, key: SESSION_STORAGE_KEY },
+  );
+}
+
+/** Ids dos favoritos do usuário logado, direto do servidor simulado. */
+export async function serverFavoriteIds(page: Page): Promise<string[]> {
+  const body = await apiAsUser<{ items: { id: string }[] }>(page, '/favorites');
+  return body.items.map((item) => item.id);
+}

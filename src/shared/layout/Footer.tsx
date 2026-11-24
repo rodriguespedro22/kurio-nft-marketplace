@@ -73,7 +73,8 @@ function FooterColumn({ title, children }: { title: string; children: ReactNode 
   );
 }
 
-function SoonList({ links }: { links: SoonLink[] }) {
+/** Links "em breve" da coluna; `children` acrescenta itens que já levam a telas reais. */
+function SoonList({ links, children }: { links: SoonLink[]; children?: ReactNode }) {
   return (
     <ul className="flex flex-col gap-2">
       {links.map((link) => (
@@ -83,6 +84,7 @@ function SoonList({ links }: { links: SoonLink[] }) {
           </Link>
         </li>
       ))}
+      {children}
     </ul>
   );
 }
@@ -155,7 +157,13 @@ export function Footer() {
 
         <div className="grid gap-8 bg-surface px-6 py-8 sm:grid-cols-2 xl:grid-cols-4">
           <FooterColumn title="Meu perfil">
-            <SoonList links={PROFILE_LINKS} />
+            <SoonList links={PROFILE_LINKS}>
+              <li>
+                <Link to="/favoritos" className={linkClass}>
+                  Lista de interesse
+                </Link>
+              </li>
+            </SoonList>
           </FooterColumn>
           <FooterColumn title="Central de ajuda">
             <SoonList links={HELP_LINKS} />
