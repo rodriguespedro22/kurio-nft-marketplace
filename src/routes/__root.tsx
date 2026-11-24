@@ -1,5 +1,5 @@
 import type { QueryClient } from '@tanstack/react-query';
-import { createRootRouteWithContext, Link, Outlet } from '@tanstack/react-router';
+import { createRootRouteWithContext, Link, Outlet, useMatches } from '@tanstack/react-router';
 import { Compass } from 'lucide-react';
 
 import { Footer } from '@/shared/layout/Footer';
@@ -16,6 +16,9 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function RootLayout() {
+  const phoneBottomBar = useMatches({
+    select: (matches) => matches.some((match) => match.staticData.phoneBottomBar),
+  });
   return (
     <div className="flex min-h-dvh flex-col">
       <a
@@ -28,8 +31,8 @@ function RootLayout() {
       <main id="conteudo" tabIndex={-1} className="flex-1 outline-none">
         <Outlet />
       </main>
-      <Footer />
-      <MobileNav />
+      <Footer phoneBottomBar={phoneBottomBar} />
+      <MobileNav hideOnPhone={phoneBottomBar} />
     </div>
   );
 }

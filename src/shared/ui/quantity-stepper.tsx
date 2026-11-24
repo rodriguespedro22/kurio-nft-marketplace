@@ -12,12 +12,17 @@ type QuantityStepperProps = {
   label: string;
   /** Mostra o rótulo ao lado dos botões (mobile: "Qtd."); por padrão fica só para leitores de tela. */
   visibleLabel?: string;
+  /** Classes extras do rótulo visível (ex.: `md:sr-only` para mostrá-lo só no celular). */
+  labelClassName?: string;
   id?: string;
   disabled?: boolean;
   className?: string;
 };
 
 const INTEGER = /^\d+$/;
+
+/** "Quantidade de X" → "quantidade de X": compõe "Aumentar …"/"Diminuir …" sem mexer em nomes. */
+const lowerFirst = (text: string) => text.charAt(0).toLowerCase() + text.slice(1);
 
 const stepButton =
   'relative grid size-8 shrink-0 place-items-center rounded-full bg-primary text-ink transition-colors before:absolute before:-inset-1.5 hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-40';
@@ -34,6 +39,7 @@ export function QuantityStepper({
   onChange,
   label,
   visibleLabel,
+  labelClassName,
   id,
   disabled = false,
   className,
@@ -87,14 +93,14 @@ export function QuantityStepper({
       <div className="flex items-center gap-3">
         <label
           htmlFor={inputId}
-          className={visibleLabel ? 'text-body-sm font-medium text-secondary' : 'sr-only'}
+          className={visibleLabel ? cn('text-body-sm font-medium text-secondary', labelClassName) : 'sr-only'}
         >
           {visibleLabel ?? label}
           {visibleLabel ? <span className="sr-only"> ({label})</span> : null}
         </label>
         <button
           type="button"
-          aria-label="Diminuir quantidade"
+          aria-label={`Diminuir ${lowerFirst(label)}`}
           aria-controls={inputId}
           disabled={disabled || value <= min}
           onClick={() => onChange(Math.max(value - 1, min))}
@@ -118,7 +124,7 @@ export function QuantityStepper({
         />
         <button
           type="button"
-          aria-label="Aumentar quantidade"
+          aria-label={`Aumentar ${lowerFirst(label)}`}
           aria-controls={inputId}
           disabled={disabled || atMax}
           onClick={() => onChange(Math.min(value + 1, upper))}

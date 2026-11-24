@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 
 import { AccountMenu } from '@/features/auth/components/AccountMenu';
+import { HeaderCartLink } from '@/features/cart/components/CartBadge';
 import { catalogSearchSchema, SEARCH_INPUT_ID } from '@/features/catalog/search';
 import { SearchIcon } from '@/shared/ui/icons';
 
@@ -35,6 +36,7 @@ export function Header() {
           >
             <SearchIcon aria-hidden="true" className="size-5" />
           </Link>
+          <HeaderCartLink />
           <AccountMenu />
           <MobileMenu />
         </div>

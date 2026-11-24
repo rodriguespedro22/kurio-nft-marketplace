@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as CadastroRouteImport } from './routes/cadastro'
+import { Route as CarrinhoRouteImport } from './routes/carrinho'
 import { Route as EmBreveRouteImport } from './routes/em-breve'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthFavoritosRouteImport } from './routes/_auth/favoritos'
@@ -30,6 +31,11 @@ const AuthRoute = AuthRouteImport.update({
 const CadastroRoute = CadastroRouteImport.update({
   id: '/cadastro',
   path: '/cadastro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CarrinhoRoute = CarrinhoRouteImport.update({
+  id: '/carrinho',
+  path: '/carrinho',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EmBreveRoute = EmBreveRouteImport.update({
@@ -61,6 +67,7 @@ const NftNftIdRoute = NftNftIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cadastro': typeof CadastroRoute
+  '/carrinho': typeof CarrinhoRoute
   '/em-breve': typeof EmBreveRoute
   '/login': typeof LoginRoute
   '/favoritos': typeof AuthFavoritosRoute
@@ -70,6 +77,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cadastro': typeof CadastroRoute
+  '/carrinho': typeof CarrinhoRoute
   '/em-breve': typeof EmBreveRoute
   '/login': typeof LoginRoute
   '/favoritos': typeof AuthFavoritosRoute
@@ -81,6 +89,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteWithChildren
   '/cadastro': typeof CadastroRoute
+  '/carrinho': typeof CarrinhoRoute
   '/em-breve': typeof EmBreveRoute
   '/login': typeof LoginRoute
   '/_auth/favoritos': typeof AuthFavoritosRoute
@@ -92,6 +101,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/cadastro'
+    | '/carrinho'
     | '/em-breve'
     | '/login'
     | '/favoritos'
@@ -101,6 +111,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/cadastro'
+    | '/carrinho'
     | '/em-breve'
     | '/login'
     | '/favoritos'
@@ -111,6 +122,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_auth'
     | '/cadastro'
+    | '/carrinho'
     | '/em-breve'
     | '/login'
     | '/_auth/favoritos'
@@ -122,6 +134,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRouteWithChildren
   CadastroRoute: typeof CadastroRoute
+  CarrinhoRoute: typeof CarrinhoRoute
   EmBreveRoute: typeof EmBreveRoute
   LoginRoute: typeof LoginRoute
   NftNftIdRoute: typeof NftNftIdRoute
@@ -148,6 +161,13 @@ declare module '@tanstack/react-router' {
       path: '/cadastro'
       fullPath: '/cadastro'
       preLoaderRoute: typeof CadastroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/carrinho': {
+      id: '/carrinho'
+      path: '/carrinho'
+      fullPath: '/carrinho'
+      preLoaderRoute: typeof CarrinhoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/em-breve': {
@@ -204,6 +224,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRouteWithChildren,
   CadastroRoute: CadastroRoute,
+  CarrinhoRoute: CarrinhoRoute,
   EmBreveRoute: EmBreveRoute,
   LoginRoute: LoginRoute,
   NftNftIdRoute: NftNftIdRoute,

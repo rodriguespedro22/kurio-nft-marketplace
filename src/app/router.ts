@@ -18,4 +18,8 @@ declare module '@tanstack/react-router' {
   interface Register {
     router: ReturnType<typeof createAppRouter>;
   }
+  interface StaticDataRouteOption {
+    /** No celular a rota tem barra fixa própria embaixo (compra do detalhe): esconde a navegação. */
+    phoneBottomBar?: boolean;
+  }
 }

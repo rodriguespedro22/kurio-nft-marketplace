@@ -82,3 +82,23 @@ export async function serverFavoriteIds(page: Page): Promise<string[]> {
   const body = await apiAsUser<{ items: { id: string }[] }>(page, '/favorites');
   return body.items.map((item) => item.id);
 }
+
+// Espelha `GUEST_CART_STORAGE_KEY` de src/features/auth/session.ts.
+const GUEST_CART_STORAGE_KEY = 'kurio:guest-cart';
+
+/** Carrinho atual direto do servidor simulado (sessão se houver, senão o do visitante). */
+export async function serverCart(page: Page): Promise<{ editionId: string; quantity: number }[]> {
+  return page.evaluate(
+    async ({ url, sessionKey, guestKey }) => {
+      const raw = localStorage.getItem(sessionKey);
+      const token = raw ? (JSON.parse(raw) as { token: string }).token : null;
+      const headers: Record<string, string> = { 'X-Guest-Cart': localStorage.getItem(guestKey) ?? '' };
+      if (token) headers.Authorization = `Bearer ${token}`;
+      const response = await fetch(url, { headers });
+      if (!response.ok) throw new Error(`serverCart → ${response.status}`);
+      const cart = (await response.json()) as { items: { editionId: string; quantity: number }[] };
+      return cart.items.map(({ editionId, quantity }) => ({ editionId, quantity }));
+    },
+    { url: `${API_BASE}/cart`, sessionKey: SESSION_STORAGE_KEY, guestKey: GUEST_CART_STORAGE_KEY },
+  );
+}

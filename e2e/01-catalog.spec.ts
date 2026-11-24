@@ -158,6 +158,8 @@ test('abas e cards: "Em alta" vai para a URL e o card leva ao detalhe', async ({
     .getByRole('link', { name: 'Em alta' })
     .click();
   await expect(page).toHaveURL(/tab=trending/);
+  // A grade da aba anterior fica na tela (aria-busy) até "Em alta" chegar.
+  await expect(grid(page)).toHaveAttribute('aria-busy', 'false');
   await expect(cards(page).first()).toBeVisible();
 
   const first = cards(page).first();

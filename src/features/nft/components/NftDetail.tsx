@@ -1,13 +1,12 @@
 import { useMemo, useState } from 'react';
-import { Link, useCanGoBack, useRouter } from '@tanstack/react-router';
-import { ChevronLeft } from 'lucide-react';
 
 import type { Nft } from '@/contracts';
 import { FavoriteButton } from '@/features/favorites/components/FavoriteButton';
 import { ApiError } from '@/shared/api/api-error';
+import { BackButton } from '@/shared/layout/BackButton';
+import { Breadcrumb } from '@/shared/layout/Breadcrumb';
 import { toListItem } from '@/shared/nft/list-item';
 import { PageError } from '@/shared/ui/page-error';
-import { QuantityStepper } from '@/shared/ui/quantity-stepper';
 
 import { defaultEditionId } from '../editions';
 import { useNft } from '../queries';
@@ -17,46 +16,7 @@ import { NftDetailSkeleton } from './NftDetailSkeleton';
 import { NftDetailsTabs } from './NftDetailsTabs';
 import { NftInfo } from './NftInfo';
 import { NotFoundNft } from './NotFoundNft';
-
-function Breadcrumb({ name }: { name: string }) {
-  return (
-    <nav aria-label="Trilha de navegação" className="hidden md:block">
-      <ol className="flex items-center gap-2 text-body-sm font-bold text-foreground">
-        <li>
-          <Link to="/" className="hover:text-accent">
-            Início
-          </Link>
-        </li>
-        <li aria-hidden="true">/</li>
-        <li>
-          <Link to="/" hash="catalogo" className="hover:text-accent">
-            Mercado
-          </Link>
-        </li>
-        <li aria-hidden="true">/</li>
-        <li aria-current="page" className="truncate font-normal text-secondary">
-          {name}
-        </li>
-      </ol>
-    </nav>
-  );
-}
-
-/** Mobile: volta para onde o usuário estava (catálogo com filtros), ou para o Início. */
-function BackButton() {
-  const router = useRouter();
-  const canGoBack = useCanGoBack();
-  return (
-    <button
-      type="button"
-      aria-label="Voltar"
-      onClick={() => (canGoBack ? router.history.back() : void router.navigate({ to: '/' }))}
-      className="grid size-11 place-items-center rounded-full border border-border-soft text-foreground md:hidden"
-    >
-      <ChevronLeft aria-hidden="true" className="size-5" />
-    </button>
-  );
-}
+import { PurchasePanel } from './PurchasePanel';
 
 function LoadedNft({ nft }: { nft: Nft }) {
   const [editionId, setEditionId] = useState(() => defaultEditionId(nft.editions));
@@ -71,8 +31,15 @@ function LoadedNft({ nft }: { nft: Nft }) {
     <div className="container-page flex flex-col gap-12 py-4 md:py-8 xl:gap-20">
       <title>{`${nft.name} · Kurio`}</title>
       <div className="flex flex-col gap-4">
-        <BackButton />
-        <Breadcrumb name={nft.name} />
+        <div className="flex items-center justify-between md:hidden">
+          <BackButton />
+          <FavoriteButton
+            item={listItem}
+            label="Favoritar"
+            className="size-11 border border-border-soft bg-transparent backdrop-blur-none"
+          />
+        </div>
+        <Breadcrumb current={nft.name} />
         <div className="grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:grid-cols-[572px_minmax(0,1fr)] xl:gap-[33px]">
           <Gallery images={nft.images} name={nft.name} />
           <NftInfo
@@ -80,19 +47,13 @@ function LoadedNft({ nft }: { nft: Nft }) {
             edition={edition}
             onEditionChange={setEditionId}
             purchase={
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <QuantityStepper
-                  label="Quantidade"
-                  value={effectiveQuantity}
-                  min={1}
-                  max={Math.max(available, 1)}
-                  onChange={setQuantity}
-                  disabled={available === 0}
-                />
-                <div className="flex flex-wrap items-center gap-2">
-                  <FavoriteButton item={listItem} variant="full" />
-                </div>
-              </div>
+              <PurchasePanel
+                nft={nft}
+                listItem={listItem}
+                edition={edition}
+                quantity={effectiveQuantity}
+                onQuantityChange={setQuantity}
+              />
             }
           />
         </div>

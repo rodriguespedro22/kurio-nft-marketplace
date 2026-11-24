@@ -2,6 +2,7 @@ import { useId, useState, type FormEvent, type ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
 import { BellRing, ShieldCheck, Sparkles } from 'lucide-react';
 
+import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { LiveRegion } from '@/shared/ui/live-region';
@@ -128,9 +129,10 @@ function Newsletter() {
   );
 }
 
-export function Footer() {
+/** `phoneBottomBar`: a página tem barra fixa mais alta que a navegação no celular. */
+export function Footer({ phoneBottomBar = false }: { phoneBottomBar?: boolean }) {
   return (
-    <footer className="mt-20 pb-28 xl:pb-10">
+    <footer className={cn('mt-20 pb-28 xl:pb-10', phoneBottomBar && 'max-md:pb-48')}>
       <div className="container-page flex flex-col">
         <div className="grid gap-8 bg-surface p-6 md:grid-cols-2 md:p-8 xl:grid-cols-4">
           {HIGHLIGHTS.map(({ icon: Icon, title, text }) => (

@@ -115,4 +115,11 @@ describe('QuantityStepper', () => {
     rerender(<QuantityStepper label="Quantidade" value={2} min={1} max={2} onChange={() => {}} />);
     expect(input()).toHaveValue('2');
   });
+
+  test('rótulo específico (ex.: linha do carrinho) também nomeia os botões', () => {
+    render(<QuantityStepper label="Quantidade de Ivory Baron #088" value={2} max={5} onChange={() => {}} />);
+    expect(screen.getByRole('textbox', { name: 'Quantidade de Ivory Baron #088' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Aumentar quantidade de Ivory Baron #088' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Diminuir quantidade de Ivory Baron #088' })).toBeEnabled();
+  });
 });
