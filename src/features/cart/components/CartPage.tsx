@@ -4,6 +4,7 @@ import { Link } from '@tanstack/react-router';
 
 import type { Cart } from '@/contracts';
 import { NftRail } from '@/features/catalog/components/NftRail';
+import { CartChangeNotice } from '@/features/realtime-sync/CartChangeNotice';
 import { catalogQueries } from '@/features/catalog/queries';
 import { BackButton } from '@/shared/layout/BackButton';
 import { Breadcrumb } from '@/shared/layout/Breadcrumb';
@@ -93,6 +94,7 @@ export function CartPage() {
           </h1>
         </div>
         <Breadcrumb current="Carrinho" />
+        {cart && !empty ? <CartChangeNotice cart={cart} /> : null}
 
         <div className="grid gap-10 xl:grid-cols-[minmax(0,782px)_minmax(0,332px)] xl:justify-between">
           <div ref={listRef} className="min-w-0">

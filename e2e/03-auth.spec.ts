@@ -137,6 +137,9 @@ test('sessão expirada no servidor: aviso "Sua sessão expirou" e retomada do po
 }) => {
   await loginViaUi(page, USERS.colecionador, '/perfil');
   await expect(page).toHaveURL('/perfil');
+  // O login dispara o merge e o refetch do carrinho. Um request desses que voltar 401 depois de
+  // expirar já desloga esta página (motivo em memória) e o goto abaixo o perderia.
+  await page.waitForLoadState('networkidle');
 
   await expireSession(page);
   await page.goto('/perfil');

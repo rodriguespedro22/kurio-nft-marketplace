@@ -1,9 +1,9 @@
 import type { Page } from '@playwright/test';
 
 import { submitLogin, USERS } from './support/auth';
+import { addFromDetail, cartList, cartShortcut, expectSummary, summary } from './support/cart';
 import { expect, test } from './support/fixtures';
-import { formatEth } from '../src/shared/money/eth';
-import { bootScenario, serverCart, serverQuote, setNetwork, type ServerQuote } from './support/mock';
+import { bootScenario, serverCart, serverQuote, setNetwork } from './support/mock';
 
 const IVORY = '/nft/nft-ivory-baron-088';
 const GOLDEN_BEAT = '/nft/nft-golden-beat-207';
@@ -13,21 +13,7 @@ const GOLDEN_1_50 = 'nft-golden-beat-207-1-50';
 const IVORY_LINE = 'Ivory Baron #088 (edição 1/10)';
 const GOLDEN_LINE = 'Golden Beat #207 (edição 1/50)';
 
-/** Atalho do carrinho: no header (desktop) ou na barra inferior (mobile). */
-function cartShortcut(page: Page, isMobile: boolean) {
-  const area = isMobile ? page.getByRole('navigation', { name: 'Atalhos' }) : page.getByRole('banner');
-  return area.getByRole('link', { name: /^Carrinho/ });
-}
-
-const cartList = (page: Page) => page.getByRole('list', { name: 'Itens do carrinho' });
 const quantityOf = (page: Page, line: string) => page.getByRole('textbox', { name: `Quantidade de ${line}` });
-
-async function addFromDetail(page: Page, path: string, edition: RegExp) {
-  await page.goto(path);
-  await page.getByRole('radiogroup', { name: 'Edição' }).getByRole('radio', { name: edition }).click();
-  await page.getByRole('button', { name: 'Adicionar ao carrinho' }).click();
-  await expect(page.getByText('Adicionado ao carrinho')).toBeVisible();
-}
 
 test.beforeEach(async ({ page }) => {
   await bootScenario(page, 'default');
@@ -119,17 +105,7 @@ test('carrinho vazio explica e leva ao catálogo', async ({ page }) => {
 
 // ——— Parte 2: resumo (cotação do servidor) e cupom ———
 
-const summary = (page: Page) => page.getByRole('complementary', { name: 'Resumo da carteira' });
 const couponInput = (page: Page) => page.getByRole('textbox', { name: 'Código promocional' });
-
-/** O resumo mostra exatamente os valores da cotação da API. */
-async function expectSummary(page: Page, quote: ServerQuote) {
-  const box = summary(page);
-  await expect(box.getByTestId('summary-subtotal')).toHaveText(formatEth(quote.subtotal));
-  await expect(box.getByTestId('summary-discount')).toHaveText(`(-) ${formatEth(quote.discount)}`);
-  await expect(box.getByTestId('summary-fee')).toHaveText(formatEth(quote.networkFee));
-  await expect(box.getByTestId('summary-total')).toHaveText(formatEth(quote.total));
-}
 
 async function cartWithTwoItems(page: Page) {
   await addFromDetail(page, IVORY, /1\/10/);
@@ -203,4 +179,3 @@ test('slow-network: skeleton do resumo até a cotação chegar', async ({ page }
   await expect(summary(page).getByTestId('summary-total')).toBeVisible({ timeout: 15_000 });
   await expect(page.getByTestId('order-summary-skeleton')).toHaveCount(0);
 });
-

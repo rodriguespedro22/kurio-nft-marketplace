@@ -32,6 +32,12 @@ type Peer = {
 };
 
 const peers = new Set<Peer>();
+/** `dropAllSockets(holdMs)`: até este instante, novas conexões são recusadas. */
+let refuseUntil = 0;
+/** Último evento emitido — `replayLast()` o reenvia com o mesmo `eventId`. */
+let lastEmitted: RealtimeEvent | null = null;
+
+export type EmitResult<E extends RealtimeEvent = RealtimeEvent> = { event: E | null; delivered: number };
 
 /** Token válido (sessão existente e não vencida) → usuário; qualquer outro caso → anônimo. */
 function userIdForToken(token: unknown): string | null {
@@ -58,9 +64,12 @@ export const socketHandlers = [
       connection.server.connect();
       return;
     }
-    // Rede simulada fora do ar: recusa — o cliente segue tentando com backoff.
-    if (db.get().meta.network === 'offline') {
-      client.close();
+    // Rede simulada fora do ar (ou queda forçada): falha como uma conexão recusada — `error` e
+    // depois `close`. Só `close` antes do handshake deixaria o socket.io preso em "opening".
+    if (db.get().meta.network === 'offline' || Date.now() < refuseUntil) {
+      // `socket` existe em runtime (o próprio MSW o usa para conexões sem handler), mas não no tipo.
+      (client as unknown as { socket: WebSocket }).socket.dispatchEvent(new Event('error'));
+      client.close(1011, 'unavailable');
       return;
     }
 
@@ -83,8 +92,16 @@ export const socketHandlers = [
   }),
 ];
 
-function send(peer: Peer, event: RealtimeEvent): void {
-  peer.io.client.emit(event.type, event);
+/** Envia aos sockets que passam no filtro; pedidos só aos do dono. Devolve quantos receberam. */
+function deliver(event: RealtimeEvent): number {
+  lastEmitted = event;
+  let delivered = 0;
+  for (const peer of peers) {
+    if (event.type === 'order.updated' && peer.userId !== event.userId) continue;
+    peer.io.client.emit(event.type, event);
+    delivered += 1;
+  }
+  return delivered;
 }
 
 /** Roda `fn` dentro de `db.update` e devolve o resultado. */
@@ -105,7 +122,7 @@ const nextEventId = (d: MockDb) => {
  * Lê o NFT atual do banco, incrementa a versão (a mesma que o REST devolve) e emite
  * `nft.updated` para todos os sockets. Chame depois de gravar a mudança no banco.
  */
-export function emitNftUpdated(nftId: string): NftUpdatedEvent | null {
+export function emitNftUpdated(nftId: string): EmitResult<NftUpdatedEvent> {
   const event = mutate((d): NftUpdatedEvent | null => {
     const nft = d.nfts.find((n) => n.id === nftId);
     if (!nft) return null;
@@ -122,12 +139,11 @@ export function emitNftUpdated(nftId: string): NftUpdatedEvent | null {
       },
     };
   });
-  if (event) for (const peer of peers) send(peer, event);
-  return event;
+  return { event, delivered: event ? deliver(event) : 0 };
 }
 
 /** Como `emitNftUpdated`, para pedidos — entregue só aos sockets autenticados como o dono. */
-export function emitOrderUpdated(orderId: string): OrderUpdatedEvent | null {
+export function emitOrderUpdated(orderId: string): EmitResult<OrderUpdatedEvent> {
   const event = mutate((d): OrderUpdatedEvent | null => {
     const order = d.orders[orderId];
     if (!order) return null;
@@ -147,15 +163,54 @@ export function emitOrderUpdated(orderId: string): OrderUpdatedEvent | null {
       },
     };
   });
-  if (event) {
-    for (const peer of peers) if (peer.userId === event.userId) send(peer, event);
-  }
-  return event;
+  return { event, delivered: event ? deliver(event) : 0 };
 }
 
-/** Derruba todas as conexões (testes de reconexão). O cliente reconecta sozinho. */
-export function dropAllSockets(): number {
+/** Reentrega o último evento (mesmo `eventId`) — o cliente deve ignorá-lo. */
+export function replayLast(): EmitResult {
+  if (!lastEmitted) return { event: null, delivered: 0 };
+  return { event: lastEmitted, delivered: deliver(lastEmitted) };
+}
+
+/**
+ * Evento atrasado: versão anterior à atual do NFT, com preço 0.01 em todas as edições. Não muda
+ * o banco — simula uma mensagem antiga chegando fora de ordem.
+ */
+export function emitStaleNft(nftId: string): EmitResult<NftUpdatedEvent> {
+  const event = mutate((d): NftUpdatedEvent | null => {
+    const nft = d.nfts.find((n) => n.id === nftId);
+    if (!nft) return null;
+    return {
+      eventId: nextEventId(d),
+      type: 'nft.updated',
+      resource: { type: 'nft', id: nft.id },
+      version: Math.max(0, nft.version - 1),
+      occurredAt: new Date().toISOString(),
+      data: {
+        editions: nft.editions.map(({ id, available }) => ({ id, price: '0.01', available })),
+        status: nft.status,
+      },
+    };
+  });
+  return { event, delivered: event ? deliver(event) : 0 };
+}
+
+/**
+ * Derruba todas as conexões (testes de reconexão); com `holdMs`, recusa reconexões por esse
+ * tempo. Os sockets saem da lista na hora: nada emitido depois disso chega até reconectarem.
+ */
+export function dropAllSockets(holdMs = 0): number {
   const all = [...peers];
-  for (const peer of all) peer.connection.client.close();
+  refuseUntil = Date.now() + holdMs;
+  for (const peer of all) {
+    clearInterval(peer.ping);
+    peers.delete(peer);
+    peer.connection.client.close();
+  }
   return all.length;
+}
+
+/** Conexões abertas (testes esperam o socket da página antes de emitir). */
+export function socketState() {
+  return { connections: [...peers].map((peer) => ({ userId: peer.userId })) };
 }

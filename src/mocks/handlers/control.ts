@@ -7,7 +7,7 @@ import { db } from '../db/store';
 import { isNetworkProfile } from '../network/profiles';
 import { resetNetworkState, setNetworkProfile } from '../network/with-network';
 import { isScenarioName } from '../scenarios';
-import { dropAllSockets, emitNftUpdated } from '../socket/server';
+import { dropAllSockets, emitNftUpdated, emitStaleNft, replayLast, socketState } from '../socket/server';
 import { apiError, apiPath, bearerToken, readJson, validationError } from './http';
 
 /** Resumo do banco para testes e para o painel (`GET /__mock/state`). */
@@ -123,8 +123,26 @@ export const controlHandlers = [
     return HttpResponse.json(emitNftUpdated(params.id));
   }),
 
-  /** Derruba as conexões do socket simulado; o cliente reconecta sozinho. */
-  http.post(apiPath('/__mock/socket/drop'), () => HttpResponse.json({ dropped: dropAllSockets() })),
+  /** Derruba as conexões do socket simulado; `holdMs` recusa reconexões por esse tempo. */
+  http.post(apiPath('/__mock/socket/drop'), async ({ request }) => {
+    const holdMs = field(await readJson(request), 'holdMs');
+    const hold = typeof holdMs === 'number' && holdMs > 0 ? Math.min(holdMs, 60_000) : 0;
+    return HttpResponse.json({ dropped: dropAllSockets(hold) });
+  }),
+
+  http.get(apiPath('/__mock/socket'), () => HttpResponse.json(socketState())),
+
+  /** Reentrega o último evento com o mesmo `eventId` (teste de deduplicação). */
+  http.post(apiPath('/__mock/socket/replay-last'), () => HttpResponse.json(replayLast())),
+
+  /** Emite um `nft.updated` com versão antiga para o NFT (teste de ordem). */
+  http.post(apiPath('/__mock/socket/emit-stale'), async ({ request }) => {
+    const nftId = field(await readJson(request), 'nftId');
+    if (typeof nftId !== 'string' || !db.get().nfts.some((n) => n.id === nftId)) {
+      return apiError(404, 'NOT_FOUND', 'NFT não encontrado.');
+    }
+    return HttpResponse.json(emitStaleNft(nftId));
+  }),
 
   http.get(apiPath('/__mock/state'), () => HttpResponse.json(mockState())),
 ];

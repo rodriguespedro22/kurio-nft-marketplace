@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 
 import type { NetworkProfileName } from '../../src/mocks/network/profiles';
 import type { ScenarioName } from '../../src/mocks/scenarios/definitions';
@@ -145,4 +145,41 @@ export async function serverQuote(page: Page, network = 'ethereum'): Promise<Ser
       body: JSON.stringify({ network }),
     },
   );
+}
+
+// ——— Tempo real (socket simulado) ———
+
+export type NftChange = { editionId?: string; price?: string; available?: number };
+type Emitted = { delivered: number; event: { eventId: string; version: number } | null };
+
+/** Muda preço/estoque no banco simulado; o mock emite `nft.updated` pelo socket. */
+export async function emitNftUpdate(page: Page, nftId: string, change: NftChange): Promise<Emitted> {
+  return (await mockControl(page, `/__mock/nfts/${nftId}/update`, change)) as Emitted;
+}
+
+/** Reenvia o último evento emitido, com o mesmo `eventId` (reentrega). */
+export async function replayLastEvent(page: Page): Promise<Emitted> {
+  return (await mockControl(page, '/__mock/socket/replay-last', {})) as Emitted;
+}
+
+/** Emite um `nft.updated` com versão anterior à atual (e preço 0.01) — chegada fora de ordem. */
+export async function emitStaleNftEvent(page: Page, nftId: string): Promise<Emitted> {
+  return (await mockControl(page, '/__mock/socket/emit-stale', { nftId })) as Emitted;
+}
+
+/** Derruba o socket; com `holdMs`, recusa reconexões por esse tempo. */
+export async function dropSocket(page: Page, opts: { holdMs?: number } = {}): Promise<void> {
+  await mockControl(page, '/__mock/socket/drop', opts);
+}
+
+/** Espera o socket da página conectar (autenticado, se pedido) antes de emitir eventos. */
+export async function waitForRealtime(page: Page, opts: { authenticated?: boolean } = {}): Promise<void> {
+  await expect
+    .poll(async () => {
+      const { connections } = (await mockControl(page, '/__mock/socket')) as {
+        connections: { userId: string | null }[];
+      };
+      return connections.some((c) => !opts.authenticated || c.userId !== null);
+    })
+    .toBe(true);
 }
