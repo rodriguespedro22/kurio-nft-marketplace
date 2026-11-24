@@ -5,11 +5,21 @@ import './styles/globals.css';
 
 import { App } from './app/App';
 
-const rootElement = document.getElementById('root');
-if (!rootElement) throw new Error('Elemento #root não encontrado');
+async function bootstrap() {
+  // Import dinâmico: com mocks desligados, nada de `src/mocks` entra no bundle principal.
+  if (import.meta.env.VITE_ENABLE_MOCKS === 'true') {
+    const { enableMocking } = await import('./mocks/browser');
+    await enableMocking();
+  }
 
-createRoot(rootElement).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-);
+  const rootElement = document.getElementById('root');
+  if (!rootElement) throw new Error('Elemento #root não encontrado');
+
+  createRoot(rootElement).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+}
+
+void bootstrap();
