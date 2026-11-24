@@ -1,0 +1,54 @@
+import type { QueryClient } from '@tanstack/react-query';
+import { createRootRouteWithContext, Link, Outlet } from '@tanstack/react-router';
+import { Compass } from 'lucide-react';
+
+import { Footer } from '@/shared/layout/Footer';
+import { Header } from '@/shared/layout/Header';
+import { MobileNav } from '@/shared/layout/MobileNav';
+import { buttonVariants } from '@/shared/ui/button-variants';
+import { EmptyState } from '@/shared/ui/empty-state';
+
+export type RouterContext = { queryClient: QueryClient };
+
+export const Route = createRootRouteWithContext<RouterContext>()({
+  component: RootLayout,
+  notFoundComponent: NotFoundPage,
+});
+
+function RootLayout() {
+  return (
+    <div className="flex min-h-dvh flex-col">
+      <a
+        href="#conteudo"
+        className="sr-only z-50 rounded-field bg-primary px-4 py-2 font-bold text-ink focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+      >
+        Pular para o conteúdo
+      </a>
+      <Header />
+      <main id="conteudo" tabIndex={-1} className="flex-1 outline-none">
+        <Outlet />
+      </main>
+      <Footer />
+      <MobileNav />
+    </div>
+  );
+}
+
+function NotFoundPage() {
+  return (
+    <section className="container-page py-16">
+      <title>Página não encontrada · Kurio</title>
+      <EmptyState
+        titleAs="h1"
+        icon={<Compass className="size-6" strokeWidth={1.5} />}
+        title="Página não encontrada"
+        description="O endereço que você abriu não existe ou foi movido."
+        action={
+          <Link to="/" className={buttonVariants()}>
+            Voltar para o Início
+          </Link>
+        }
+      />
+    </section>
+  );
+}

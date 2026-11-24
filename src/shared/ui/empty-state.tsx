@@ -8,9 +8,18 @@ type EmptyStateProps = {
   action?: ReactNode;
   icon?: ReactNode;
   className?: string;
+  /** Nível do título: `h1` quando o estado vazio é a página inteira. */
+  titleAs?: 'h1' | 'h2' | 'h3';
 };
 
-export function EmptyState({ title, description, action, icon, className }: EmptyStateProps) {
+export function EmptyState({
+  title,
+  description,
+  action,
+  icon,
+  className,
+  titleAs: Title = 'h2',
+}: EmptyStateProps) {
   return (
     <div
       data-slot="empty-state"
@@ -27,7 +36,7 @@ export function EmptyState({ title, description, action, icon, className }: Empt
           {icon}
         </div>
       ) : null}
-      <h2 className="text-section font-bold text-foreground">{title}</h2>
+      <Title className="text-section font-bold text-foreground">{title}</Title>
       {description ? <p className="max-w-md text-body-sm text-secondary">{description}</p> : null}
       {action ? <div className="mt-2">{action}</div> : null}
     </div>

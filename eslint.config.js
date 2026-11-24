@@ -35,6 +35,11 @@ export default tseslint.config(
     },
   },
   {
+    // Rotas file-based exportam `Route`; o router-plugin (autoCodeSplitting) cuida do HMR.
+    files: ['src/routes/**/*.tsx'],
+    rules: { 'react-refresh/only-export-components': 'off' },
+  },
+  {
     files: ['*.config.{ts,js}', 'e2e/**/*.ts', 'lighthouse/**/*.mjs', 'scripts/**/*.mjs'],
     languageOptions: { globals: { ...globals.node } },
   },

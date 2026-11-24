@@ -1,7 +1,17 @@
+import { useState } from 'react';
+import { RouterProvider } from '@tanstack/react-router';
+
+import { Providers } from './providers';
+import { createQueryClient } from './query-client';
+import { createAppRouter } from './router';
+
 export function App() {
+  const [queryClient] = useState(createQueryClient);
+  const [router] = useState(() => createAppRouter(queryClient));
+
   return (
-    <main>
-      <h1>Kurio</h1>
-    </main>
+    <Providers queryClient={queryClient}>
+      <RouterProvider router={router} />
+    </Providers>
   );
 }
