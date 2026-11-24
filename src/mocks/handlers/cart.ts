@@ -24,13 +24,13 @@ const GUEST_HEADER = 'x-guest-cart';
 const userKey = (userId: string) => `user:${userId}`;
 const guestKey = (guestCartId: string) => `guest:${guestCartId}`;
 
-type Owner = { key: string; userId: string | null };
+export type Owner = { key: string; userId: string | null };
 
 /**
  * Dono do carrinho: com `Authorization`, sempre o usuário (token inválido/vencido → 401, nunca
  * cai para o visitante); sem token, o `X-Guest-Cart`; sem nenhum dos dois → 400.
  */
-function resolveOwner(request: Request): Owner | Response {
+export function resolveOwner(request: Request): Owner | Response {
   if (bearerToken(request)) {
     const auth = authenticate(request);
     if (auth instanceof Response) return auth;
@@ -52,19 +52,19 @@ function emptyCart(d: MockDb, owner: Owner): CartRecord {
 }
 
 /** Carrinho do dono, criado vazio na primeira escrita. Use dentro de `db.update`. */
-function cartFor(d: MockDb, owner: Owner): CartRecord {
+export function cartFor(d: MockDb, owner: Owner): CartRecord {
   d.carts[owner.key] ??= emptyCart(d, owner);
   return d.carts[owner.key]!;
 }
 
-function findEdition(d: MockDb, nftId: string, editionId: string) {
+export function findEdition(d: MockDb, nftId: string, editionId: string) {
   const nft = d.nfts.find((n) => n.id === nftId);
   const edition = nft?.editions.find((e) => e.id === editionId);
   return nft && edition ? { nft, edition } : null;
 }
 
 /** Projeção pública: preço e disponibilidade atuais da edição; itens de NFTs removidos somem. */
-function toCart(d: MockDb, record: CartRecord | undefined): Cart {
+export function toCart(d: MockDb, record: CartRecord | undefined): Cart {
   const items: CartItem[] = [];
   for (const item of record?.items ?? []) {
     const found = findEdition(d, item.nftId, item.editionId);
@@ -96,7 +96,7 @@ const conflict = (available: number) =>
     { details: { available } },
   );
 
-const touch = (cart: CartRecord) => {
+export const touch = (cart: CartRecord) => {
   cart.updatedAt = new Date().toISOString();
 };
 

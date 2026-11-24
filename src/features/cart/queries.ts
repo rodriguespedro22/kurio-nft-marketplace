@@ -8,7 +8,7 @@ import { qk } from '@/shared/api/query-keys';
 import { announce } from '@/shared/ui/announce';
 
 import { cartApi } from './api';
-import { cartKey, useCartOwner, type CartOwner } from './use-cart-owner';
+import { cartKey, quotePrefix, useCartOwner, type CartOwner } from './use-cart-owner';
 
 /** Prefixo de todas as mutações do carrinho (contagem de "última mutação em voo"). */
 const CART_MUTATION = ['cart'] as const;
@@ -57,6 +57,7 @@ export function useAddToCart() {
     onMutate: () => ({ key: cartKey(owner) }),
     onSuccess: (cart, _input, context) => {
       queryClient.setQueryData(context.key, cart);
+      void queryClient.invalidateQueries({ queryKey: quotePrefix(owner) });
     },
   });
 }
@@ -88,7 +89,9 @@ export function useUpdateCartItem(itemId: string) {
       return { key, previous };
     },
     onSuccess: (cart, _variables, context) => {
-      if (isLastCartMutation(queryClient)) queryClient.setQueryData(context.key, cart);
+      if (!isLastCartMutation(queryClient)) return;
+      queryClient.setQueryData(context.key, cart);
+      void queryClient.invalidateQueries({ queryKey: quotePrefix(owner) });
     },
     onError: (error, _variables, context) => {
       if (context?.previous !== undefined && queryClient.getQueryData(context.key)) {
@@ -114,6 +117,7 @@ export function useRemoveCartItem(itemId: string) {
     mutationFn: () => cartApi.remove(itemId),
     onMutate: () => ({ key: cartKey(owner) }),
     onSuccess: (cart, _variables, context) => {
+      void queryClient.invalidateQueries({ queryKey: quotePrefix(owner) });
       if (isLastCartMutation(queryClient)) queryClient.setQueryData(context.key, cart);
       else {
         queryClient.setQueryData<Cart>(
@@ -144,7 +148,7 @@ export async function mergeGuestCart(queryClient: QueryClient): Promise<void> {
   try {
     const { cart, adjustments } = await cartApi.merge(guestCartId);
     queryClient.setQueryData(qk.user(session.user.id).cart, cart);
-    queryClient.removeQueries({ queryKey: qk.guest(guestCartId).cart });
+    queryClient.removeQueries({ queryKey: ['guest', guestCartId] });
     for (const adjustment of adjustments) {
       const message = adjustmentMessage(adjustment, cart);
       announce(message, 'polite');

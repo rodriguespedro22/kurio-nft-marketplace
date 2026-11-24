@@ -3,6 +3,7 @@ import { cartHandlers } from './cart';
 import { controlHandlers } from './control';
 import { favoriteHandlers } from './favorites';
 import { nftHandlers } from './nfts';
+import { quoteHandlers } from './quotes';
 
 export const handlers = [
   ...controlHandlers,
@@ -10,4 +11,5 @@ export const handlers = [
   ...nftHandlers,
   ...favoriteHandlers,
   ...cartHandlers,
+  ...quoteHandlers,
 ];

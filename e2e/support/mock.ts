@@ -34,8 +34,17 @@ export async function bootScenario(
   );
 }
 
+/**
+ * O app só renderiza depois de `enableMocking()` (src/main.tsx): `#root` com conteúdo garante que
+ * o Service Worker do MSW já intercepta. Sem isso, um fetch logo após `goto` cai no Vite (404).
+ */
+async function mockReady(page: Page): Promise<void> {
+  await page.locator('#root > *').first().waitFor({ state: 'attached' });
+}
+
 /** Chama a API de controle do mock de dentro da página (passa pelo Service Worker do MSW). */
 export async function mockControl(page: Page, path: string, body?: unknown): Promise<unknown> {
+  await mockReady(page);
   return page.evaluate(
     async ({ url, payload }) => {
       const init: RequestInit =
@@ -65,6 +74,7 @@ const SESSION_STORAGE_KEY = 'kurio:session';
 
 /** GET autenticado com a sessão salva na página — lê o estado do servidor simulado. */
 export async function apiAsUser<T = unknown>(page: Page, path: string): Promise<T> {
+  await mockReady(page);
   return page.evaluate(
     async ({ url, key }) => {
       const raw = localStorage.getItem(key);
@@ -88,6 +98,7 @@ const GUEST_CART_STORAGE_KEY = 'kurio:guest-cart';
 
 /** Carrinho atual direto do servidor simulado (sessão se houver, senão o do visitante). */
 export async function serverCart(page: Page): Promise<{ editionId: string; quantity: number }[]> {
+  await mockReady(page);
   return page.evaluate(
     async ({ url, sessionKey, guestKey }) => {
       const raw = localStorage.getItem(sessionKey);
@@ -100,5 +111,38 @@ export async function serverCart(page: Page): Promise<{ editionId: string; quant
       return cart.items.map(({ editionId, quantity }) => ({ editionId, quantity }));
     },
     { url: `${API_BASE}/cart`, sessionKey: SESSION_STORAGE_KEY, guestKey: GUEST_CART_STORAGE_KEY },
+  );
+}
+
+export type ServerQuote = {
+  subtotal: string;
+  discount: string;
+  networkFee: string;
+  total: string;
+  coupon: { code: string } | null;
+};
+
+/** Cotação nova do carrinho atual (mesmos headers do app) — referência para conferir o resumo. */
+export async function serverQuote(page: Page, network = 'ethereum'): Promise<ServerQuote> {
+  await mockReady(page);
+  return page.evaluate(
+    async ({ url, sessionKey, guestKey, body }) => {
+      const raw = localStorage.getItem(sessionKey);
+      const token = raw ? (JSON.parse(raw) as { token: string }).token : null;
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'X-Guest-Cart': localStorage.getItem(guestKey) ?? '',
+      };
+      if (token) headers.Authorization = `Bearer ${token}`;
+      const response = await fetch(url, { method: 'POST', headers, body });
+      if (!response.ok) throw new Error(`serverQuote → ${response.status}`);
+      return (await response.json()) as ServerQuote;
+    },
+    {
+      url: `${API_BASE}/quotes`,
+      sessionKey: SESSION_STORAGE_KEY,
+      guestKey: GUEST_CART_STORAGE_KEY,
+      body: JSON.stringify({ network }),
+    },
   );
 }

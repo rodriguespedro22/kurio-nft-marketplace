@@ -2,7 +2,8 @@ import type { Page } from '@playwright/test';
 
 import { submitLogin, USERS } from './support/auth';
 import { expect, test } from './support/fixtures';
-import { bootScenario, serverCart } from './support/mock';
+import { formatEth } from '../src/shared/money/eth';
+import { bootScenario, serverCart, serverQuote, setNetwork, type ServerQuote } from './support/mock';
 
 const IVORY = '/nft/nft-ivory-baron-088';
 const GOLDEN_BEAT = '/nft/nft-golden-beat-207';
@@ -115,3 +116,91 @@ test('carrinho vazio explica e leva ao catálogo', async ({ page }) => {
   await page.getByRole('link', { name: 'Explorar o catálogo' }).click();
   await expect(page).toHaveURL(/\/#catalogo$/);
 });
+
+// ——— Parte 2: resumo (cotação do servidor) e cupom ———
+
+const summary = (page: Page) => page.getByRole('complementary', { name: 'Resumo da carteira' });
+const couponInput = (page: Page) => page.getByRole('textbox', { name: 'Código promocional' });
+
+/** O resumo mostra exatamente os valores da cotação da API. */
+async function expectSummary(page: Page, quote: ServerQuote) {
+  const box = summary(page);
+  await expect(box.getByTestId('summary-subtotal')).toHaveText(formatEth(quote.subtotal));
+  await expect(box.getByTestId('summary-discount')).toHaveText(`(-) ${formatEth(quote.discount)}`);
+  await expect(box.getByTestId('summary-fee')).toHaveText(formatEth(quote.networkFee));
+  await expect(box.getByTestId('summary-total')).toHaveText(formatEth(quote.total));
+}
+
+async function cartWithTwoItems(page: Page) {
+  await addFromDetail(page, IVORY, /1\/10/);
+  await addFromDetail(page, GOLDEN_BEAT, /1\/50/);
+  await page.goto('/carrinho');
+}
+
+test('resumo: Subtotal, Desconto, Taxa de rede e Total iguais à cotação da API', async ({ page }) => {
+  await cartWithTwoItems(page);
+  await expect(summary(page).getByText('Subtotal')).toBeVisible();
+  await expect(summary(page).getByText('Taxa estimada')).toBeVisible();
+  await expectSummary(page, await serverQuote(page));
+
+  // Mudar a quantidade gera nova cotação.
+  await page.getByRole('button', { name: `Aumentar quantidade de ${IVORY_LINE}` }).click();
+  await expect.poll(() => serverCart(page)).toContainEqual({ editionId: IVORY_1_10, quantity: 2 });
+  await expectSummary(page, await serverQuote(page));
+});
+
+test('cupom KURIO10: aplica, mostra "Remover cupom", reload mantém e remover volta o total', async ({
+  page,
+}) => {
+  await cartWithTwoItems(page);
+  const before = await serverQuote(page);
+  await expectSummary(page, before);
+
+  await couponInput(page).fill('kurio10');
+  await summary(page).getByRole('button', { name: 'Aplicar' }).click();
+  await expect(summary(page).getByRole('button', { name: 'Remover cupom' })).toBeVisible();
+  await expect(summary(page)).toContainText('KURIO10');
+  const withCoupon = await serverQuote(page);
+  expect(withCoupon.coupon?.code).toBe('KURIO10');
+  await expectSummary(page, withCoupon);
+
+  await page.reload();
+  await expect(summary(page).getByRole('button', { name: 'Remover cupom' })).toBeVisible();
+  await expectSummary(page, withCoupon);
+
+  await summary(page).getByRole('button', { name: 'Remover cupom' }).click();
+  await expect(couponInput(page)).toBeVisible();
+  await expect(couponInput(page)).toBeFocused();
+  await expectSummary(page, before);
+});
+
+test('cupom expirado e inválido: mensagem no próprio campo', async ({ page }) => {
+  await cartWithTwoItems(page);
+  const input = couponInput(page);
+  const errorText = async () => {
+    const ids = ((await input.getAttribute('aria-describedby')) ?? '').split(' ').filter(Boolean);
+    return Promise.all(ids.map((id) => page.locator(`[id="${id}"]`).innerText()));
+  };
+
+  await input.fill('EXPIRADO10');
+  await input.press('Enter');
+  await expect(input).toHaveAttribute('aria-invalid', 'true');
+  await expect.poll(errorText).toContain('Cupom expirado');
+
+  await input.fill('XYZ');
+  await summary(page).getByRole('button', { name: 'Aplicar' }).click();
+  await expect.poll(errorText).toContain('Cupom inválido');
+  await expect(summary(page).getByRole('button', { name: 'Remover cupom' })).toHaveCount(0);
+});
+
+test('slow-network: skeleton do resumo até a cotação chegar', async ({ page }) => {
+  await cartWithTwoItems(page);
+  await expect(summary(page).getByTestId('summary-total')).toBeVisible();
+
+  await setNetwork(page, 'slow');
+  await page.reload();
+  await expect(page.getByTestId('order-summary-skeleton')).toBeVisible();
+  await expect(summary(page).getByTestId('summary-total')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId('order-summary-skeleton')).toHaveCount(0);
+});
+

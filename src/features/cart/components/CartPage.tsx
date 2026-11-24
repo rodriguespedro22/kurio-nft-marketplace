@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useIsMutating, useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 
 import type { Cart } from '@/contracts';
@@ -13,8 +13,12 @@ import { CartIcon } from '@/shared/ui/icons';
 import { PageError } from '@/shared/ui/page-error';
 
 import { useCart } from '../queries';
+import { useQuote } from '../quote-queries';
 import { CartList } from './CartList';
 import { CartSkeleton } from './CartSkeleton';
+import { CouponForm } from './CouponForm';
+import { OrderSummary } from './OrderSummary';
+import { OrderSummarySkeleton } from './OrderSummarySkeleton';
 
 const TITLE_ID = 'carrinho-titulo';
 
@@ -24,6 +28,33 @@ function AlsoViewed({ cart }: { cart: Cart | undefined }) {
   const inCart = new Set(cart?.items.map((i) => i.nftId));
   const items = (data?.items ?? []).filter((item) => !inCart.has(item.id));
   return <NftRail id="tambem-viram" title="Colecionadores também viram" items={items} />;
+}
+
+/**
+ * Resumo da carteira: cupom + cotação do servidor (rede ethereum até o checkout escolher outra).
+ * Enquanto uma mutação do carrinho ou a nova cotação está em voo, os valores antigos ficam
+ * esmaecidos com `aria-busy` — nunca um total calculado no front.
+ */
+function CartSummary({ cart }: { cart: Cart }) {
+  const quote = useQuote({ network: 'ethereum' });
+  const cartMutations = useIsMutating({ mutationKey: ['cart'] });
+  return (
+    <>
+      <CouponForm appliedCode={cart.couponCode} />
+      {quote.data ? (
+        <OrderSummary quote={quote.data} updating={cartMutations > 0 || quote.isFetching} />
+      ) : quote.isError ? (
+        <PageError
+          error={quote.error}
+          title="Não foi possível calcular o resumo"
+          onRetry={() => void quote.refetch()}
+          className="py-6"
+        />
+      ) : (
+        <OrderSummarySkeleton />
+      )}
+    </>
+  );
 }
 
 /**
@@ -93,6 +124,7 @@ export function CartPage() {
               >
                 Resumo da carteira
               </h2>
+              <CartSummary cart={cart} />
               <Link
                 to="/"
                 hash="catalogo"
