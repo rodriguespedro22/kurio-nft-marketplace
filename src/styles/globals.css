@@ -1,1 +1,163 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
+
+/* Roboto Mono self-hosted (OFL, subset latin) */
+@font-face {
+  font-family: 'Roboto Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/roboto-mono-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Roboto Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/roboto-mono-latin-500-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Roboto Mono';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/roboto-mono-latin-700-normal.woff2') format('woff2');
+}
+
+/* Tokens do layout. A paleta padrão do Tailwind é removida
+   para que só as cores do design possam ser usadas. */
+@theme {
+  --color-*: initial;
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  --color-ink: #140d0a;
+  --color-surface: #241612;
+  --color-surface-raised: #2f1d15;
+  --color-surface-dark: #38220f;
+  --color-border: #3f2319;
+  --color-border-soft: #55321f;
+  --color-primary: #d28a4c;
+  --color-primary-light: #dd9a5f;
+  --color-primary-dark: #c47b3e;
+  --color-foreground: #f5f1eb;
+  --color-accent: #e89b55;
+  --color-secondary: #cfb28c;
+  --color-muted: #b39463;
+  --color-coral: #f0805f;
+  --color-amber: #e3a44e;
+  --color-error: #ed1b2e;
+  --color-success: #00a66c;
+
+  --font-sans: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-mono: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --text-display: 2.6875rem;
+  --text-display--line-height: 1.63;
+  --text-h1: 1.75rem;
+  --text-h1--line-height: 1.32;
+  --text-h2: 1.5rem;
+  --text-h2--line-height: 1.33;
+  --text-title: 1.375rem;
+  --text-title--line-height: 1.2;
+  --text-title-sm: 1.25rem;
+  --text-title-sm--line-height: 1.2;
+  --text-section: 1.125rem;
+  --text-section--line-height: 1.3;
+  --text-body-lg: 1rem;
+  --text-body-lg--line-height: 1.3;
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.32;
+  --text-body-sm: 0.875rem;
+  --text-body-sm--line-height: 1.6;
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.5;
+  --text-micro: 0.625rem;
+  --text-micro--line-height: 1.2;
+
+  --tracking-brand: 0.1em;
+
+  --radius-control: 3px;
+  --radius-field: 5px;
+  --radius-art: 15px;
+
+  --container-page: 75rem;
+
+  --shadow-bar: 0 0 20px rgb(10 6 4 / 0.45);
+
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
+
+  @keyframes shimmer {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
+}
+
+@utility skeleton-shimmer {
+  background-color: var(--color-surface-raised);
+  background-image: linear-gradient(
+    90deg,
+    var(--color-surface-raised) 0%,
+    var(--color-border-soft) 50%,
+    var(--color-surface-raised) 100%
+  );
+  background-size: 200% 100%;
+}
+
+@utility container-page {
+  width: 100%;
+  max-width: var(--container-page);
+  margin-inline: auto;
+  padding-inline: 1rem;
+
+  @media (width >= 80rem) {
+    padding-inline: 0;
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    min-height: 100dvh;
+    background-color: var(--color-ink);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Foco visível em todos os controles (o layout não desenha estado de foco —) */
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: var(--color-primary);
+    color: var(--color-ink);
+  }
+
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']) {
+    cursor: pointer;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
