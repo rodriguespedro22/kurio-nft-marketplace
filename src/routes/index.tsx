@@ -1,25 +1,31 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, stripSearchParams } from '@tanstack/react-router';
+
+import { CatalogSection } from '@/features/catalog/components/CatalogSection';
+import { Hero } from '@/features/catalog/components/Hero';
+import { MintDiary, Promos } from '@/features/catalog/components/HomeEditorial';
+import { catalogQueries } from '@/features/catalog/queries';
+import { catalogSearchSchema, toCatalogParams } from '@/features/catalog/search';
 
 export const Route = createFileRoute('/')({
+  validateSearch: catalogSearchSchema,
+  // `page=1` é o padrão: não polui a URL.
+  search: { middlewares: [stripSearchParams({ page: 1 })] },
+  loaderDeps: ({ search }) => toCatalogParams(search),
+  // Não bloqueia a navegação: só adianta a busca (inclusive no preload por intenção dos links).
+  loader: ({ context: { queryClient }, deps }) => {
+    void queryClient.prefetchQuery(catalogQueries.list(deps));
+  },
   component: HomePage,
 });
 
-// Placeholder do shell: hero e catálogo vêm a seguir.
 function HomePage() {
   return (
-    <div className="container-page flex flex-col gap-10 py-10">
+    <div className="container-page flex flex-col gap-10 py-6 xl:gap-20 xl:py-10">
       <title>Kurio · Marketplace de NFTs</title>
-      <section aria-labelledby="hero-title" className="flex flex-col gap-4">
-        <p className="text-body-sm font-medium tracking-brand text-foreground">Bem-vindo à Kurio</p>
-        <h1 id="hero-title" className="max-w-xl text-h1 font-bold uppercase xl:text-display">
-          Seja dono do futuro da arte digital
-        </h1>
-        <p className="max-w-lg text-body-sm text-secondary">
-          Descubra NFTs selecionados de criadores emergentes e consagrados. Colecione arte digital rara, apoie
-          artistas e tenha uma parte da cultura da internet.
-        </p>
-      </section>
-      <section id="catalogo" aria-label="Catálogo" className="min-h-40 scroll-mt-24" />
+      <Hero />
+      <CatalogSection />
+      <Promos />
+      <MintDiary />
     </div>
   );
 }

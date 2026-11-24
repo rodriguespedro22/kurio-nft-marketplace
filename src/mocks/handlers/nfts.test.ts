@@ -1,7 +1,13 @@
 import axios from 'axios';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'vitest';
 
-import { CategoryListSchema, NftPageSchema, NftSchema, type NftListItem } from '@/contracts';
+import {
+  CatalogFacetsSchema,
+  CategoryListSchema,
+  NftPageSchema,
+  NftSchema,
+  type NftListItem,
+} from '@/contracts';
 import { toApiError } from '@/shared/api/api-error';
 import { cmpEth } from '@/shared/money/eth';
 
@@ -169,6 +175,19 @@ describe('detalhe, destaques e categorias', () => {
     const res = await client.get('/nfts/featured');
     expect(res.data).toHaveLength(3);
     expect(NftPageSchema.shape.items.parse(res.data)).toHaveLength(3);
+  });
+
+  test('GET /catalog/facets conta por rede e traz a faixa de preço de vitrine', async () => {
+    const facets = CatalogFacetsSchema.parse((await client.get('/catalog/facets')).data);
+    expect(facets.networks.map((n) => n.id)).toEqual(['ethereum', 'polygon', 'solana']);
+    expect(facets.networks.map((n) => n.count)).toEqual([23, 23, 14]);
+    expect(facets.priceRange).not.toBeNull();
+    expect(cmpEth(facets.priceRange!.min, facets.priceRange!.max)).toBe(-1);
+
+    await client.post('/__mock/reset', { scenario: 'empty-catalog' });
+    const empty = CatalogFacetsSchema.parse((await client.get('/catalog/facets')).data);
+    expect(empty.priceRange).toBeNull();
+    expect(empty.networks.every((n) => n.count === 0)).toBe(true);
   });
 
   test('GET /categories conta só os NFTs existentes', async () => {

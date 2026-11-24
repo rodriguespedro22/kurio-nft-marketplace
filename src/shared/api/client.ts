@@ -26,6 +26,8 @@ export const apiClient = axios.create({
   adapter: 'fetch',
   baseURL: API_URL,
   timeout: 8000,
+  // Listas como `category=a&category=b` (o mock aceita também `category[]=`).
+  paramsSerializer: { indexes: null },
   headers: { Accept: 'application/json' },
 });
 

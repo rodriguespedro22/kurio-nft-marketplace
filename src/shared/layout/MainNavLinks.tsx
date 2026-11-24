@@ -27,7 +27,7 @@ export function MainNavLinks({ variant, onNavigate }: MainNavLinksProps) {
       <li>
         <Link
           to="/"
-          activeOptions={{ exact: true, includeHash: true }}
+          activeOptions={{ exact: true, includeHash: true, includeSearch: false }}
           className={className}
           onClick={onNavigate}
         >
@@ -38,7 +38,7 @@ export function MainNavLinks({ variant, onNavigate }: MainNavLinksProps) {
         <Link
           to="/"
           hash="catalogo"
-          activeOptions={{ exact: true, includeHash: true }}
+          activeOptions={{ exact: true, includeHash: true, includeSearch: false }}
           className={className}
           onClick={onNavigate}
         >

@@ -6,6 +6,7 @@ import type { CatalogSearch, QuoteInput } from '@/contracts';
  */
 export const qk = {
   categories: () => ['categories'] as const,
+  facets: () => ['facets'] as const,
   catalog: (params: CatalogSearch) => ['catalog', params] as const,
   featured: () => ['featured'] as const,
   nft: (id: string) => ['nft', id] as const,

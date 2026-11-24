@@ -42,7 +42,14 @@ const HELP_LINKS: SoonLink[] = [
   { label: 'Denunciar item', secao: 'denunciar' },
 ];
 
-const COLLECTIONS = ['Arte digital', 'Fotografia', 'Música', 'Arte 3D', 'Utilidade'];
+/** Coleções do rodapé → catálogo já filtrado pela categoria. */
+const COLLECTIONS = [
+  { id: 'arte-digital', name: 'Arte digital' },
+  { id: 'fotografia', name: 'Fotografia' },
+  { id: 'musica', name: 'Música' },
+  { id: 'arte-3d', name: 'Arte 3D' },
+  { id: 'utilidade', name: 'Utilidade' },
+] as const;
 
 const SOCIAL = [
   { label: 'Facebook', mono: 'f' },
@@ -155,9 +162,9 @@ export function Footer() {
           </FooterColumn>
           <FooterColumn title="Coleções">
             <ul className="flex flex-col gap-2">
-              {COLLECTIONS.map((name) => (
-                <li key={name}>
-                  <Link to="/" hash="catalogo" className={linkClass}>
+              {COLLECTIONS.map(({ id, name }) => (
+                <li key={id}>
+                  <Link to="/" search={{ category: [id] }} hash="catalogo" className={linkClass}>
                     {name}
                   </Link>
                 </li>

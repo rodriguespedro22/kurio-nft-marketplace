@@ -1,0 +1,82 @@
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useLocation } from '@tanstack/react-router';
+
+import { cn } from '@/shared/lib/utils';
+import { SearchIcon } from '@/shared/ui/icons';
+import { Input } from '@/shared/ui/input';
+
+import { SEARCH_INPUT_ID } from '../search';
+import { useCatalogSearch, useUpdateCatalogSearch } from '../use-catalog-search';
+
+const DEBOUNCE_MS = 300;
+
+/**
+ * Busca por nome/coleção/criador. O texto digitado vai para a URL (`?q=`) 300 ms depois da
+ * última tecla (Enter envia na hora); mudanças externas da URL (voltar, "Limpar filtros")
+ * atualizam o campo sem atropelar o que o usuário ainda está digitando.
+ */
+export function SearchInput({ className }: { className?: string }) {
+  const { q } = useCatalogSearch();
+  const updateSearch = useUpdateCatalogSearch();
+  const urlValue = q ?? '';
+
+  const [value, setValue] = useState(urlValue);
+  const [seenUrlValue, setSeenUrlValue] = useState(urlValue);
+  const [committed, setCommitted] = useState<string | null>(null);
+
+  if (urlValue !== seenUrlValue) {
+    setSeenUrlValue(urlValue);
+    // Só sobrescreve o campo quando a URL mudou por outro motivo que não a nossa digitação.
+    if (urlValue !== committed) setValue(urlValue);
+    setCommitted(null);
+  }
+
+  useEffect(() => {
+    const next = value.trim();
+    if (next === urlValue) return;
+    const timer = window.setTimeout(() => {
+      setCommitted(next);
+      updateSearch({ q: next }, { replace: true });
+    }, DEBOUNCE_MS);
+    return () => window.clearTimeout(timer);
+  }, [value, urlValue, updateSearch]);
+
+  // Ícone de busca do header leva a `/#busca`: foca o campo.
+  const hash = useLocation({ select: (location) => location.hash });
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (hash === SEARCH_INPUT_ID) inputRef.current?.focus({ preventScroll: false });
+  }, [hash]);
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const next = value.trim();
+    if (next === urlValue) return;
+    setCommitted(next);
+    updateSearch({ q: next }, { replace: true });
+  }
+
+  return (
+    <form role="search" onSubmit={handleSubmit} className={cn('relative', className)}>
+      <label htmlFor={SEARCH_INPUT_ID} className="sr-only">
+        Buscar NFTs
+      </label>
+      <SearchIcon
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-muted"
+      />
+      <Input
+        ref={inputRef}
+        id={SEARCH_INPUT_ID}
+        type="search"
+        value={value}
+        onChange={(event) => setValue(event.target.value)}
+        placeholder="Explorar coleções"
+        autoComplete="off"
+        enterKeyHint="search"
+        maxLength={80}
+        className="h-12 scroll-mt-28 rounded-[10px] border-border bg-surface pl-12 text-body"
+      />
+    </form>
+  );
+}

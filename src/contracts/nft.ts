@@ -107,3 +107,17 @@ export const CatalogSearchSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
 });
 export type CatalogSearch = z.infer<typeof CatalogSearchSchema>;
+
+// ---------- Facetas do catálogo (sidebar: contagem por rede e faixa de preço) ----------
+
+export const NetworkCountSchema = z.object({
+  id: NetworkSchema,
+  name: z.string(),
+  count: z.number().int().min(0),
+});
+export const CatalogFacetsSchema = z.object({
+  networks: z.array(NetworkCountSchema),
+  /** Menor e maior preço de vitrine do catálogo inteiro (`null` com catálogo vazio). */
+  priceRange: z.object({ min: EthSchema, max: EthSchema }).nullable(),
+});
+export type CatalogFacets = z.infer<typeof CatalogFacetsSchema>;

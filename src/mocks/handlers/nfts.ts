@@ -3,6 +3,9 @@ import { z } from 'zod';
 
 import {
   CatalogSearchSchema,
+  NETWORK_LABELS,
+  NETWORKS,
+  type CatalogFacets,
   type CatalogSearch,
   type Nft,
   type NftListItem,
@@ -156,6 +159,27 @@ export const nftHandlers = [
         const nft = db.get().nfts.find((n) => n.id === params.id);
         if (!nft) return apiError(404, 'NOT_FOUND', 'NFT não encontrado.');
         return HttpResponse.json(nft);
+      },
+      { route: 'catalog' },
+    ),
+  ),
+
+  http.get(
+    apiPath('/catalog/facets'),
+    withNetwork(
+      () => {
+        const nfts = db.get().nfts;
+        const networks = NETWORKS.map((id) => ({
+          id,
+          name: NETWORK_LABELS[id],
+          count: nfts.filter((n) => n.network === id).length,
+        }));
+        const prices = nfts.map(displayPrice).sort(cmpEth);
+        const body: CatalogFacets = {
+          networks,
+          priceRange: prices.length ? { min: prices[0]!, max: prices[prices.length - 1]! } : null,
+        };
+        return HttpResponse.json(body);
       },
       { route: 'catalog' },
     ),
