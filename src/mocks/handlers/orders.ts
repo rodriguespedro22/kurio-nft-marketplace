@@ -6,6 +6,7 @@ import {
   type Order,
   type OrderLineSnapshot,
   type Quote,
+  type Transaction,
 } from '@/contracts';
 import { addEth, cmpEth } from '@/shared/money/eth';
 import { toListItem } from '@/shared/nft/list-item';
@@ -21,7 +22,8 @@ import { apiError, apiPath, readJson, validationError } from './http';
 import { priceCart, storeQuote } from './quotes';
 import { authenticate } from './session';
 
-const EXPLORER = 'https://explorer.kurio.test/tx/';
+/** Explorador simulado dentro do próprio app (rota `/explorador/tx/:hash`). */
+const EXPLORER = '/explorador/tx/';
 
 // ——— Hash e serialização estável ———
 
@@ -48,6 +50,23 @@ function toOrder(record: OrderRecord): Order {
   const { id, status, createdAt, updatedAt, version, txHash, explorerUrl, rejectionReason, snapshot } =
     record;
   return { id, status, createdAt, updatedAt, version, txHash, explorerUrl, rejectionReason, snapshot };
+}
+
+/** Bloco determinístico a partir do hash: a mesma transação sempre cai no mesmo bloco. */
+const blockFor = (txHash: string) => 19_000_000 + (parseInt(txHash.slice(2, 10), 16) % 1_000_000);
+
+function toTransaction(record: OrderRecord & { txHash: string }): Transaction {
+  const { snapshot } = record;
+  return {
+    hash: record.txHash,
+    status: 'confirmed',
+    network: snapshot.network,
+    blockNumber: blockFor(record.txHash),
+    timestamp: record.updatedAt,
+    tokens: snapshot.lines.reduce((sum, line) => sum + line.quantity, 0),
+    value: snapshot.total,
+    networkFee: snapshot.networkFee,
+  };
 }
 
 const timers = new Map<string, ReturnType<typeof setTimeout>>();
@@ -323,6 +342,18 @@ export const orderHandlers = [
       if (!order || order.userId !== auth.user.id)
         return apiError(404, 'NOT_FOUND', 'Pedido não encontrado.');
       return HttpResponse.json(toOrder(order));
+    }),
+  ),
+
+  /** Explorador simulado: público, só pedidos confirmados (recusados não chegam à rede). */
+  http.get<{ hash: string }>(
+    apiPath('/explorer/tx/:hash'),
+    withNetwork(({ params }) => {
+      const order = Object.values(db.get().orders).find(
+        (o): o is OrderRecord & { txHash: string } => o.status === 'confirmed' && o.txHash === params.hash,
+      );
+      if (!order) return apiError(404, 'NOT_FOUND', 'Transação não encontrada.');
+      return HttpResponse.json(toTransaction(order));
     }),
   ),
 ];

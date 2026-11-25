@@ -1,7 +1,14 @@
 import axios from 'axios';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'vitest';
 
-import { OrderSchema, QuoteSchema, type Buyer, type CreateOrderInput, type Order } from '@/contracts';
+import {
+  OrderSchema,
+  QuoteSchema,
+  TransactionSchema,
+  type Buyer,
+  type CreateOrderInput,
+  type Order,
+} from '@/contracts';
 import { toApiError } from '@/shared/api/api-error';
 
 import { db } from '../db/store';
@@ -188,7 +195,7 @@ describe('resolução do pedido', () => {
     const resolved = OrderSchema.parse((await client.get(`/orders/${order.id}`, auth())).data);
     expect(resolved.status).toBe('confirmed');
     expect(resolved.txHash).toMatch(/^0x[0-9a-f]{64}$/);
-    expect(resolved.explorerUrl).toBe(`https://explorer.kurio.test/tx/${resolved.txHash}`);
+    expect(resolved.explorerUrl).toBe(`/explorador/tx/${resolved.txHash}`);
     expect(resolved.version).toBeGreaterThan(order.version);
     expect(edition().available).toBe(before - 2);
     expect(await cartQuantity()).toEqual([1]);
@@ -208,5 +215,31 @@ describe('resolução do pedido', () => {
     expect(resolved.rejectionReason).toMatch(/recusado/i);
     expect(edition().available).toBe(before);
     expect(await cartQuantity()).toEqual([2]);
+  });
+});
+
+describe('GET /explorer/tx/:hash', () => {
+  test('pedido confirmado: transação pública com os valores do snapshot, sem dados do comprador', async () => {
+    await addToCart(2);
+    const order = (await createOrder(await orderInput(), 'key-1')).data as Order;
+    await resolveOrder(order.id);
+    const { txHash, snapshot } = OrderSchema.parse((await client.get(`/orders/${order.id}`, auth())).data);
+
+    const res = await client.get(`/explorer/tx/${txHash}`); // sem token: é público
+    const tx = TransactionSchema.parse(res.data);
+    expect(tx).toMatchObject({ hash: txHash, status: 'confirmed', network: 'ethereum', tokens: 2 });
+    expect(tx.value).toBe(snapshot.total);
+    expect(tx.networkFee).toBe(snapshot.networkFee);
+    expect(Object.keys(res.data as object)).not.toContain('walletAddress');
+    // Determinístico: a mesma transação, o mesmo bloco.
+    expect((await client.get(`/explorer/tx/${txHash}`)).data).toEqual(res.data);
+  });
+
+  test('hash desconhecido ou pedido ainda pendente → 404', async () => {
+    await expectError(client.get('/explorer/tx/0xdeadbeef'), 404, 'NOT_FOUND');
+    await addToCart(1);
+    await createOrder(await orderInput(), 'key-1');
+    const pendingHash = Object.values(db.get().orders)[0]!.txHash;
+    expect(pendingHash).toBeNull();
   });
 });

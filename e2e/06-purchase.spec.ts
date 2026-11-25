@@ -181,6 +181,16 @@ test('compra completa: pendente → confirmado; recibo do snapshot; carrinho só
   await expect(receipt.getByTestId('receipt-fee')).toHaveText(formatEth(order.snapshot.networkFee));
   await expect(receipt.getByTestId('receipt-total')).toHaveText(formatEth(order.snapshot.total));
 
+  // O link do explorador abre a transação simulada (nova aba, dentro do app).
+  const explorerTab = page.context().waitForEvent('page');
+  await receipt.getByRole('link', { name: /Ver no explorador/ }).click();
+  const tx = await explorerTab;
+  const details = tx.getByRole('region', { name: 'Detalhes da transação' });
+  await expect(details).toContainText(order.txHash!);
+  await expect(details).toContainText('Confirmada');
+  await expect(details).toContainText(formatEth(order.snapshot.total));
+  await tx.close();
+
   // Preço novo no catálogo não altera o recibo.
   await emitNftUpdate(page, 'nft-ivory-baron-088', { price: '9.99' });
   await page.waitForTimeout(300);

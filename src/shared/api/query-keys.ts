@@ -10,6 +10,7 @@ export const qk = {
   catalog: (params: CatalogSearch) => ['catalog', params] as const,
   featured: () => ['featured'] as const,
   nft: (id: string) => ['nft', id] as const,
+  transaction: (hash: string) => ['transaction', hash] as const,
   user: (userId: string) => ({
     all: ['user', userId] as const,
     session: ['user', userId, 'session'] as const,
