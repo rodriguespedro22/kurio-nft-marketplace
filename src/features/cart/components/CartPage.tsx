@@ -128,6 +128,12 @@ export function CartPage() {
               </h2>
               <CartSummary cart={cart} />
               <Link
+                to="/checkout"
+                className={buttonVariants({ variant: 'primary', size: 'lg', className: 'w-full' })}
+              >
+                Conectar e finalizar
+              </Link>
+              <Link
                 to="/"
                 hash="catalogo"
                 className="self-center text-body text-accent underline-offset-4 hover:underline"

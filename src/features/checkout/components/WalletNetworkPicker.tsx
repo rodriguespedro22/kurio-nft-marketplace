@@ -1,0 +1,124 @@
+import { useId, useState } from 'react';
+import { Link } from '@tanstack/react-router';
+import { CircleAlert } from 'lucide-react';
+
+import { NETWORK_LABELS, WALLET_PROVIDER_LABELS, type Wallet, type WalletConnection } from '@/contracts';
+import { ConnectWalletDialog } from '@/features/wallets/components/ConnectWalletDialog';
+import { SLOT_TITLES } from '@/features/wallets/form-values';
+import { shortAddress } from '@/features/wallets/short-address';
+import { buttonVariants } from '@/shared/ui/button-variants';
+import { Button } from '@/shared/ui/button';
+import { RadioGroup, RadioGroupItem } from '@/shared/ui/radio-group';
+import { cn } from '@/shared/lib/utils';
+
+const CONNECTION_LABELS: Record<WalletConnection, string> = {
+  connected: 'Conectada',
+  disconnected: 'Desconectada',
+  declined: 'Recusada',
+};
+
+type WalletNetworkPickerProps = {
+  wallets: Wallet[];
+  selectedId: string | null;
+  onSelect: (wallet: Wallet) => void;
+  /** Erro da tentativa de revisão (sem carteira ou carteira desconectada). */
+  error?: string | null;
+};
+
+/**
+ * "Carteira e rede": as carteiras cadastradas como cartões com radio (a principal vem marcada).
+ * A carteira escolhida precisa estar conectada — a conexão é a mesma simulação de /carteiras.
+ */
+export function WalletNetworkPicker({ wallets, selectedId, onSelect, error }: WalletNetworkPickerProps) {
+  const titleId = useId();
+  const errorId = useId();
+  const [connecting, setConnecting] = useState<Wallet | null>(null);
+  const selected = wallets.find((wallet) => wallet.id === selectedId) ?? null;
+
+  return (
+    <div
+      role="group"
+      aria-labelledby={titleId}
+      aria-describedby={error ? errorId : undefined}
+      className="flex flex-col gap-3"
+    >
+      <h3 id={titleId} className="text-center text-body-lg font-bold text-foreground">
+        Carteira e rede
+      </h3>
+
+      {wallets.length === 0 ? (
+        <div className="flex flex-col items-start gap-3 rounded-field border border-border p-4 text-body-sm text-secondary">
+          <p>Você ainda não tem carteira cadastrada.</p>
+          <Link to="/carteiras" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+            Cadastrar carteira
+          </Link>
+        </div>
+      ) : (
+        <RadioGroup
+          aria-labelledby={titleId}
+          value={selectedId ?? ''}
+          onValueChange={(id) => {
+            const wallet = wallets.find((item) => item.id === id);
+            if (wallet) onSelect(wallet);
+          }}
+        >
+          {wallets.map((wallet) => {
+            const itemId = `${titleId}-${wallet.id}`;
+            const checked = wallet.id === selectedId;
+            return (
+              <div
+                key={wallet.id}
+                className={cn(
+                  'flex items-center gap-4 rounded-field border px-4 py-3 transition-colors',
+                  checked ? 'border-foreground' : 'border-border',
+                )}
+              >
+                <RadioGroupItem id={itemId} value={wallet.id} />
+                <label htmlFor={itemId} className="flex min-w-0 flex-1 cursor-pointer flex-col gap-0.5">
+                  <span className="truncate text-body text-foreground">
+                    {wallet.label} <span className="text-secondary">· {SLOT_TITLES[wallet.slot]}</span>
+                  </span>
+                  <span className="truncate text-caption text-secondary">
+                    {shortAddress(wallet.address)} · {NETWORK_LABELS[wallet.network]} ·{' '}
+                    {WALLET_PROVIDER_LABELS[wallet.provider]}
+                  </span>
+                  <span
+                    className={cn(
+                      'text-caption',
+                      wallet.connection === 'connected' ? 'text-success' : 'text-amber',
+                    )}
+                  >
+                    {CONNECTION_LABELS[wallet.connection]}
+                  </span>
+                </label>
+              </div>
+            );
+          })}
+        </RadioGroup>
+      )}
+
+      {selected && selected.connection !== 'connected' ? (
+        <Button variant="outline" size="sm" className="self-start" onClick={() => setConnecting(selected)}>
+          Conectar {WALLET_PROVIDER_LABELS[selected.provider]}
+        </Button>
+      ) : null}
+
+      {error ? (
+        <p id={errorId} role="alert" className="flex items-start gap-1.5 text-body-sm text-coral">
+          <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+          {error}
+        </p>
+      ) : null}
+
+      {connecting ? (
+        <ConnectWalletDialog
+          wallet={connecting}
+          open
+          onOpenChange={(open) => {
+            if (!open) setConnecting(null);
+          }}
+        />
+      ) : null}
+    </div>
+  );
+}
