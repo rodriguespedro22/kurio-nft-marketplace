@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 
 import { cn } from '@/shared/lib/utils';
+import { InertLink } from '@/shared/ui/inert-link';
 
 type MainNavLinksProps = {
   variant: 'bar' | 'sheet';
@@ -19,7 +20,7 @@ const variants = {
   ),
 } as const;
 
-/** Início · Mercado (= catálogo) · Criadores · Aprenda — os dois últimos estão fora do escopo. */
+/** Início · Mercado (= catálogo) · Criadores · Aprenda — os dois últimos, fora do escopo, não fazem nada. */
 export function MainNavLinks({ variant, onNavigate }: MainNavLinksProps) {
   const className = variants[variant];
   return (
@@ -46,14 +47,10 @@ export function MainNavLinks({ variant, onNavigate }: MainNavLinksProps) {
         </Link>
       </li>
       <li>
-        <Link to="/em-breve" search={{ secao: 'criadores' }} className={className} onClick={onNavigate}>
-          Criadores
-        </Link>
+        <InertLink className={className}>Criadores</InertLink>
       </li>
       <li>
-        <Link to="/em-breve" search={{ secao: 'aprenda' }} className={className} onClick={onNavigate}>
-          Aprenda
-        </Link>
+        <InertLink className={className}>Aprenda</InertLink>
       </li>
     </ul>
   );

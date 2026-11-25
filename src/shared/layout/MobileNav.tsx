@@ -4,6 +4,7 @@ import { Heart, ScanLine } from 'lucide-react';
 import { BarCartLink } from '@/features/cart/components/CartBadge';
 import { cn } from '@/shared/lib/utils';
 import { HomeIcon, UserIcon } from '@/shared/ui/icons';
+import { InertLink } from '@/shared/ui/inert-link';
 
 const itemClass =
   'flex min-h-12 min-w-12 flex-col items-center justify-center gap-0.5 rounded-field text-micro font-medium text-muted transition-colors hover:text-secondary data-[status=active]:text-accent';
@@ -38,14 +39,12 @@ export function MobileNav({ hideOnPhone = false }: MobileNavProps) {
           </Link>
         </li>
         <li className="col-start-3 flex justify-center">
-          <Link
-            to="/em-breve"
-            search={{ secao: 'escanear' }}
-            aria-label="Escanear NFT"
+          <InertLink
+            label="Escanear NFT"
             className="-mt-8 grid size-16 place-items-center rounded-full bg-linear-to-b from-primary-light to-primary-dark text-ink shadow-bar ring-4 ring-ink"
           >
             <ScanLine aria-hidden="true" className="size-7" strokeWidth={1.5} />
-          </Link>
+          </InertLink>
         </li>
         <li className="col-start-4 flex justify-center">
           <BarCartLink className={itemClass} />

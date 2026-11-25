@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link } from '@tanstack/react-router';
 import { CircleAlert } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
@@ -12,6 +11,7 @@ import { Input } from '@/shared/ui/input';
 import { PasswordInput } from '@/shared/ui/password-input';
 
 import { useLogin } from '../queries';
+import { InertLink } from '@/shared/ui/inert-link';
 
 type LoginFormProps = { onSuccess: () => void };
 
@@ -57,13 +57,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         <PasswordInput autoComplete="current-password" {...form.register('password')} />
       </FormField>
 
-      <Link
-        to="/em-breve"
-        search={{ secao: 'recuperar-senha' }}
-        className="-mt-1 self-end text-body-sm text-accent hover:underline"
-      >
-        Esqueceu a senha?
-      </Link>
+      <InertLink className="-mt-1 self-end text-body-sm text-accent">Esqueceu a senha?</InertLink>
 
       <Button type="submit" size="lg" loading={login.isPending} className="w-full">
         Entrar

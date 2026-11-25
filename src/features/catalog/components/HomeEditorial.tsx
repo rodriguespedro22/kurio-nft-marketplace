@@ -4,6 +4,7 @@ import { ArrowRight } from 'lucide-react';
 
 import type { CatalogSearch } from '@/contracts';
 import { NftImage } from '@/shared/ui/nft-image';
+import { InertLink } from '@/shared/ui/inert-link';
 
 type Promo = {
   title: string;
@@ -146,15 +147,10 @@ function BlogCard({ post }: { post: (typeof POSTS)[number] }) {
           {post.title}
         </h3>
         <p className="text-caption text-secondary">{post.text}</p>
-        <Link
-          to="/em-breve"
-          search={{ secao: 'blog' }}
-          aria-describedby={titleId}
-          className="mt-auto inline-flex min-h-11 w-fit items-center gap-1 text-caption font-bold text-accent hover:underline"
-        >
+        <InertLink className="mt-auto inline-flex min-h-11 w-fit items-center gap-1 text-caption font-bold text-accent">
           Ler mais
           <ArrowRight aria-hidden="true" className="size-3.5" />
-        </Link>
+        </InertLink>
       </div>
     </article>
   );

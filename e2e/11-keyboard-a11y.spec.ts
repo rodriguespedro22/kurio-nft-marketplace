@@ -131,7 +131,7 @@ test('axe: Pagamento, Perfil, Carteiras e Pedido sem violações sérias', async
 
 // ——— Layout ———
 
-const PUBLIC_ROUTES = ['/', IVORY, '/carrinho', '/login', '/cadastro', '/em-breve', '/rota-inexistente'];
+const PUBLIC_ROUTES = ['/', IVORY, '/carrinho', '/login', '/cadastro', '/rota-inexistente'];
 const PRIVATE_ROUTES = ['/checkout', '/perfil', '/carteiras', '/favoritos'];
 
 async function expectNoHorizontalOverflow(page: Page, routes: string[]) {

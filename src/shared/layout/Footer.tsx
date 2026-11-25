@@ -7,7 +7,7 @@ import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { LiveRegion } from '@/shared/ui/live-region';
 
-import type { ComingSoonSection } from './coming-soon';
+import { InertLink } from '@/shared/ui/inert-link';
 
 const HIGHLIGHTS = [
   {
@@ -27,20 +27,20 @@ const HIGHLIGHTS = [
   },
 ] as const;
 
-type SoonLink = { label: string; secao: ComingSoonSection };
+type SoonLink = { label: string };
 
 const PROFILE_LINKS: SoonLink[] = [
-  { label: 'Minha coleção', secao: 'colecao' },
-  { label: 'Atividade', secao: 'atividade' },
-  { label: 'Estúdio do criador', secao: 'estudio' },
+  { label: 'Minha coleção' },
+  { label: 'Atividade' },
+  { label: 'Estúdio do criador' },
 ];
 
 const HELP_LINKS: SoonLink[] = [
-  { label: 'Central de ajuda', secao: 'ajuda' },
-  { label: 'Como comprar NFTs', secao: 'como-comprar' },
-  { label: 'Carteira e segurança', secao: 'seguranca' },
-  { label: 'Política do mercado', secao: 'politica' },
-  { label: 'Denunciar item', secao: 'denunciar' },
+  { label: 'Central de ajuda' },
+  { label: 'Como comprar NFTs' },
+  { label: 'Carteira e segurança' },
+  { label: 'Política do mercado' },
+  { label: 'Denunciar item' },
 ];
 
 /** Coleções do rodapé → catálogo já filtrado pela categoria. */
@@ -74,15 +74,13 @@ function FooterColumn({ title, children }: { title: string; children: ReactNode 
   );
 }
 
-/** Links "em breve" da coluna; `children` acrescenta itens que já levam a telas reais. */
+/** Itens da coluna fora do escopo (não fazem nada); `children` acrescenta os que levam a telas reais. */
 function SoonList({ links, children }: { links: SoonLink[]; children?: ReactNode }) {
   return (
     <ul className="flex flex-col gap-2">
       {links.map((link) => (
-        <li key={link.secao}>
-          <Link to="/em-breve" search={{ secao: link.secao }} className={linkClass}>
-            {link.label}
-          </Link>
+        <li key={link.label}>
+          <InertLink className={linkClass}>{link.label}</InertLink>
         </li>
       ))}
       {children}
@@ -186,11 +184,9 @@ export function Footer({ phoneBottomBar = false }: { phoneBottomBar?: boolean })
               <ul className="flex flex-wrap gap-2">
                 {SOCIAL.map(({ label, mono }) => (
                   <li key={label}>
-                    <Link
-                      to="/em-breve"
-                      search={{ secao: 'redes-sociais' }}
-                      aria-label={label}
-                      className="grid size-11 place-items-center rounded-control border border-primary text-caption font-bold text-accent uppercase transition-colors hover:bg-primary hover:text-ink"
+                    <InertLink
+                      label={label}
+                      className="grid size-11 place-items-center rounded-control border border-primary text-caption font-bold text-accent uppercase"
                     >
                       {/* Monograma via CSS: o nome acessível é o da rede (rótulo no nome). */}
                       <span
@@ -198,7 +194,7 @@ export function Footer({ phoneBottomBar = false }: { phoneBottomBar?: boolean })
                         data-text={mono}
                         className="before:content-[attr(data-text)]"
                       />
-                    </Link>
+                    </InertLink>
                   </li>
                 ))}
               </ul>

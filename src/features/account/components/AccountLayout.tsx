@@ -13,23 +13,23 @@ import {
 import { toast } from 'sonner';
 
 import { useLogout } from '@/features/auth/queries';
-import type { ComingSoonSection } from '@/shared/layout/coming-soon';
 import { cn } from '@/shared/lib/utils';
+import { InertLink } from '@/shared/ui/inert-link';
 
 type NavIcon = typeof UserRound;
 type NavItem =
   | { label: string; Icon: NavIcon; to: '/perfil' | '/carteiras' | '/favoritos' }
-  | { label: string; Icon: NavIcon; secao: ComingSoonSection };
+  | { label: string; Icon: NavIcon; inert: true };
 
-/** Sidebar da conta; o que está fora do escopo leva a `/em-breve`. */
+/** Sidebar da conta; o que está fora do escopo aparece, mas não faz nada. */
 const ITEMS: NavItem[] = [
   { label: 'Dados do perfil', Icon: UserRound, to: '/perfil' },
   { label: 'Carteiras', Icon: MapPin, to: '/carteiras' },
-  { label: 'Atividade', Icon: ShoppingCart, secao: 'atividade' },
+  { label: 'Atividade', Icon: ShoppingCart, inert: true },
   { label: 'Lista de interesse', Icon: Heart, to: '/favoritos' },
-  { label: 'Ofertas', Icon: LineChart, secao: 'ofertas' },
-  { label: 'Arquivos baixados', Icon: Download, secao: 'arquivos' },
-  { label: 'Suporte', Icon: TriangleAlert, secao: 'suporte' },
+  { label: 'Ofertas', Icon: LineChart, inert: true },
+  { label: 'Arquivos baixados', Icon: Download, inert: true },
+  { label: 'Suporte', Icon: TriangleAlert, inert: true },
 ];
 
 // No mobile a lista vira uma faixa rolável de atalhos; no desktop, a coluna do layout.
@@ -68,10 +68,10 @@ export function AccountLayout({ title, children }: AccountLayoutProps) {
                   {label}
                 </Link>
               ) : (
-                <Link to="/em-breve" search={{ secao: target.secao }} className={itemClass}>
+                <InertLink className={cn(itemClass, 'hover:text-primary')}>
                   <Icon aria-hidden="true" className="size-4.5" strokeWidth={1.5} />
                   {label}
-                </Link>
+                </InertLink>
               )}
             </li>
           ))}

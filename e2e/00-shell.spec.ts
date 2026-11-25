@@ -37,14 +37,14 @@ test('acesso direto e reload em / funcionam', async ({ page }) => {
   await expect(page).toHaveTitle(/Kurio/);
 });
 
-test('header tem Início, Mercado, Criadores e Aprenda; fora do escopo leva a "Em breve" sem sucesso simulado', async ({
+test('header tem Início, Mercado, Criadores e Aprenda; Criadores e Aprenda não fazem nada (fora do escopo)', async ({
   page,
   isMobile,
 }) => {
   await page.goto('/');
 
   let nav = await openMainNav(page, isMobile);
-  for (const name of ['Início', 'Mercado', 'Criadores', 'Aprenda']) {
+  for (const name of ['Início', 'Mercado']) {
     await expect(nav.getByRole('link', { name, exact: true })).toBeVisible();
   }
   await expect(nav.getByRole('link', { name: 'Início', exact: true })).toHaveAttribute(
@@ -52,17 +52,16 @@ test('header tem Início, Mercado, Criadores e Aprenda; fora do escopo leva a "E
     'page',
   );
 
-  await nav.getByRole('link', { name: 'Criadores' }).click();
-  await expect(page).toHaveURL(/\/em-breve\?secao=criadores$/);
-  await expect(page.getByRole('heading', { level: 1, name: 'Em breve' })).toBeVisible();
-  await expect(page.getByText('Criadores ainda não está disponível nesta demonstração.')).toBeVisible();
-  await expect(page.getByRole('dialog')).toHaveCount(0);
-  await expect(successToasts(page)).toHaveCount(0);
-
-  nav = await openMainNav(page, isMobile);
-  await nav.getByRole('link', { name: 'Aprenda' }).click();
-  await expect(page).toHaveURL(/\/em-breve\?secao=aprenda$/);
-  await expect(page.getByText('Aprenda ainda não está disponível nesta demonstração.')).toBeVisible();
+  // Como no layout, sem tela própria: o clique não navega, não abre nada e não simula sucesso.
+  for (const name of ['Criadores', 'Aprenda']) {
+    const item = nav.getByText(name, { exact: true });
+    await expect(item).toBeVisible();
+    await expect(nav.getByRole('link', { name, exact: true })).toHaveCount(0);
+    await item.click();
+    await expect(page).toHaveURL('/');
+    await expect(successToasts(page)).toHaveCount(0);
+  }
+  if (isMobile) await page.keyboard.press('Escape');
 
   nav = await openMainNav(page, isMobile);
   await nav.getByRole('link', { name: 'Mercado' }).click();
@@ -71,11 +70,10 @@ test('header tem Início, Mercado, Criadores e Aprenda; fora do escopo leva a "E
   await expect(successToasts(page)).toHaveCount(0);
 });
 
-test('seção desconhecida em /em-breve não ecoa texto da URL', async ({ page }) => {
-  await page.goto('/em-breve?secao=%3Cb%3Ehack%3C%2Fb%3E');
-  await expect(page.getByRole('heading', { level: 1, name: 'Em breve' })).toBeVisible();
-  await expect(page.getByText('Esta seção ainda não está disponível nesta demonstração.')).toBeVisible();
-  await expect(page.getByText('hack')).toHaveCount(0);
+test('não existe tela "Em breve": /em-breve é rota inexistente', async ({ page }) => {
+  await page.goto('/em-breve?secao=criadores');
+  await expect(page.getByRole('heading', { level: 1, name: 'Em breve' })).toHaveCount(0);
+  await expect(page.getByText('Página não encontrada')).toBeVisible();
 });
 
 test('newsletter avisa que é "em breve" e nunca mostra sucesso', async ({ page }) => {
