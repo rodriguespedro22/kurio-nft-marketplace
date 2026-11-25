@@ -7,7 +7,7 @@ import {
   type OrderLineSnapshot,
   type Quote,
 } from '@/contracts';
-import { cmpEth } from '@/shared/money/eth';
+import { addEth, cmpEth } from '@/shared/money/eth';
 import { toListItem } from '@/shared/nft/list-item';
 
 import { nextId } from '../db/ids';
@@ -150,6 +150,24 @@ function isQuoteCurrent(d: MockDb, quote: QuoteRecord | undefined, owner: Owner,
   );
 }
 
+/** Alta aplicada pelo cenário price-change-during-checkout. */
+const CHECKOUT_PRICE_BUMP = '0.25';
+
+/**
+ * Cenários `*-during-checkout`: no 1º envio de pedido, o 1º item do carrinho sobe de preço ou
+ * esgota sem evento no socket — a cotação da revisão fica velha e o pedido volta QUOTE_STALE.
+ */
+function applyCheckoutSurprise(d: MockDb, owner: Owner): void {
+  const surprise = getScenario().onFirstCheckoutQuote;
+  if (!surprise || d.meta.firstCheckoutQuoteHandled) return;
+  const item = cartFor(d, owner).items[0];
+  const found = item ? findEdition(d, item.nftId, item.editionId) : null;
+  if (!found) return;
+  d.meta.firstCheckoutQuoteHandled = true;
+  if (surprise === 'sold_out') found.edition.available = 0;
+  else found.edition.price = addEth(found.edition.price, CHECKOUT_PRICE_BUMP);
+}
+
 function snapshotLines(d: MockDb, quote: Quote): OrderLineSnapshot[] {
   return quote.lines.flatMap((line) => {
     const found = findEdition(d, line.nftId, line.editionId);
@@ -214,6 +232,7 @@ export const orderHandlers = [
         let stale: Quote | null = null;
         let created: OrderRecord | null = null;
         db.update((d) => {
+          applyCheckoutSurprise(d, owner);
           const quote = d.quotes[input.quoteId];
           if (!quote || !isQuoteCurrent(d, quote, owner, input)) {
             stale = storeQuote(d, cartFor(d, owner), owner, input.network);

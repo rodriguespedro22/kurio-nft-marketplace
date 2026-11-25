@@ -1,6 +1,14 @@
 import type { ReactNode, RefObject } from 'react';
 
-import { NETWORK_LABELS, WALLET_PROVIDER_LABELS, type Network, type Quote, type Wallet } from '@/contracts';
+import {
+  NETWORK_LABELS,
+  WALLET_PROVIDER_LABELS,
+  type Network,
+  type Quote,
+  type QuoteIssue,
+  type Wallet,
+} from '@/contracts';
+import { useRemoveCartItem } from '@/features/cart/queries';
 import { shortAddress } from '@/features/wallets/short-address';
 import { formatEth } from '@/shared/money/eth';
 import { Button } from '@/shared/ui/button';
@@ -42,6 +50,28 @@ type ReviewDialogProps = {
 
 const row = 'flex items-baseline justify-between gap-4 [&>dd]:shrink-0 [&>dd]:text-right';
 
+function issueLabel(issue: QuoteIssue): string {
+  if (issue.kind === 'sold_out') return 'Esgotado';
+  if (issue.kind === 'price_changed') return 'Preço alterado';
+  return issue.available === 1 ? 'Só 1 disponível' : `Só ${issue.available} disponíveis`;
+}
+
+/** Tira a linha do carrinho; a cotação é refeita pela invalidação do carrinho. */
+function RemoveLineButton({ cartItemId, name }: { cartItemId: string; name: string }) {
+  const remove = useRemoveCartItem(cartItemId);
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      loading={remove.isPending}
+      aria-label={`Remover ${name}`}
+      onClick={() => remove.mutate()}
+    >
+      Remover
+    </Button>
+  );
+}
+
 /**
  * Revisão antes de comprar: a cotação é renovada ao abrir e mostrada como a API devolveu
  * (itens, subtotal, desconto, taxa, total), com a carteira e a rede escolhidas.
@@ -63,6 +93,8 @@ export function ReviewDialog({
 }: ReviewDialogProps) {
   const changes = current ? quoteChanges(previous, current, lineNames) : [];
   const blocked = !current || current.issues.length > 0;
+  // Valor mudou com a revisão aberta: o botão muda de nome e pede um novo clique consciente.
+  const confirmLabel = changes.length > 0 ? 'Confirmar novo total' : 'Confirmar compra';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -82,15 +114,28 @@ export function ReviewDialog({
           <div className="flex flex-col gap-5">
             <QuoteDiff changes={changes} />
             <ul aria-label="Itens da compra" className="flex flex-col gap-2 text-body-sm">
-              {current.lines.map((line) => (
-                <li key={line.cartItemId} className="flex items-baseline justify-between gap-4">
-                  <span className="min-w-0 text-foreground">
-                    {lineNames[line.cartItemId] ?? 'Item'}{' '}
-                    <span className="text-secondary">(x {line.quantity})</span>
-                  </span>
-                  <span className="shrink-0 text-accent tabular-nums">{formatEth(line.lineTotal)}</span>
-                </li>
-              ))}
+              {current.lines.map((line) => {
+                const name = lineNames[line.cartItemId] ?? 'Item';
+                const issue = current.issues.find((item) => item.cartItemId === line.cartItemId);
+                return (
+                  <li key={line.cartItemId} className="flex flex-col gap-1.5">
+                    <div className="flex items-baseline justify-between gap-4">
+                      <span className="min-w-0 text-foreground">
+                        {name} <span className="text-secondary">(x {line.quantity})</span>
+                      </span>
+                      <span className="shrink-0 text-accent tabular-nums">{formatEth(line.lineTotal)}</span>
+                    </div>
+                    {issue ? (
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="rounded-full border border-error/60 px-2.5 py-0.5 text-caption font-bold text-coral">
+                          {issueLabel(issue)}
+                        </span>
+                        <RemoveLineButton cartItemId={line.cartItemId} name={name} />
+                      </div>
+                    ) : null}
+                  </li>
+                );
+              })}
             </ul>
             <dl className="flex flex-col gap-2 border-t border-border pt-4 text-body-sm text-secondary">
               <div className={row}>
@@ -124,7 +169,7 @@ export function ReviewDialog({
             </dl>
             {current.issues.length > 0 ? (
               <p role="note" className="text-body-sm text-coral">
-                Alguns itens mudaram de preço ou de disponibilidade. Ajuste o carrinho antes de comprar.
+                Alguns itens mudaram de disponibilidade. Remova-os ou ajuste o carrinho antes de comprar.
               </p>
             ) : null}
           </div>
@@ -154,7 +199,7 @@ export function ReviewDialog({
             loading={confirming}
             onClick={() => current && onConfirm?.(current)}
           >
-            Confirmar compra
+            {confirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

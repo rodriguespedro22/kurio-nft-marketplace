@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import { Link, Navigate, useNavigate } from '@tanstack/react-router';
 import { useForm, useWatch } from 'react-hook-form';
 
@@ -10,6 +11,7 @@ import { OrderSummarySkeleton } from '@/features/cart/components/OrderSummarySke
 import { cartLineName } from '@/features/cart/labels';
 import { useCart } from '@/features/cart/queries';
 import { useQuote } from '@/features/cart/quote-queries';
+import { quoteKey, useCartOwner } from '@/features/cart/use-cart-owner';
 import { getPendingOrder } from '@/features/orders/pending-order';
 import { isUncertain, useCreateOrder } from '@/features/orders/queries';
 import { useProfile } from '@/features/profile/queries';
@@ -46,6 +48,15 @@ function initialState({ userId, profile, wallets }: CheckoutData) {
 
 type Review = { previous: Quote; current: Quote | null; error: unknown };
 
+/**
+ * O que a revisão mostra. Se a cotação do carrinho foi refeita com a revisão aberta (evento de
+ * preço/estoque, item removido), a mais nova vira a atual e a que estava na tela vira a anterior.
+ */
+function shownReview(review: Review, live: Quote | undefined): Review {
+  if (!review.current || !live || live.version <= review.current.version) return review;
+  return { previous: review.current, current: live, error: null };
+}
+
 function CheckoutContent(data: CheckoutData) {
   const { userId, wallets, cart } = data;
   const formId = useId();
@@ -56,6 +67,8 @@ function CheckoutContent(data: CheckoutData) {
   const [reviewOpen, setReviewOpen] = useState(false);
   const confirmRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const owner = useCartOwner();
   /** Timeout/rede no envio: o pedido pode existir — reenvio com a mesma chave. */
   const [verifying, setVerifying] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
@@ -71,6 +84,7 @@ function CheckoutContent(data: CheckoutData) {
   const network = values.network || 'ethereum';
   const quote = useQuote({ network });
   const selected = wallets.find((wallet) => wallet.id === walletId) ?? null;
+  const shown = review ? shownReview(review, quote.data) : null;
   const lineNames = Object.fromEntries(
     cart.items.map((item) => [item.id, cartLineName(item.nft.name, item.editionLabel)]),
   );
@@ -130,6 +144,8 @@ function CheckoutContent(data: CheckoutData) {
             ? QuoteSchema.safeParse((error.details as { quote?: unknown } | undefined)?.quote)
             : null;
         if (fresh?.success) {
+          // A cotação nova também vale para o resumo (sem refazer outra e perder a diferença).
+          queryClient.setQueryData(quoteKey(owner, { network: fresh.data.network }), fresh.data);
           setReview({ previous: current, current: fresh.data, error: null });
           return;
         }
@@ -143,8 +159,8 @@ function CheckoutContent(data: CheckoutData) {
   const orderNotice = verifying ? (
     <div role="status" className="flex flex-wrap items-center justify-between gap-3 text-body-sm text-amber">
       <span>Verificando seu pedido…</span>
-      {createOrder.isError && review?.current ? (
-        <Button variant="outline" size="sm" onClick={() => review.current && confirmOrder(review.current)}>
+      {createOrder.isError && shown?.current ? (
+        <Button variant="outline" size="sm" onClick={() => shown.current && confirmOrder(shown.current)}>
           Tentar novamente
         </Button>
       ) : null}
@@ -240,13 +256,13 @@ function CheckoutContent(data: CheckoutData) {
         </Button>
       </aside>
 
-      {review && selected && values.network ? (
+      {shown && selected && values.network ? (
         <ReviewDialog
           open={reviewOpen}
           onOpenChange={setReviewOpen}
-          previous={review.previous}
-          current={review.current}
-          error={review.error}
+          previous={shown.previous}
+          current={shown.current}
+          error={shown.error}
           onRetry={() => void openReview()}
           lineNames={lineNames}
           wallet={selected}

@@ -141,6 +141,33 @@ describe('POST /orders', () => {
     expect(Object.keys(db.get().orders)).toHaveLength(0);
   });
 
+  test('price-change-during-checkout: o 1º envio encontra o preço mudado (QUOTE_STALE); o 2º passa', async () => {
+    db.reset('price-change-during-checkout');
+    await login();
+    await addToCart(1);
+    const input = await orderInput();
+    const before = edition().price;
+
+    const error = await expectError(createOrder(input, 'key-1'), 409, 'QUOTE_STALE');
+    const fresh = QuoteSchema.parse((error.details as { quote: unknown }).quote);
+    expect(fresh.lines[0]?.unitPrice).not.toBe(before);
+    expect(db.get().meta.firstCheckoutQuoteHandled).toBe(true);
+
+    const retry = { ...input, quoteId: fresh.quoteId, quoteVersion: fresh.version };
+    expect((await createOrder(retry, 'key-2')).status).toBe(201);
+  });
+
+  test('sold-out-during-checkout: o 1º item esgota no 1º envio e a cotação nova traz a issue', async () => {
+    db.reset('sold-out-during-checkout');
+    await login();
+    await addToCart(1);
+
+    const error = await expectError(createOrder(await orderInput(), 'key-1'), 409, 'QUOTE_STALE');
+    const fresh = QuoteSchema.parse((error.details as { quote: unknown }).quote);
+    expect(fresh.issues).toEqual([{ cartItemId: fresh.lines[0]?.cartItemId, kind: 'sold_out' }]);
+    expect(edition().available).toBe(0);
+  });
+
   test('pedido de outro usuário → 404', async () => {
     await addToCart(1);
     const order = (await createOrder(await orderInput(), 'key-1')).data as Order;

@@ -1,6 +1,8 @@
 import type { Page } from '@playwright/test';
 
 import { loginViaUi, logoutViaUi, submitLogin, USERS } from './support/auth';
+import { addFromDetail } from './support/cart';
+import { checkoutSummary } from './support/checkout';
 import { expect, test } from './support/fixtures';
 import { bootScenario, expireSession } from './support/mock';
 
@@ -152,6 +154,33 @@ test('sessão expirada no servidor: aviso "Sua sessão expirou" e retomada do po
 
   await submitLogin(page, USERS.colecionador);
   await expect(page).toHaveURL('/perfil');
+});
+
+test('sessão expira no meio do checkout: login volta ao checkout com o formulário e o carrinho', async ({
+  page,
+}) => {
+  await loginViaUi(page, USERS.colecionador);
+  await addFromDetail(page, '/nft/nft-ivory-baron-088', /1\/10/);
+  await page.goto('/checkout');
+  const form = page.getByRole('form', { name: 'Perfil do colecionador' });
+  await form.getByLabel('Rede').selectOption('polygon');
+  await form.getByLabel('Observação do colecionador (opcional)').fill('Guardar na coleção principal');
+  await page.waitForLoadState('networkidle');
+
+  await expireSession(page);
+  await checkoutSummary(page).getByRole('button', { name: 'Confirmar compra', exact: true }).click();
+
+  await expect(page).toHaveURL(/\/login\?.*redirect=%2Fcheckout/);
+  await expect(page.getByText('Sua sessão expirou. Entre novamente para continuar.')).toBeVisible();
+  await submitLogin(page, USERS.colecionador);
+
+  await expect(page).toHaveURL('/checkout');
+  await expect(form.getByLabel('Rede')).toHaveValue('polygon');
+  await expect(form.getByLabel('Observação do colecionador (opcional)')).toHaveValue(
+    'Guardar na coleção principal',
+  );
+  await expect(checkoutSummary(page).getByRole('listitem')).toHaveCount(1);
+  await expect(checkoutSummary(page)).toContainText('Ivory Baron #088');
 });
 
 test('login A → logout → login B mostra só os dados de B', async ({ page }) => {

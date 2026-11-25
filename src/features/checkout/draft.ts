@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { NetworkSchema, WalletProviderSchema } from '@/contracts';
+import { CHECKOUT_DRAFT_PREFIX } from '@/features/auth/sign-out';
 
 import type { BuyerFormValues } from './schema';
 
@@ -29,7 +30,8 @@ const DraftSchema = z.object({
   buyer: DraftBuyerSchema.catch({}),
 });
 
-const draftKey = (userId: string) => `kurio:checkout-draft:${userId}`;
+/** Sob o prefixo que o logout limpa (`signOutLocal`); a sessão expirada o mantém. */
+const draftKey = (userId: string) => `${CHECKOUT_DRAFT_PREFIX}${userId}:draft`;
 
 function withoutUndefined<T extends object>(value: T): Partial<T> {
   return Object.fromEntries(Object.entries(value).filter(([, v]) => v !== undefined)) as Partial<T>;

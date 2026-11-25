@@ -109,14 +109,14 @@ export const SCENARIOS: Record<ScenarioName, ScenarioConfig> = {
     ...base,
     name: 'price-change-during-checkout',
     label: 'Preço muda no checkout',
-    description: 'O preço de um item sobe ao criar a 1ª cotação do checkout.',
+    description: 'O preço do 1º item sobe sem aviso no 1º envio do pedido (QUOTE_STALE).',
     onFirstCheckoutQuote: 'price_change',
   },
   'sold-out-during-checkout': {
     ...base,
     name: 'sold-out-during-checkout',
     label: 'Esgota no checkout',
-    description: 'Um item esgota ao criar a 1ª cotação do checkout.',
+    description: 'O 1º item esgota sem aviso no 1º envio do pedido (QUOTE_STALE).',
     onFirstCheckoutQuote: 'sold_out',
   },
   'order-timeout-idempotent': {

@@ -1,6 +1,8 @@
 import { describe, expect, test } from 'vitest';
 
 import { BuyerSchema, type Profile, type Wallet } from '@/contracts';
+import { setSession } from '@/features/auth/session';
+import { signOutLocal } from '@/features/auth/sign-out';
 
 import { clearCheckoutDraft, loadCheckoutDraft, saveCheckoutDraft } from './draft';
 import { buyerFromWallet, emptyBuyer } from './schema';
@@ -83,13 +85,38 @@ describe('rascunho do checkout (sessionStorage)', () => {
   });
 
   test('rascunho corrompido é ignorado; campo com valor inválido é descartado', () => {
-    sessionStorage.setItem('kurio:checkout-draft:user-1', '{nope');
+    sessionStorage.setItem('kurio:checkout:user-1:draft', '{nope');
     expect(loadCheckoutDraft('user-1')).toBeNull();
 
     sessionStorage.setItem(
-      'kurio:checkout-draft:user-1',
+      'kurio:checkout:user-1:draft',
       JSON.stringify({ walletId: null, buyer: { network: 'marte', username: 'colecionador' } }),
     );
     expect(loadCheckoutDraft('user-1')).toEqual({ walletId: null, buyer: { username: 'colecionador' } });
+  });
+  test('logout apaga o rascunho; sessão expirada o mantém para retomar depois do login', () => {
+    const login = () =>
+      setSession({
+        token: 'tok-1',
+        expiresAt: '2099-01-01T00:00:00.000Z',
+        user: {
+          id: 'user-1',
+          email: PROFILE.email,
+          displayName: PROFILE.displayName,
+          username: PROFILE.username,
+          avatarUrl: null,
+          bio: null,
+        },
+      });
+    const draft = { walletId: 'wallet-1', buyer: { notes: 'Guardar' } };
+
+    login();
+    saveCheckoutDraft('user-1', draft);
+    signOutLocal('expired');
+    expect(loadCheckoutDraft('user-1')).toEqual(draft);
+
+    login();
+    signOutLocal('logout');
+    expect(loadCheckoutDraft('user-1')).toBeNull();
   });
 });
