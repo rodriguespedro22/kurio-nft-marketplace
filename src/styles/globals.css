@@ -134,7 +134,7 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Foco visível em todos os controles (o layout não desenha estado de foco —) */
+  /* Foco visível em todos os controles (o layout não desenha estado de foco) */
   :focus-visible {
     outline: 2px solid var(--color-primary);
     outline-offset: 2px;

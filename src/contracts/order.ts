@@ -22,7 +22,7 @@ import { NftImageSchema } from './nft';
 import { AppliedCouponSchema, QuoteLineSchema } from './quote';
 import { WalletProviderSchema } from './wallet';
 
-// ---------- Comprador (frame Pagamento —) ----------
+// ---------- Comprador (frame Pagamento) ----------
 
 const BuyerBaseSchema = z.object({
   displayName: DisplayNameSchema,

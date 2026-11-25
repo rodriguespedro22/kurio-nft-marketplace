@@ -22,7 +22,7 @@ type FormFieldProps = {
 
 /**
  * Liga rótulo, dica e erro ao controle: `id`/`htmlFor`, `aria-describedby`, `aria-invalid`
- * e `aria-required`. O erro aparece em coral com ícone (nunca só pela cor —.
+ * e `aria-required`. O erro aparece em coral com ícone (nunca só pela cor).
  */
 export function FormField({
   label,

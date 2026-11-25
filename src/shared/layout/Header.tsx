@@ -8,7 +8,7 @@ import { MainNavLinks } from './MainNavLinks';
 import { MobileMenu } from './MobileMenu';
 
 /**
- * Header (Layout: 24 px acima, linha de 45 px e divisor de 1 px só na largura do conteúdo). Logo e
+ * Header (layout: 24 px acima, linha de 45 px e divisor de 1 px só na largura do conteúdo). Logo e
  * ações ficam centrados nos primeiros 35 px; os itens da navegação, no topo, com o sublinhado do
  * ativo sobre o divisor.
  */

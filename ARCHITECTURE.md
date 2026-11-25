@@ -1,7 +1,7 @@
 # Arquitetura — Kurio
 
 Este documento descreve os contratos entre front e "servidor" (simulado), as estratégias de cache,
-sincronização e reconciliação, o transporte em tempo real e as decisões de UX e os desvios do layout.
+sincronização e reconciliação, o transporte em tempo real, as decisões de UX e os desvios do layout.
 Como rodar e reproduzir cada cenário: [README.md](README.md).
 
 ## 1. Visão geral
@@ -83,6 +83,7 @@ No cliente, `toApiError` normaliza também falhas sem resposta: `NETWORK` (offli
 | `POST /orders`                             | header `Idempotency-Key`; `{ quoteId, quoteVersion, walletId, network, buyer }` | 201 `Order` (`pending`); reenvio com a mesma chave → mesmo pedido                                                                                                     | 400 sem chave, 409 `QUOTE_STALE` (+ `details.quote`), 409 `IDEMPOTENCY_CONFLICT`, 409 carteira desconectada, 422 campos |
 | `GET /orders`                              | —                                                                               | `Order[]` do usuário, mais recentes primeiro                                                                                                                          | 401                                                                                                                     |
 | `GET /orders/:id`                          | —                                                                               | `Order { id, status, version, txHash, explorerUrl, rejectionReason, snapshot }`                                                                                       | 401, 404 (inclusive de outro usuário)                                                                                   |
+| `GET /explorer/tx/:hash`                   | —                                                                               | `Transaction { hash, status, network, blockNumber, timestamp, tokens, value, networkFee }` (público)                                                                  | 404 (hash desconhecido ou pedido não confirmado)                                                                        |
 | `GET /me` / `PATCH /me`                    | `{ displayName, username, email, ensName, walletLabel }`                        | `Profile`                                                                                                                                                             | 409 `EMAIL_TAKEN` / `CONFLICT`, 422                                                                                     |
 | `POST /me/avatar` / `DELETE /me/avatar`    | multipart `avatar` (PNG/JPEG/WebP ≤ 2 MiB)                                      | `Profile`                                                                                                                                                             | 422 tipo/tamanho                                                                                                        |
 | `POST /me/password`                        | `{ currentPassword, newPassword, confirmPassword }`                             | 204                                                                                                                                                                   | 422 (senha atual errada vai em `fields`)                                                                                |
@@ -267,27 +268,34 @@ Limitações (aceitas e cobertas pelos testes):
   **Tentar novamente**, separados por causa (sem conexão, instabilidade, timeout, 404).
 - **Comprar**: "COMPRAR" no detalhe adiciona ao carrinho e leva a `/carrinho`; o ícone de carrinho no card e
   no detalhe só adiciona, com toast e o contador do header (total de unidades).
-- **Login e cadastro** são rotas (deep link e `redirect` funcionam) com cartão em estilo modal no desktop e
-  tela cheia no mobile, com rótulos visíveis acima dos campos.
-- **Busca única** acima das abas em todos os breakpoints; o ícone de busca do header foca o campo.
-  Coleções e redes são checkboxes (OR dentro do grupo); a faixa de preço só vai para a URL em "Aplicar".
-- **Checkout numa página só, responsiva**: no mobile o formulário vem antes de "Seus NFTs", carteira e
-  "Confirmar compra" (em vez do frame separado "Pagamento com carteira"); as carteiras listadas são as
-  cadastradas, não os três provedores do frame desktop.
+- **Login e cadastro** são rotas (deep link e `redirect` funcionam). No desktop aparecem como modal sobre a
+  Início, como no layout (foco preso, `Esc` ou clique fora voltam à página anterior); no mobile, tela cheia.
+- **Busca**: no desktop o layout não tem barra de busca; a lupa do header abre o campo num popover. Abaixo
+  de 1280 px o campo fica no topo do catálogo, ao lado do botão de filtros (drawer). Fora da Início, a lupa
+  leva à Início com a busca aberta.
+- **Filtros** como no layout: listas de texto em que cada linha é um botão de alternar (`aria-pressed`, OR
+  dentro do grupo; o item ativo fica na cor de destaque e sublinhado). A faixa de preço só vai para a URL em
+  "Aplicar". O filtro de edição não tem controle na barra lateral (o layout não o desenha) e é aplicado pelo
+  promo "Lançamentos gênesis".
 - **Perfil** com dois formulários (dados e senha), para que trocar a senha não dependa dos outros campos.
 - **Toasts** no topo (a base é ocupada pela barra inferior no mobile); falhas de mutation também são
   anunciadas por `aria-live`.
-- **Navegação mobile**: barra superior compacta com menu em Sheet (o layout não a desenha) e barra inferior
-  abaixo de 1280 px.
+- **Navegação mobile**: header compacto com menu em Sheet e barra inferior de ícones abaixo de 1280 px.
+- **Fora do escopo** (Criadores, Aprenda, Atividade, Ofertas, Downloads, editorial, escanear, newsletter): os
+  itens aparecem como no layout, mas não navegam nem simulam sucesso. A newsletter explica que o envio
+  ainda não existe.
+- **Explorador de transações**: "Ver no explorador" abre `/explorador/tx/:hash`, uma página simulada
+  (`GET /explorer/tx/:hash`) com hash, rede, bloco, data e valores do pedido confirmado. É pública como um
+  explorador de verdade, por isso não expõe comprador, carteira nem itens.
 
 ## 12. Desvios do layout
 
-Inconsistências do arquivo e como foram normalizadas:
+Inconsistências do arquivo de design e como foram normalizadas:
 
-| Onde            | No layout                                               | Decisão                                                              |
+| Onde            | No layout                                              | Decisão                                                              |
 | --------------- | ------------------------------------------------------ | -------------------------------------------------------------------- |
 | Estilos         | Descrição de estilo diverge do valor aplicado          | Valor aplicado nos nós                                               |
-| Grid do Início  | Cards com alturas diferentes, card sem nome/preço      | Card único e consistente                                             |
+| Grid do Início  | Card sem nome/preço entre os demais                    | Card único e consistente                                             |
 | Promos          | Texto cortado                                          | Texto completo                                                       |
 | Ordenação       | Rótulo sobreposto à seta                               | Seletor com largura adequada                                         |
 | Detalhe desktop | Conteúdo de "Contrato" e "Direitos" trocados           | Conteúdo correto em cada seção                                       |
@@ -296,18 +304,31 @@ Inconsistências do arquivo e como foram normalizadas:
 | Contagens       | Filtro de rede ≠ total por categoria                   | Contagens calculadas das fixtures (`/categories`, `/catalog/facets`) |
 | Faixa de preço  | Vírgula decimal num lugar, ponto no resto              | Ponto decimal em todo ETH                                            |
 | Desconto        | "(-) 00.00"                                            | "(-) 0.00 ETH"                                                       |
-| Modais          | Sem escurecimento do fundo                             | Overlay escuro translúcido                                           |
 
-Outros desvios de layout:
+Desvios deliberados, por exigência do enunciado ou por acessibilidade:
 
-- **Grid mobile** uniforme de 2 colunas (o layout é escalonado).
-- **Resumo do carrinho no mobile** inline abaixo da lista, em vez do sheet fixo, que disputaria espaço com a
+- **Header no mobile**: mantido (logo, busca e menu), porque login, conta e busca precisam estar ao alcance
+  em qualquer largura.
+- **Galeria**: no mobile, os pontos sobre a arte ficam visíveis e trocam a imagem; cada ponto tem área de
+  toque de 24 px (o desenho continua do mesmo tamanho, só um pouco mais espaçado). Existem 3 composições por
+  arte, então são 3 miniaturas.
+- **Carrinho desktop**: a edição ("1/10", "1/50") aparece em cada linha, porque o mesmo NFT pode estar no
+  carrinho em edições diferentes.
+- **Cupom**: o botão "Aplicar" usa texto escuro sobre o laranja, para atingir contraste AA.
+- **Checkout mobile**: mantém o formulário do comprador (o frame mobile de pagamento só mostra a carteira),
+  porque o enunciado exige validar esses campos antes do envio. As carteiras vêm primeiro, como no frame.
+- **Seletor de carteira**: lista as carteiras cadastradas pelo usuário, não os três provedores fixos do
+  layout. É o que o enunciado pede ("utilizar as carteiras cadastradas").
+- **Carrossel "Mais desta coleção"**: cards esgotados têm o rótulo "Esgotado", para o estado não depender só
+  da cor.
+- **Confirmação do pedido**: em vez do modal do layout, uma página de status (`/pedido/:id`) acompanha o
+  pedido de "Pendente" a "Confirmado" ou "Recusado" e sobrevive a refresh e reconexão. O recibo é o do layout.
+- **"Ver no explorador"** no lugar de "Ver no Etherscan": o link leva ao explorador simulado da demo.
+- **Sidebar da conta**: o item ativo segue o layout; Atividade e Ofertas aparecem, mas são inertes.
+- **Diálogos não desenhados** (revisão do pedido, cotação alterada, arte ampliada) usam overlay escuro; o
+  modal de login segue o layout, sem escurecer o fundo.
+- **Resumo do carrinho no mobile**: inline abaixo da lista, em vez do sheet fixo, que disputaria espaço com a
   barra inferior.
-- **Galeria** com 3 imagens por NFT (o layout desenha 4 miniaturas, mas só existem 3 composições por arte).
-- **Filtro de edição** sem controle na barra lateral (o layout não o desenha); acessível pelo promo
-  "Lançamentos gênesis".
-- **Rodapé**: ícones lucide no lugar das letras "W/C/D"; redes sociais como monogramas (o lucide não tem
-  ícones de marca).
 
 ## 13. Acessibilidade
 
@@ -316,13 +337,14 @@ Ajustes sobre o layout:
 - Texto de erro em coral `#F0805F` (contraste ≥ 7:1); o vermelho `#ED1B2E` (4,4:1) fica só em ícones e bordas.
 - Foco visível em todos os controles (`outline 2px` primary, offset 2px); o layout não desenha foco.
 - Estado nunca só por cor: "Esgotada", carteira "Conectada/Recusada" e campo inválido têm texto e ícone.
-- Alvos de toque ≥ 44 px no mobile (os steppers de 29 px do carrinho ganham área estendida).
+- Alvos de toque ≥ 24 px: os pontos da galeria e do carrossel e os steppers de 29 px do carrinho ganham área
+  estendida.
 - Drawer de filtros e diálogos com foco preso, Esc fecha e o foco volta ao gatilho; galeria no padrão ARIA de
   abas; erros ligados por `aria-describedby`; avisos de tempo real e de mutation em `aria-live`.
 - Texto decorativo (monogramas, contadores visuais) via CSS `content: attr(...)`, para o nome acessível não
   divergir do rótulo visível.
-- Verificado por axe (sem violações sérias ou críticas em 9 rotas), navegação por teclado, sem overflow
-  horizontal de 320 a 1440 px e zoom de 200% (`e2e/11-keyboard-a11y.spec.ts`).
+- Verificado por axe (sem violações sérias ou críticas nas rotas principais), navegação por teclado, sem
+  overflow horizontal de 320 a 1440 px e zoom de 200% (`e2e/11-keyboard-a11y.spec.ts`).
 
 ## 14. Assets e substituições
 
@@ -331,8 +353,9 @@ Ajustes sobre o layout:
 - **Artes dos NFTs**: o arquivo usa só 4 artes (1254×1254). Viraram 12 composições (original, espelhada,
   close-up) em 320/640/960 px, AVIF e WebP, em `public/images/nfts/`, com `srcset`, dimensões fixas e
   prioridade alta nas imagens da 1ª dobra.
-- **Ícones e logos**: SVGs exportados do layout (Iconly e logos de carteiras); ícones que o layout não desenha
-  (estados de erro, coração do card) vêm do `lucide-react` com o mesmo traço de 1,5 px.
+- **Ícones e logos**: os SVGs do arquivo (Iconly e logos de carteiras) estão em `src/shared/ui/icons.tsx`, com
+  a cor trocada por `currentColor`. Ícones que o layout não desenha (estados de erro, coração do card) vêm do
+  `lucide-react` com o mesmo traço de 1,5 px.
 - 4 imagens do arquivo sem uso visível (prints de outro projeto) foram descartadas.
 
 ## 15. Testes e qualidade

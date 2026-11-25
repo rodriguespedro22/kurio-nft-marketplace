@@ -141,7 +141,7 @@ export function MintDiary() {
   );
 }
 
-/** Card de 268 × 369 do Layout: imagem de 195 px e texto de 12/16 px. */
+/** Card de 268 × 369 do layout: imagem de 195 px e texto de 12/16 px. */
 function BlogCard({ post }: { post: (typeof POSTS)[number] }) {
   const titleId = useId();
   return (

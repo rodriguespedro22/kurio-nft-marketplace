@@ -9,7 +9,7 @@ import { NftImage } from '@/shared/ui/nft-image';
 
 const CARD_IMAGE_SIZES = '(min-width: 1280px) 250px, (min-width: 768px) 30vw, 46vw';
 
-/** Botão quadrado de 35 px das ações do card no desktop (Layout: fundo elevado, borda, raio 4). */
+/** Botão quadrado de 35 px das ações do card no desktop (layout: fundo elevado, borda, raio 4). */
 const actionClass =
   'grid size-[35px] place-items-center rounded-[4px] border border-border bg-surface-raised text-foreground transition-colors hover:border-primary hover:text-accent';
 
@@ -17,7 +17,7 @@ const actionClass =
 type NftCardProps = { nft: NftListItem; priority?: boolean };
 
 /**
- * Card do catálogo (Layout: bloco de 258 × 300 com a arte de 250 px centrada, nome e preço abaixo).
+ * Card do catálogo (layout: bloco de 258 × 300 com a arte de 250 px centrada, nome e preço abaixo).
  * O nome é o link, esticado sobre o card inteiro. No desktop, o hover (ou o foco dentro do card)
  * acende o filete superior e mostra carrinho, favorito e ver; o carrinho leva ao detalhe, onde se
  * escolhe a edição. Abaixo de 1280 px fica só o coração, no canto da arte, como no frame mobile.

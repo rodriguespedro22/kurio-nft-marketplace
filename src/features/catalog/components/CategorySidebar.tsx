@@ -24,7 +24,7 @@ function FilterGroup({ title, children }: { title: string; children: ReactNode }
 }
 
 /**
- * Lista de opções como no Layout: só texto, sem caixa de seleção. Cada linha é um botão de alternar
+ * Lista de opções como no layout: só texto, sem caixa de seleção. Cada linha é um botão de alternar
  * (`aria-pressed`, várias ao mesmo tempo); a selecionada fica na cor de destaque e sublinhada, para
  * não depender só da cor.
  */

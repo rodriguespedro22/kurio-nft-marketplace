@@ -1,6 +1,6 @@
 import type { SVGProps } from 'react';
 
-// Ícones Iconly exportados do layout, com a cor trocada por `currentColor`.
+// Ícones Iconly do arquivo de design, com a cor trocada por `currentColor`.
 // Decorativos por padrão: quem usa dá o nome acessível ao controle, não ao ícone.
 
 type IconProps = SVGProps<SVGSVGElement>;

@@ -1,11 +1,11 @@
 # Kurio — Marketplace de NFTs
 
 SPA de marketplace de NFTs (catálogo, detalhe, favoritos, carrinho, checkout com carteira, pedidos, perfil e
-carteiras) construída a partir do layout do layout. O backend inteiro é simulado no navegador por **MSW**
+carteiras) construída a partir do layout do desafio. O backend inteiro é simulado no navegador por **MSW**
 (REST) e por um **Socket.IO interceptado** (tempo real), com cenários de falha reproduzíveis.
 
 Stack: Vite 8 · React 19 · TypeScript 6 · TanStack Router e Query 5 · Axios · zod 4 · react-hook-form ·
-Tailwind v4 · MSW 2 + `@mswjs/socket.io-binding` · socket.io-client · Vitest · Playwright.
+Tailwind v4 · shadcn/ui (Radix) · sonner · MSW 2 + `@mswjs/socket.io-binding` · socket.io-client · Vitest · Playwright.
 
 Decisões de arquitetura, contratos e estratégias de sincronização: [ARCHITECTURE.md](ARCHITECTURE.md).
 
@@ -205,4 +205,5 @@ src/
   mocks/        banco em memória, fixtures, handlers MSW, servidor Socket.IO, cenários, rede, painel
 e2e/            Playwright (specs, suporte, baselines visuais)
 lighthouse/     script, configs, relatórios e resumo
+scripts/        regressão visual no container do Playwright
 ```
