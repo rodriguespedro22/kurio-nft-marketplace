@@ -114,7 +114,7 @@ export function NftRail({ id, title, items }: NftRailProps) {
           ))}
         </ul>
         {pages.count > 1 ? (
-          <div role="group" aria-label={`Páginas de ${title}`} className="flex justify-center gap-2">
+          <div role="group" aria-label={`Páginas de ${title}`} className="flex justify-center">
             {Array.from({ length: pages.count }, (_, page) => (
               <button
                 key={page}
@@ -122,11 +122,16 @@ export function NftRail({ id, title, items }: NftRailProps) {
                 aria-label={`Página ${page + 1} de ${pages.count}`}
                 aria-current={page === pages.active || undefined}
                 onClick={() => goTo(page)}
-                className={cn(
-                  'relative size-3 rounded-full border-[1.3px] border-primary transition-colors before:absolute before:-inset-1 hover:bg-primary/40',
-                  page === pages.active && 'bg-primary',
-                )}
-              />
+                className="group grid size-6 place-items-center rounded-full"
+              >
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    'size-3 rounded-full border-[1.3px] border-primary transition-colors group-hover:bg-primary/40',
+                    page === pages.active && 'bg-primary group-hover:bg-primary',
+                  )}
+                />
+              </button>
             ))}
           </div>
         ) : null}

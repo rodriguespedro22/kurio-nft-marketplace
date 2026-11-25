@@ -90,7 +90,7 @@ export function Hero() {
 
 type SlideDotsProps = { active: number; onSelect: (index: number) => void; className?: string };
 
-/** Pontos do destaque (8 px, 8 px entre eles, todos na cor primária como no layout; o atual vai no `aria-pressed`). */
+/** Pontos do destaque (8 px, na cor primária; o atual vai no `aria-pressed`), cada um com área de toque de 24 px. */
 function SlideDots({ active, onSelect, className }: SlideDotsProps) {
   return (
     <div role="group" aria-label="Artes do destaque" className={cn('flex', className)}>
@@ -101,7 +101,7 @@ function SlideDots({ active, onSelect, className }: SlideDotsProps) {
           aria-label={`Mostrar arte ${index + 1} de ${SLIDES.length}`}
           aria-pressed={index === active}
           onClick={() => onSelect(index)}
-          className="-m-1 grid size-4 place-items-center rounded-full p-1 first:ml-0 [&+&]:ml-1"
+          className="grid size-6 place-items-center rounded-full"
         >
           <span aria-hidden="true" className="size-2 rounded-full bg-primary" />
         </button>
