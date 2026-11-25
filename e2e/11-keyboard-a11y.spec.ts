@@ -152,6 +152,8 @@ const PRIVATE_ROUTES = ['/checkout', '/perfil', '/carteiras', '/favoritos'];
 async function expectNoHorizontalOverflow(page: Page, routes: string[]) {
   for (const route of routes) {
     await page.goto(route);
+    // Mede com o conteúdo final: `settled` pode passar antes de a rota pedir os dados.
+    await page.waitForLoadState('networkidle');
     await settled(page);
     const { scrollWidth, innerWidth } = await page.evaluate(() => ({
       scrollWidth: document.documentElement.scrollWidth,

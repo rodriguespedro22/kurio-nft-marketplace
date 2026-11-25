@@ -60,7 +60,8 @@ export function PurchasePanel({ nft, listItem, edition, quantity, onQuantityChan
       data-bottom-bar=""
       className="max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-40 max-md:rounded-t-[40px] max-md:bg-surface max-md:px-6 max-md:pt-5 max-md:pb-[calc(2.25rem+env(safe-area-inset-bottom))] max-md:shadow-[0_0_20px_rgb(10_6_4/0.45)]"
     >
-      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-5 md:flex-nowrap">
+      {/* Quebra de linha também no tablet: a coluna de 768 px não comporta quantidade + Comprar + Favoritar. */}
+      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-5">
         <QuantityStepper
           label="Quantidade"
           visibleLabel="Qtd."
