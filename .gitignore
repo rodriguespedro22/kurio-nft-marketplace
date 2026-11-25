@@ -10,3 +10,6 @@ test-results/
 
 # Arquivos temporários do gerador de rotas do TanStack Router
 .tanstack/
+
+# Vínculo local com a Vercel (vercel link)
+.vercel
