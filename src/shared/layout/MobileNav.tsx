@@ -18,6 +18,7 @@ export function MobileNav({ hideOnPhone = false }: MobileNavProps) {
   return (
     <nav
       aria-label="Atalhos"
+      data-bottom-bar=""
       className={cn(
         hideOnPhone && 'max-md:hidden',
         'fixed inset-x-0 bottom-0 z-40 rounded-t-[28px] border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] shadow-bar backdrop-blur xl:hidden',

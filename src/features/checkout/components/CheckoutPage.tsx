@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQueryClient } from '@tanstack/react-query';
+import { useIsMutating, useQueryClient } from '@tanstack/react-query';
 import { Link, Navigate, useNavigate } from '@tanstack/react-router';
 import { useForm, useWatch } from 'react-hook-form';
 
@@ -13,7 +13,7 @@ import { useCart } from '@/features/cart/queries';
 import { useQuote } from '@/features/cart/quote-queries';
 import { quoteKey, useCartOwner } from '@/features/cart/use-cart-owner';
 import { getPendingOrder } from '@/features/orders/pending-order';
-import { isUncertain, useCreateOrder } from '@/features/orders/queries';
+import { CREATE_ORDER_KEY, isUncertain, useCreateOrder } from '@/features/orders/queries';
 import { useProfile } from '@/features/profile/queries';
 import { useWallets } from '@/features/wallets/queries';
 import { ApiError } from '@/shared/api/api-error';
@@ -304,6 +304,9 @@ export function CheckoutPage() {
   const wallets = useWallets();
   const cart = useCart();
   const failed = [profile, wallets, cart].find((query) => query.isError);
+  // O pedido pode ser confirmado (e esvaziar o carrinho) antes da resposta chegar: durante o envio
+  // o checkout continua montado para concluir a navegação ou o reenvio com a mesma chave.
+  const ordering = useIsMutating({ mutationKey: CREATE_ORDER_KEY }) > 0;
   const pendingOrder = session ? getPendingOrder(session.user.id) : null;
   // Pedido em andamento (reload, aba nova): a tentativa continua na tela de status.
   if (pendingOrder) return <Navigate to="/pedido/$orderId" params={{ orderId: pendingOrder }} replace />;
@@ -321,7 +324,7 @@ export function CheckoutPage() {
     );
   } else if (!session || !profile.data || !wallets.data || !cart.data) {
     content = <CheckoutSkeleton />;
-  } else if (cart.data.items.length === 0) {
+  } else if (cart.data.items.length === 0 && !ordering) {
     content = (
       <EmptyState
         icon={<CartIcon className="size-6" />}

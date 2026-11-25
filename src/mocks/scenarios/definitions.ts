@@ -33,8 +33,6 @@ export type ScenarioConfig = {
   onFirstCheckoutQuote?: 'price_change' | 'sold_out';
   /** Buscas em `/nfts` respondem na ordem inversa (a mais antiga chega por último). */
   outOfOrderSearch?: boolean;
-  /** Catálogo e categorias respondem 503 persistente. */
-  serverErrors?: boolean;
   registerConflictField?: 'username';
   /** Todo cupom é recusado como inválido. */
   couponsDisabled?: boolean;
@@ -82,7 +80,7 @@ export const SCENARIOS: Record<ScenarioName, ScenarioConfig> = {
     name: 'server-errors',
     label: 'Erros do servidor',
     description: 'Catálogo responde 503 (estado de erro com tentar novamente).',
-    serverErrors: true,
+    network: 'server-errors',
   },
   'session-expired': {
     ...base,

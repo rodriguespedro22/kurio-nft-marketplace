@@ -88,7 +88,10 @@ export function withNetwork<
       network.getRequests += 1;
       if (network.getRequests % 2 === 0) return transient();
     }
-    if (scenario.serverErrors && (route === 'nfts' || route === 'catalog')) return transient();
+    // Perfil server-errors: catálogo em 503 até a rede voltar ao normal (painel de cenários).
+    if (network.profile === 'server-errors' && (route === 'nfts' || route === 'catalog')) {
+      return transient();
+    }
 
     return resolver(info);
   };

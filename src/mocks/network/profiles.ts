@@ -1,7 +1,15 @@
 import { createPrng } from '../db/prng';
 
 /** Perfis de rede simulada aplicados por `withNetwork` a todo handler de dados. */
-export const NETWORK_PROFILES = ['normal', 'slow', 'jitter', 'offline', 'flaky', 'timeout-orders'] as const;
+export const NETWORK_PROFILES = [
+  'normal',
+  'slow',
+  'jitter',
+  'offline',
+  'flaky',
+  'timeout-orders',
+  'server-errors',
+] as const;
 export type NetworkProfileName = (typeof NETWORK_PROFILES)[number];
 
 export function isNetworkProfile(value: unknown): value is NetworkProfileName {
@@ -27,6 +35,7 @@ export function createLatency(profile: NetworkProfileName, seed: number): () => 
     case 'normal':
     case 'flaky':
     case 'timeout-orders':
+    case 'server-errors':
       return () => prng.int(150, 400);
   }
 }

@@ -117,6 +117,11 @@ describe('cenários aplicados pela rede', () => {
       expect(error).toMatchObject({ code: 'TRANSIENT', status: 503 });
     }
     expect((await client.get('/__test/ping')).status).toBe(200);
+    expect((await client.get('/__mock/state')).data).toMatchObject({ network: 'server-errors' });
+
+    // O painel troca a rede para normal: o catálogo volta sem resetar os dados.
+    await client.post('/__mock/network', { profile: 'normal' });
+    expect((await client.get('/__test/catalog')).status).toBe(200);
   });
 });
 

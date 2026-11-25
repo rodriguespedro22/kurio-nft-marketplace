@@ -56,6 +56,7 @@ export function PurchasePanel({ nft, listItem, edition, quantity, onQuantityChan
   return (
     <div
       data-testid="purchase-panel"
+      data-bottom-bar=""
       className="max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-40 max-md:rounded-t-[28px] max-md:border-t max-md:border-border max-md:bg-surface max-md:px-6 max-md:pt-4 max-md:pb-[calc(1rem+env(safe-area-inset-bottom))] max-md:shadow-bar"
     >
       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">

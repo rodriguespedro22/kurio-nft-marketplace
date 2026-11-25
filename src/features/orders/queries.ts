@@ -48,11 +48,14 @@ export function useOrder(orderId: string) {
  * (`onUncertain` → "Verificando seu pedido…") e, após uma pausa, reenvia uma vez com a mesma chave: o servidor
  * devolve o pedido já criado. Se falhar de novo, o erro sobe e "Tentar novamente" repete a chave.
  */
+/** Chave da mutação de pedido: o checkout fica montado enquanto um envio está em andamento. */
+export const CREATE_ORDER_KEY = ['order', 'create'] as const;
+
 export function useCreateOrder({ onUncertain }: { onUncertain?: () => void } = {}) {
   const queryClient = useQueryClient();
   const userId = useSession()?.user.id ?? '';
   return useMutation({
-    mutationKey: ['order', 'create'],
+    mutationKey: CREATE_ORDER_KEY,
     mutationFn: async (input: CreateOrderInput): Promise<Order> => {
       const key = getOrCreateAttemptKey(userId, input.quoteId);
       try {
