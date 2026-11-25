@@ -170,6 +170,16 @@ Corrigido nesta auditoria: \`robots.txt\` (SEO 92 → 100), altura mínima do \`
 desktop 0,127 → 0), app e mocks baixando em paralelo, prioridade alta nas imagens da 1ª fileira do
 catálogo e a lista de sufixos públicos (~250 KiB) fora do chunk dos mocks.
 
+Na segunda rodada de otimização (comparação antes/depois na mesma máquina, rodadas intercaladas: mobile
+83–84 → 84–86, LCP simulado 0,25–0,4 s menor):
+
+- os chunks do boot (app e mocks) entram como \`modulepreload\` no HTML e baixam junto com o entry;
+- menu da conta, popover da busca e menu mobile (Radix + Floating UI, ~16 KiB) carregam só na 1ª abertura,
+  com pré-carga quando o navegador fica ocioso;
+- o MSW testava cada requisição repassada pelo Service Worker (chunks, imagens, fontes) contra todos os
+  ~40 handlers; agora o que não é da API sai no primeiro handler, e a compilação das rotas fica em cache;
+- o cookie store do MSW (\`tough-cookie\`, sem uso: a sessão vai no header) saiu do bundle.
+
 Testado sem ganho: zerar a latência simulada do mock (mesma nota), carregar o painel de cenários depois do
 \`load\` (−2,5 KiB, sem efeito) e embutir a rota inicial no chunk principal (piorou: 81 → 77). Pré-carregar a
 imagem do 1º card no HTML subiria a nota, mas só porque o cenário padrão é conhecido: seria uma

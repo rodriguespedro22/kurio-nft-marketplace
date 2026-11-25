@@ -1,21 +1,17 @@
+import { Suspense, useEffect, useState } from 'react';
 import { Link, useRouter, useRouterState } from '@tanstack/react-router';
-import { LogOut, UserRound } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { lazyWithPreload, whenIdle } from '@/shared/lib/lazy-with-preload';
 import { cn } from '@/shared/lib/utils';
 import { buttonVariants } from '@/shared/ui/button-variants';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/shared/ui/dropdown-menu';
 import { LoginIcon } from '@/shared/ui/icons';
 
 import { useLogout } from '../queries';
 import { safeRedirect, useSession } from '../session';
+import { AccountTrigger } from './account-trigger';
+
+const AccountDropdown = lazyWithPreload(() => import('./AccountDropdown'));
 
 /** Header: botão "Entrar" (visitante) ou menu da conta com nome, perfil e "Sair". */
 export function AccountMenu() {
@@ -26,6 +22,12 @@ export function AccountMenu() {
     select: (s) => s.matches.some((m) => m.routeId.startsWith('/_auth')),
   });
   const logout = useLogout();
+  const [open, setOpen] = useState(false);
+  // O menu (Radix) só monta na 1ª abertura; até lá, o botão provisório tem a mesma cara e o mesmo nome.
+  const [mounted, setMounted] = useState(false);
+  const signedIn = session !== null;
+
+  useEffect(() => (signedIn ? whenIdle(() => void AccountDropdown.preload()) : undefined), [signedIn]);
 
   if (!session) {
     const redirect = safeRedirect(href);
@@ -45,7 +47,6 @@ export function AccountMenu() {
   }
 
   const { displayName, email } = session.user;
-  const initial = displayName.trim().charAt(0).toUpperCase() || '?';
 
   function handleLogout() {
     logout.mutate(undefined, {
@@ -56,34 +57,32 @@ export function AccountMenu() {
     });
   }
 
+  const placeholder = (
+    <AccountTrigger
+      displayName={displayName}
+      aria-haspopup="menu"
+      aria-expanded={false}
+      onPointerEnter={() => void AccountDropdown.preload()}
+      onFocus={() => void AccountDropdown.preload()}
+      onClick={() => {
+        setMounted(true);
+        setOpen(true);
+      }}
+    />
+  );
+
+  if (!mounted) return placeholder;
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        aria-label={`Conta de ${displayName}`}
-        className="flex min-h-11 items-center gap-2 rounded-full py-1 pr-3 pl-1 text-body-sm text-foreground transition-colors hover:bg-surface-raised data-[state=open]:bg-surface-raised"
-      >
-        {/* Inicial via CSS: o texto visível do botão é só o nome (rótulo no nome acessível). */}
-        <span
-          aria-hidden="true"
-          data-text={initial}
-          className="grid size-8 shrink-0 place-items-center rounded-full bg-primary font-bold text-ink before:content-[attr(data-text)]"
-        />
-        <span className="max-w-28 truncate sm:max-w-40">{displayName}</span>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel className="truncate">{email}</DropdownMenuLabel>
-        <DropdownMenuItem asChild>
-          <Link to="/perfil">
-            <UserRound aria-hidden="true" strokeWidth={1.5} />
-            Meu perfil
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={handleLogout} disabled={logout.isPending}>
-          <LogOut aria-hidden="true" strokeWidth={1.5} />
-          Sair
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Suspense fallback={placeholder}>
+      <AccountDropdown
+        displayName={displayName}
+        email={email}
+        open={open}
+        onOpenChange={setOpen}
+        onLogout={handleLogout}
+        logoutPending={logout.isPending}
+      />
+    </Suspense>
   );
 }

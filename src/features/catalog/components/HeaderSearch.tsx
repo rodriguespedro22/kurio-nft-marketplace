@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Link, useLocation } from '@tanstack/react-router';
 
+import { lazyWithPreload, whenIdle } from '@/shared/lib/lazy-with-preload';
 import { cn } from '@/shared/lib/utils';
 import { SearchIcon } from '@/shared/ui/icons';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 
 import { catalogSearchSchema, SEARCH_INPUT_ID } from '../search';
-import { SearchInput } from './SearchInput';
+
+const HeaderSearchPopover = lazyWithPreload(() => import('./HeaderSearchPopover'));
 
 const iconClass =
   '-m-2 grid place-items-center rounded-full p-2 text-foreground transition-colors hover:text-accent';
@@ -22,6 +23,10 @@ export function HeaderSearch() {
   const location = useLocation();
   const onHome = location.pathname === '/';
   const [open, setOpen] = useState(false);
+  // O popover (Radix) só monta na 1ª abertura; até lá, a lupa provisória tem a mesma cara e o mesmo nome.
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => (onHome ? whenIdle(() => void HeaderSearchPopover.preload()) : undefined), [onHome]);
 
   // Chegou à Início pela lupa de outra página (`/#busca`): no desktop, abre o popover. Ajuste de
   // estado durante a renderização, quando o destino muda (sem efeito em cascata).
@@ -29,7 +34,10 @@ export function HeaderSearch() {
   const [seenArrival, setSeenArrival] = useState<string | null>(null);
   if (arrival !== seenArrival) {
     setSeenArrival(arrival);
-    if (arrival && typeof window !== 'undefined' && window.matchMedia(DESKTOP).matches) setOpen(true);
+    if (arrival && typeof window !== 'undefined' && window.matchMedia(DESKTOP).matches) {
+      setMounted(true);
+      setOpen(true);
+    }
   }
 
   const toField = (
@@ -48,17 +56,34 @@ export function HeaderSearch() {
 
   if (!onHome) return toField;
 
+  const placeholder = (
+    <button
+      type="button"
+      aria-label="Buscar NFTs"
+      aria-haspopup="dialog"
+      aria-expanded={false}
+      className={cn(iconClass, 'hidden xl:grid')}
+      onPointerEnter={() => void HeaderSearchPopover.preload()}
+      onFocus={() => void HeaderSearchPopover.preload()}
+      onClick={() => {
+        setMounted(true);
+        setOpen(true);
+      }}
+    >
+      <SearchIcon aria-hidden="true" className="size-5" />
+    </button>
+  );
+
   return (
     <>
       {toField}
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger aria-label="Buscar NFTs" className={cn(iconClass, 'hidden xl:grid')}>
-          <SearchIcon aria-hidden="true" className="size-5" />
-        </PopoverTrigger>
-        <PopoverContent aria-label="Busca" className="w-[380px] p-2">
-          <SearchInput id="busca-header" onSubmitted={() => setOpen(false)} />
-        </PopoverContent>
-      </Popover>
+      {mounted ? (
+        <Suspense fallback={placeholder}>
+          <HeaderSearchPopover open={open} onOpenChange={setOpen} triggerClassName={iconClass} />
+        </Suspense>
+      ) : (
+        placeholder
+      )}
     </>
   );
 }

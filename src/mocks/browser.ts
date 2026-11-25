@@ -1,12 +1,26 @@
+import { http, passthrough } from 'msw';
 import { setupWorker } from 'msw/browser';
 
 import { db } from './db/store';
 import { handlers } from './handlers';
+import { API_URL } from './handlers/http';
 import { scheduleOpenOrders } from './handlers/orders';
 import { mountMockPanel } from './panel/mount';
 import { isNetworkProfile } from './network/profiles';
 import { resetNetworkState, setNetworkProfile } from './network/with-network';
 import { isScenarioName } from './scenarios';
+
+const API_PREFIX = new URL(`${API_URL}/`, window.location.origin).href;
+
+/**
+ * O Service Worker repassa à página toda requisição sob seu escopo (chunks, imagens, fontes), e o
+ * MSW testaria cada uma contra todos os handlers (URL, cookies e rota, ~40 vezes). O que não é da
+ * API segue direto para a rede já no primeiro handler.
+ */
+const staticPassthrough = http.all(
+  ({ request }) => !request.url.startsWith(API_PREFIX),
+  () => passthrough(),
+);
 
 /** Chave gravada pelos testes E2E (`addInitScript`) antes do primeiro carregamento. */
 export const MOCK_BOOT_KEY = 'kurio:mock:boot';
@@ -62,7 +76,7 @@ function waitForController(): Promise<void> {
 
 export async function enableMocking(): Promise<void> {
   applyBootSelection();
-  const worker = setupWorker(...handlers);
+  const worker = setupWorker(staticPassthrough, ...handlers);
   await worker.start({
     onUnhandledRequest: 'bypass',
     quiet: import.meta.env.PROD,

@@ -126,6 +126,9 @@ importers:
       msw:
         specifier: ^2.15.0
         version: 2.15.0(@types/node@26.6.6)(typescript@6.0.3)
+      path-to-regexp:
+        specifier: 6.3.0
+        version: 6.3.0
       prettier:
         specifier: ^3.10.1
         version: 3.10.1
