@@ -16,7 +16,7 @@ function receiptDate(iso: string): string {
 }
 
 const meta =
-  'flex min-w-0 flex-col gap-0.5 px-3 first:pl-0 last:pr-0 [&>dt]:text-secondary [&>dd]:text-foreground';
+  'flex min-w-0 flex-col px-3 text-secondary first:pl-0 last:pr-0 [&>dd]:text-body [&>dd]:leading-5 [&>dt]:text-body-sm [&>dt]:leading-4';
 
 /**
  * Recibo: só com o pedido `confirmed` da API e sempre a partir
@@ -32,14 +32,14 @@ export function Receipt({ order }: { order: Order }) {
       aria-labelledby={titleId}
       className="mx-auto flex w-full max-w-[578px] flex-col overflow-hidden rounded-lg bg-surface"
     >
-      <div className="flex flex-col items-center gap-4 px-6 pt-6 pb-5">
-        <MailOpen aria-hidden="true" className="size-16 text-primary" strokeWidth={1.25} />
-        <h2 id={titleId} className="text-center text-body-lg font-bold text-accent">
+      <div className="flex flex-col items-center gap-4 px-6 pt-[22px] pb-[22px]">
+        <MailOpen aria-hidden="true" className="size-20 text-primary" strokeWidth={1} />
+        <h2 id={titleId} className="text-center text-body-lg leading-4 font-bold text-secondary">
           Seus NFTs agora estão na sua carteira
         </h2>
       </div>
 
-      <dl className="grid grid-cols-2 gap-y-3 border-y border-primary px-6 py-3 text-body-sm sm:flex sm:justify-between sm:divide-x sm:divide-primary">
+      <dl className="grid grid-cols-2 gap-y-3 border-y border-primary px-6 py-[15px] sm:flex sm:justify-between sm:divide-x sm:divide-primary sm:px-9">
         <div className={meta}>
           <dt className="font-bold">ID da transação</dt>
           <dd data-testid="receipt-tx" title={order.txHash ?? undefined} className="tabular-nums">
@@ -62,11 +62,11 @@ export function Receipt({ order }: { order: Order }) {
         </div>
       </dl>
 
-      <div className="flex flex-col gap-4 px-6 pt-6 pb-8 sm:px-11">
-        <h3 className="text-body font-bold text-foreground">Detalhes da transação</h3>
+      <div className="flex flex-col gap-3 px-6 pt-5 pb-12 sm:px-11">
+        <h3 className="text-body leading-4 font-bold text-foreground">Detalhes da transação</h3>
         <div
           aria-hidden="true"
-          className="grid grid-cols-[minmax(0,1fr)_44px_84px] border-b border-border pb-2 text-body text-foreground sm:grid-cols-[minmax(0,1fr)_72px_96px]"
+          className="grid grid-cols-[minmax(0,1fr)_44px_84px] border-b border-primary/30 pb-3 text-body leading-4 text-foreground sm:grid-cols-[minmax(0,1fr)_72px_96px]"
         >
           <span>NFTs</span>
           <span className="text-center">Edições</span>
@@ -76,7 +76,7 @@ export function Receipt({ order }: { order: Order }) {
           {snapshot.lines.map((line) => (
             <li
               key={line.cartItemId}
-              className="grid grid-cols-[minmax(0,1fr)_44px_84px] items-center text-body-sm sm:grid-cols-[minmax(0,1fr)_72px_96px]"
+              className="grid min-h-[70px] grid-cols-[minmax(0,1fr)_44px_84px] items-center text-body-sm sm:grid-cols-[minmax(0,1fr)_72px_96px]"
             >
               <div className="flex min-w-0 items-center gap-2 sm:gap-3">
                 <NftImage
@@ -86,7 +86,9 @@ export function Receipt({ order }: { order: Order }) {
                   className="size-11 shrink-0 rounded-md sm:size-16"
                 />
                 <div className="flex min-w-0 flex-col">
-                  <span className="font-bold break-words text-foreground sm:truncate">{line.name}</span>
+                  <span className="font-bold break-words text-foreground sm:truncate sm:text-body">
+                    {line.name}
+                  </span>
                   <span className="break-words text-secondary sm:truncate">
                     ID do token: #{line.tokenNumber}
                   </span>
@@ -95,14 +97,14 @@ export function Receipt({ order }: { order: Order }) {
               <span className="text-center text-secondary">
                 <span className="sr-only">Edições: </span>(x {line.quantity})
               </span>
-              <span className="text-right font-bold text-accent tabular-nums">
+              <span className="text-right text-body-lg font-bold text-accent tabular-nums sm:text-section">
                 {formatEth(line.lineTotal)}
               </span>
             </li>
           ))}
         </ul>
 
-        <dl className="ml-auto flex w-full max-w-80 flex-col gap-2 text-body">
+        <dl className="ml-auto flex w-full max-w-80 flex-col gap-3 text-body leading-5">
           {snapshot.coupon ? (
             <div className="flex justify-between gap-4">
               <dt className="text-secondary">Desconto ({snapshot.coupon.code})</dt>
@@ -111,19 +113,22 @@ export function Receipt({ order }: { order: Order }) {
           ) : null}
           <div className="flex justify-between gap-4">
             <dt className="text-foreground">Taxa de rede</dt>
-            <dd data-testid="receipt-fee" className="text-foreground tabular-nums">
+            <dd data-testid="receipt-fee" className="text-section leading-4 text-foreground tabular-nums">
               {formatEth(snapshot.networkFee)}
             </dd>
           </div>
           <div className="flex justify-between gap-4">
-            <dt className="font-bold text-foreground">Total</dt>
-            <dd data-testid="receipt-total" className="text-body-lg font-bold text-accent tabular-nums">
+            <dt className="text-body-lg leading-4 font-bold text-foreground">Total</dt>
+            <dd
+              data-testid="receipt-total"
+              className="text-section leading-4 font-bold text-accent tabular-nums"
+            >
               {formatEth(snapshot.total)}
             </dd>
           </div>
         </dl>
 
-        <p className="border-t border-border pt-4 text-center text-body-sm text-secondary">
+        <p className="border-t border-primary/30 pt-3 text-center text-body-sm leading-[22px] text-secondary">
           Transação confirmada na {network}. A propriedade foi transferida para sua carteira conectada e
           registrada na rede.
         </p>
@@ -132,7 +137,10 @@ export function Receipt({ order }: { order: Order }) {
             href={order.explorerUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className={buttonVariants({ variant: 'primary', className: 'self-center' })}
+            className={buttonVariants({
+              variant: 'primary',
+              className: 'mt-9 h-12 self-center rounded-[5px] px-4 text-body-lg font-bold',
+            })}
           >
             Ver no explorador
             <span className="sr-only"> (abre em nova aba)</span>
