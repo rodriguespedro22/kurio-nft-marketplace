@@ -20,8 +20,17 @@ export function Hero() {
   return (
     <section
       aria-labelledby="hero-title"
-      className="relative grid grid-cols-[1fr_auto] items-center gap-2 overflow-hidden rounded-[30px] bg-linear-to-br from-surface-dark via-surface to-surface p-4 sm:p-6 xl:h-[450px] xl:grid-cols-[600px_450px] xl:justify-between xl:gap-0 xl:rounded-none xl:bg-none xl:p-0 xl:pl-10"
+      className="relative isolate grid grid-cols-[1fr_auto] items-center gap-2 overflow-hidden rounded-[30px] bg-linear-to-br from-surface-dark via-surface to-surface p-4 sm:p-6 xl:h-[450px] xl:grid-cols-[600px_450px] xl:justify-between xl:gap-0 xl:rounded-none xl:bg-none xl:p-0 xl:pl-10"
     >
+      {/* Bolhas do fundo no celular (layout: dois círculos claros sobrepostos, atrás do conteúdo). */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1/2 left-[12%] -z-10 aspect-square w-[67%] -translate-1/2 rounded-full bg-linear-to-b from-primary/20 to-primary/5 xl:hidden"
+      />
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute top-[59%] left-[54%] -z-10 aspect-square w-[68%] -translate-1/2 rounded-full bg-linear-to-b from-primary/15 to-primary/[0.03] xl:hidden"
+      />
       {/* Layout: coluna de 600 px centrada na altura; os pontos ficam nela, à direita, 44 px abaixo do botão. */}
       <div className="flex flex-col items-start gap-3 xl:gap-11">
         <div className="flex flex-col items-start gap-0 sm:gap-3 xl:gap-8">

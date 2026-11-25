@@ -22,10 +22,15 @@ export function MobileNav({ hideOnPhone = false }: MobileNavProps) {
       data-bottom-bar=""
       className={cn(
         hideOnPhone && 'max-md:hidden',
-        'fixed inset-x-0 bottom-0 z-40 rounded-t-[28px] border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] shadow-bar backdrop-blur xl:hidden',
+        'fixed inset-x-0 bottom-0 z-40 pb-[env(safe-area-inset-bottom)] xl:hidden',
       )}
     >
-      <ul className="mx-auto grid h-16 max-w-md grid-cols-5 items-center px-4">
+      {/* Fundo da barra com o recorte côncavo em volta do botão central (layout). */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 rounded-t-[28px] border-t border-border bg-surface/95 [mask-image:radial-gradient(circle_42px_at_50%_0,transparent_41px,#000_42px)] shadow-bar backdrop-blur"
+      />
+      <ul className="relative mx-auto grid h-16 max-w-md grid-cols-5 items-center px-4">
         <li className="col-start-1 flex justify-center">
           <Link to="/" activeOptions={{ exact: true, includeHash: true }} className={itemClass}>
             <HomeIcon className="size-6" />
@@ -34,14 +39,15 @@ export function MobileNav({ hideOnPhone = false }: MobileNavProps) {
         </li>
         <li className="col-start-2 flex justify-center">
           <Link to="/favoritos" className={itemClass}>
-            <Heart aria-hidden="true" className="size-6" strokeWidth={1.75} />
+            <Heart aria-hidden="true" className="size-6" fill="currentColor" strokeWidth={1.75} />
             <span className="sr-only">Favoritos</span>
           </Link>
         </li>
-        <li className="col-start-3 flex justify-center">
+        <li className="col-start-3 flex justify-center self-start">
+          {/* Centro do botão na borda superior da barra, dentro do recorte. */}
           <InertLink
             label="Escanear NFT"
-            className="-mt-8 grid size-16 place-items-center rounded-full bg-linear-to-b from-primary-light to-primary-dark text-ink shadow-bar ring-4 ring-ink"
+            className="-mt-8 grid size-16 place-items-center rounded-full bg-linear-to-b from-primary-light to-primary-dark text-ink shadow-bar"
           >
             <ScanLine aria-hidden="true" className="size-7" strokeWidth={1.5} />
           </InertLink>
