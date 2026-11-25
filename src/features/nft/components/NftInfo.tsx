@@ -28,6 +28,17 @@ function Rating({ average, count }: Nft['rating']) {
   );
 }
 
+/** Monograma decorativo via CSS: não entra no texto visível do link (rótulo no nome, WCAG 2.5.3). */
+function MonoIcon({ text }: { text: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      data-text={text}
+      className="text-caption font-bold before:content-[attr(data-text)]"
+    />
+  );
+}
+
 function ShareLinks({ name }: { name: string }) {
   const url = typeof window === 'undefined' ? '' : window.location.href;
   const text = `${name} na Kurio`;
@@ -35,7 +46,7 @@ function ShareLinks({ name }: { name: string }) {
     {
       label: 'LinkedIn',
       href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
-      icon: <span className="text-caption font-bold">in</span>,
+      icon: <MonoIcon text="in" />,
     },
     {
       label: 'e-mail',
@@ -45,7 +56,7 @@ function ShareLinks({ name }: { name: string }) {
     {
       label: 'X (Twitter)',
       href: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
-      icon: <span className="text-caption font-bold">X</span>,
+      icon: <MonoIcon text="X" />,
     },
   ];
 

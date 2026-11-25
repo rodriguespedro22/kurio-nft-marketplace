@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      visual_baselines:
+        description: Regerar as baselines visuais (artefato visual-baselines)
+        type: boolean
+        default: false
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Os jobs E2E rodam no container do Playwright na mesma versão de @playwright/test do
+# package.json: as baselines visuais dependem desse render (atualize as duas juntas).
+jobs:
+  checks:
+    name: Typecheck, lint e unit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test:unit
+
+  e2e:
+    name: E2E (Playwright)
+    needs: checks
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.65.1-noble
+      options: --ipc=host
+    env:
+      HOME: /root
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+  visual-baselines:
+    name: Baselines visuais (manual)
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.visual_baselines }}
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.65.1-noble
+      options: --ipc=host
+    env:
+      HOME: /root
+      VISUAL_UPDATE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:e2e visual --update-snapshots --project=chromium-desktop --project=chromium-mobile
+      - uses: actions/upload-artifact@v4
+        with:
+          name: visual-baselines
+          path: e2e/__screenshots__/
+          retention-days: 14

@@ -6,19 +6,21 @@ import { CartIcon, ShopIcon } from '@/shared/ui/icons';
 import { cartShortcutLabel } from '../labels';
 import { useCartCount } from '../queries';
 
-/** Bolinha com a contagem (decorativa: o número já está no nome acessível do link). */
+/**
+ * Bolinha com a contagem. Decorativa: o número já está no nome acessível do link, e o texto vem do
+ * CSS (`attr`) para não contar como texto visível fora do nome (WCAG 2.5.3, rótulo no nome).
+ */
 export function CartBadge({ count, className }: { count: number; className?: string }) {
   if (count <= 0) return null;
   return (
     <span
       aria-hidden="true"
+      data-text={count > 99 ? '99+' : String(count)}
       className={cn(
-        'absolute grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] leading-none font-bold text-ink tabular-nums',
+        'absolute grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] leading-none font-bold text-ink tabular-nums before:content-[attr(data-text)]',
         className,
       )}
-    >
-      {count > 99 ? '99+' : count}
-    </span>
+    />
   );
 }
 

@@ -31,10 +31,9 @@ export function FiltersDrawer({ className }: { className?: string }) {
           {active ? (
             <span
               aria-hidden="true"
-              className="absolute -top-1.5 -right-1.5 grid size-5 place-items-center rounded-full bg-foreground text-micro font-bold text-ink"
-            >
-              {active}
-            </span>
+              data-text={String(active)}
+              className="absolute -top-1.5 -right-1.5 grid size-5 place-items-center rounded-full bg-foreground text-micro font-bold text-ink before:content-[attr(data-text)]"
+            />
           ) : null}
         </Button>
       </SheetTrigger>

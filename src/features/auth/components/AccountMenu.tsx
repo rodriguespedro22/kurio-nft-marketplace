@@ -59,12 +59,12 @@ export function AccountMenu() {
         aria-label={`Conta de ${displayName}`}
         className="flex min-h-11 items-center gap-2 rounded-full py-1 pr-3 pl-1 text-body-sm text-foreground transition-colors hover:bg-surface-raised data-[state=open]:bg-surface-raised"
       >
+        {/* Inicial via CSS: o texto visível do botão é só o nome (rótulo no nome acessível). */}
         <span
           aria-hidden="true"
-          className="grid size-8 shrink-0 place-items-center rounded-full bg-primary font-bold text-ink"
-        >
-          {initial}
-        </span>
+          data-text={initial}
+          className="grid size-8 shrink-0 place-items-center rounded-full bg-primary font-bold text-ink before:content-[attr(data-text)]"
+        />
         <span className="max-w-28 truncate sm:max-w-40">{displayName}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

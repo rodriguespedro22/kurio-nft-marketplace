@@ -8,6 +8,7 @@ import { qk } from '@/shared/api/query-keys';
 import { announce } from '@/shared/ui/announce';
 
 import { cartApi } from './api';
+import { isNewestServerCart } from './server-cart';
 import { cartKey, quotePrefix, useCartOwner, type CartOwner } from './use-cart-owner';
 
 /** Prefixo de todas as mutações do carrinho (contagem de "última mutação em voo"). */
@@ -47,6 +48,12 @@ type KeyContext = { key: readonly unknown[] };
 const isLastCartMutation = (queryClient: QueryClient) =>
   queryClient.isMutating({ mutationKey: CART_MUTATION }) === 1;
 
+/** Aplica o carrinho do servidor só se for a resposta mais nova; senão recarrega a verdade. */
+function applyServerCart(queryClient: QueryClient, key: readonly unknown[], cart: Cart) {
+  if (isNewestServerCart(queryClient, key, cart)) queryClient.setQueryData(key, cart);
+  else void queryClient.invalidateQueries({ queryKey: key });
+}
+
 /** Adiciona (ou soma) uma edição. O carrinho devolvido pelo servidor substitui o cache. */
 export function useAddToCart() {
   const queryClient = useQueryClient();
@@ -56,7 +63,7 @@ export function useAddToCart() {
     mutationFn: (input) => cartApi.add(input),
     onMutate: () => ({ key: cartKey(owner) }),
     onSuccess: (cart, _input, context) => {
-      queryClient.setQueryData(context.key, cart);
+      applyServerCart(queryClient, context.key, cart);
       void queryClient.invalidateQueries({ queryKey: quotePrefix(owner) });
     },
   });
@@ -89,8 +96,11 @@ export function useUpdateCartItem(itemId: string) {
       return { key, previous };
     },
     onSuccess: (cart, _variables, context) => {
-      if (!isLastCartMutation(queryClient)) return;
-      queryClient.setQueryData(context.key, cart);
+      if (!isLastCartMutation(queryClient)) {
+        isNewestServerCart(queryClient, context.key, cart);
+        return;
+      }
+      applyServerCart(queryClient, context.key, cart);
       void queryClient.invalidateQueries({ queryKey: quotePrefix(owner) });
     },
     onError: (error, _variables, context) => {
@@ -118,8 +128,9 @@ export function useRemoveCartItem(itemId: string) {
     onMutate: () => ({ key: cartKey(owner) }),
     onSuccess: (cart, _variables, context) => {
       void queryClient.invalidateQueries({ queryKey: quotePrefix(owner) });
-      if (isLastCartMutation(queryClient)) queryClient.setQueryData(context.key, cart);
+      if (isLastCartMutation(queryClient)) applyServerCart(queryClient, context.key, cart);
       else {
+        isNewestServerCart(queryClient, context.key, cart);
         queryClient.setQueryData<Cart>(
           context.key,
           (old) => old && { ...old, items: old.items.filter((i) => i.id !== itemId) },

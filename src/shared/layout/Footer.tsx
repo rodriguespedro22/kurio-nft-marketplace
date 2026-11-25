@@ -192,7 +192,12 @@ export function Footer({ phoneBottomBar = false }: { phoneBottomBar?: boolean })
                       aria-label={label}
                       className="grid size-11 place-items-center rounded-control border border-primary text-caption font-bold text-accent uppercase transition-colors hover:bg-primary hover:text-ink"
                     >
-                      <span aria-hidden="true">{mono}</span>
+                      {/* Monograma via CSS: o nome acessível é o da rede (rótulo no nome). */}
+                      <span
+                        aria-hidden="true"
+                        data-text={mono}
+                        className="before:content-[attr(data-text)]"
+                      />
                     </Link>
                   </li>
                 ))}
