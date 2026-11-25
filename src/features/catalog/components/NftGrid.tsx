@@ -6,7 +6,9 @@ import { CATALOG_PAGE_SIZE } from '../api';
 import { NftCard } from './NftCard';
 import { NftCardSkeleton } from './NftCardSkeleton';
 
-const GRID_CLASSES = 'grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 xl:gap-x-8 xl:gap-y-18';
+// Celular: duas colunas com a da direita 32 px mais baixa (grade escalonada do frame mobile).
+const GRID_CLASSES =
+  'grid grid-cols-2 gap-x-4 gap-y-6 max-md:pb-8 max-md:[&>li:nth-child(even)]:translate-y-8 md:grid-cols-3 md:gap-y-8 xl:gap-x-8 xl:gap-y-18';
 
 type NftGridProps = {
   items: NftListItem[];

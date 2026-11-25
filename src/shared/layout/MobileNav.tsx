@@ -14,7 +14,7 @@ type MobileNavProps = {
   hideOnPhone?: boolean;
 };
 
-/** Barra inferior (< 1280 px): Início, Favoritos, escanear (central), Carrinho, Perfil. */
+/** Barra inferior (< 1280 px), só ícones como no frame mobile: Início, Favoritos, escanear (central), Carrinho, Perfil. */
 export function MobileNav({ hideOnPhone = false }: MobileNavProps) {
   return (
     <nav
@@ -29,13 +29,13 @@ export function MobileNav({ hideOnPhone = false }: MobileNavProps) {
         <li className="col-start-1 flex justify-center">
           <Link to="/" activeOptions={{ exact: true, includeHash: true }} className={itemClass}>
             <HomeIcon className="size-6" />
-            <span>Início</span>
+            <span className="sr-only">Início</span>
           </Link>
         </li>
         <li className="col-start-2 flex justify-center">
           <Link to="/favoritos" className={itemClass}>
             <Heart aria-hidden="true" className="size-6" strokeWidth={1.75} />
-            <span>Favoritos</span>
+            <span className="sr-only">Favoritos</span>
           </Link>
         </li>
         <li className="col-start-3 flex justify-center">
@@ -52,7 +52,7 @@ export function MobileNav({ hideOnPhone = false }: MobileNavProps) {
         <li className="col-start-5 flex justify-center">
           <Link to="/perfil" className={itemClass}>
             <UserIcon className="size-6" />
-            <span>Perfil</span>
+            <span className="sr-only">Perfil</span>
           </Link>
         </li>
       </ul>

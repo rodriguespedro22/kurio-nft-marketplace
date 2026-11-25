@@ -24,14 +24,14 @@ type NftCardProps = { nft: NftListItem; priority?: boolean };
  */
 export function NftCard({ nft, priority = false }: NftCardProps) {
   return (
-    <article className="group relative flex flex-col gap-3">
+    <article className="group relative flex flex-col gap-2 xl:gap-3">
       <div
         className={cn(
-          'relative grid aspect-[258/300] place-items-center bg-surface px-1',
+          'relative grid aspect-[175/200] place-items-center rounded-[20px] bg-linear-135 from-surface to-surface-raised px-1 xl:aspect-[258/300] xl:rounded-none xl:bg-surface xl:bg-none',
           'before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-primary before:opacity-0 before:transition-opacity xl:group-focus-within:before:opacity-100 xl:group-hover:before:opacity-100',
         )}
       >
-        <div className="aspect-square w-full overflow-hidden rounded-art">
+        <div className="aspect-square w-full overflow-hidden rounded-2xl xl:rounded-art">
           <NftImage
             asset={nft.image.asset}
             alt={nft.image.alt}
@@ -40,7 +40,7 @@ export function NftCard({ nft, priority = false }: NftCardProps) {
           />
         </div>
         {nft.isRare ? (
-          <span className="absolute top-3.5 left-0 grid h-[29px] w-20 place-items-center bg-primary text-body-lg leading-4 font-medium text-ink">
+          <span className="absolute top-[8%] left-0 grid h-8 w-[68px] place-items-center bg-primary text-caption leading-4 font-medium text-ink xl:top-3.5 xl:h-[29px] xl:w-20 xl:text-body-lg">
             RARO
           </span>
         ) : null}
@@ -51,7 +51,7 @@ export function NftCard({ nft, priority = false }: NftCardProps) {
         ) : null}
         <div
           className={cn(
-            'absolute top-[calc(8.33%+0.5rem)] right-3 z-10 flex gap-2.5 transition-opacity',
+            'absolute top-[8%] right-2 z-10 flex gap-2.5 transition-opacity',
             'xl:top-auto xl:right-auto xl:bottom-[7px] xl:left-1/2 xl:-translate-x-1/2 xl:opacity-0 xl:group-focus-within:opacity-100 xl:group-hover:opacity-100',
           )}
         >
@@ -69,7 +69,7 @@ export function NftCard({ nft, priority = false }: NftCardProps) {
           </Link>
           <FavoriteButton
             item={nft}
-            className="xl:size-[35px] xl:rounded-[4px] xl:border xl:border-border xl:bg-surface-raised xl:backdrop-blur-none xl:before:inset-0 xl:hover:border-primary xl:hover:bg-surface-raised"
+            className="size-7 border border-border bg-surface-raised backdrop-blur-none hover:bg-surface-raised xl:size-[35px] xl:rounded-[4px] xl:before:inset-0 xl:hover:border-primary [&_svg]:size-4 xl:[&_svg]:size-5"
           />
           <Link
             to="/nft/$nftId"
@@ -84,8 +84,8 @@ export function NftCard({ nft, priority = false }: NftCardProps) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <h3 className="h-4 truncate text-body-lg leading-4 text-foreground">
+      <div className="flex flex-col gap-0 pl-2 xl:gap-1.5 xl:pl-0">
+        <h3 className="h-5 truncate text-body leading-5 text-foreground xl:h-4 xl:text-body-lg xl:leading-4">
           <Link
             to="/nft/$nftId"
             params={{ nftId: nft.id }}
@@ -94,7 +94,7 @@ export function NftCard({ nft, priority = false }: NftCardProps) {
             {nft.name}
           </Link>
         </h3>
-        <p className="flex h-4 items-baseline gap-3 overflow-hidden text-section leading-4 whitespace-nowrap">
+        <p className="flex h-4 items-baseline gap-3 overflow-hidden text-body-lg leading-4 whitespace-nowrap xl:text-section">
           <span className="sr-only">Preço:</span>
           <span data-testid="nft-card-price" className="font-bold text-accent">
             {formatEth(nft.price)}

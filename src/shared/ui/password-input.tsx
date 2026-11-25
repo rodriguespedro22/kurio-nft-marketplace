@@ -23,10 +23,11 @@ export function PasswordInput({ className, ...props }: PasswordInputProps) {
         aria-pressed={visible}
         className="absolute inset-y-0 right-0 grid w-11 place-items-center rounded-r-field text-muted transition-colors hover:text-secondary"
       >
+        {/* Como no Layout: olho riscado enquanto a senha está oculta. */}
         {visible ? (
-          <EyeOff aria-hidden="true" className="size-5" strokeWidth={1.5} />
-        ) : (
           <Eye aria-hidden="true" className="size-5" strokeWidth={1.5} />
+        ) : (
+          <EyeOff aria-hidden="true" className="size-5" strokeWidth={1.5} />
         )}
       </button>
     </div>

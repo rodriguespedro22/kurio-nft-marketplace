@@ -33,7 +33,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
   });
 
   return (
-    <form aria-label="Entrar" noValidate onSubmit={onSubmit} className="flex flex-col gap-4">
+    <form aria-label="Entrar" noValidate onSubmit={onSubmit} className="flex flex-col gap-4 md:gap-3">
       {formError ? (
         <div
           role="alert"
@@ -44,7 +44,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         </div>
       ) : null}
 
-      <FormField label="E-mail" error={errors.email?.message} required>
+      <FormField label="E-mail" error={errors.email?.message} required labelClassName="md:sr-only">
         <Input
           type="email"
           autoComplete="email"
@@ -53,13 +53,20 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         />
       </FormField>
 
-      <FormField label="Senha" error={errors.password?.message} required>
-        <PasswordInput autoComplete="current-password" {...form.register('password')} />
+      <FormField label="Senha" error={errors.password?.message} required labelClassName="md:sr-only">
+        <PasswordInput autoComplete="current-password" placeholder="Senha" {...form.register('password')} />
       </FormField>
 
-      <InertLink className="-mt-1 self-end text-body-sm text-accent">Esqueceu a senha?</InertLink>
+      <InertLink className="-mt-1 self-end text-body-sm text-accent md:mt-0 md:leading-4">
+        Esqueceu a senha?
+      </InertLink>
 
-      <Button type="submit" size="lg" loading={login.isPending} className="w-full">
+      <Button
+        type="submit"
+        size="lg"
+        loading={login.isPending}
+        className="w-full md:mt-3 md:h-[45px] md:rounded-field md:text-body-lg"
+      >
         Entrar
       </Button>
     </form>

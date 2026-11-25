@@ -11,8 +11,8 @@ import { useCatalogSearch, useUpdateCatalogSearch } from '../use-catalog-search'
 import { CatalogTabs } from './CatalogTabs';
 import { CategorySidebar } from './CategorySidebar';
 import { FeaturedCard } from './FeaturedCard';
-import { FiltersDrawer } from './FiltersDrawer';
 import { NftGrid, NftGridSkeleton } from './NftGrid';
+import { FiltersDrawer } from './FiltersDrawer';
 import { Pagination } from './Pagination';
 import { SearchInput } from './SearchInput';
 import { SortSelect } from './SortSelect';
@@ -81,7 +81,20 @@ function CatalogResults({ search }: { search: CatalogSearchState }) {
   );
 }
 
-/** Catálogo da Início: sidebar (desktop) + busca, abas, ordenação, grid e paginação. */
+/**
+ * Busca + filtros abaixo de 1280 px, no topo da Início como no frame mobile. No desktop o layout não
+ * tem barra de busca: ela abre pela lupa do header.
+ */
+export function CatalogSearchBar() {
+  return (
+    <div className="flex items-center gap-2 xl:hidden">
+      <SearchInput className="flex-1" />
+      <FiltersDrawer />
+    </div>
+  );
+}
+
+/** Catálogo da Início: sidebar (desktop), abas, ordenação, grid e paginação. */
 export function CatalogSection() {
   const search = useCatalogSearch();
 
@@ -100,12 +113,7 @@ export function CatalogSection() {
         <FeaturedCard />
       </div>
 
-      <div className="flex min-w-0 flex-col gap-6 xl:gap-8">
-        {/* No desktop o layout não tem barra de busca no catálogo: ela abre pela lupa do header. */}
-        <div className="flex items-center gap-3 xl:hidden">
-          <SearchInput className="flex-1" />
-          <FiltersDrawer />
-        </div>
+      <div className="flex min-w-0 flex-col gap-4 md:gap-6 xl:gap-8">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between xl:items-start">
           <CatalogTabs />
           <SortSelect />

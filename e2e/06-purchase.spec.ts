@@ -138,11 +138,15 @@ type ApiOrder = {
 
 test('compra completa: pendente → confirmado; recibo do snapshot; carrinho só sem o comprado', async ({
   page,
+  isMobile,
 }) => {
   await page.clock.install();
   await loginViaUi(page, USERS.colecionador);
   await page.goto('/');
-  await page.getByRole('searchbox', { name: /Buscar/ }).fill('ivory');
+  // Desktop: a busca abre pela lupa do header; abaixo de 1280 px o campo fica no catálogo.
+  const searchBox = page.getByRole('searchbox', { name: 'Buscar NFTs' });
+  if (!isMobile) await page.getByRole('button', { name: 'Buscar NFTs' }).click();
+  await searchBox.fill('ivory');
   // Clica só depois que a grade da busca chegou (a da página inicial é trocada).
   const grid = page.getByRole('list', { name: 'NFTs do catálogo' });
   await expect(page).toHaveURL(/[?&]q=ivory/);

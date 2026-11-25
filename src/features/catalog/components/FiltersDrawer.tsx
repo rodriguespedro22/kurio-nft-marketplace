@@ -23,7 +23,7 @@ export function FiltersDrawer({ className }: { className?: string }) {
           aria-label="Filtros"
           aria-describedby={active ? countId : undefined}
           className={cn(
-            'relative size-12 rounded-[10px] bg-linear-to-b from-primary-light to-primary xl:hidden',
+            'relative size-[45px] rounded-[14px] bg-linear-to-b from-primary-light to-primary xl:hidden',
             className,
           )}
         >

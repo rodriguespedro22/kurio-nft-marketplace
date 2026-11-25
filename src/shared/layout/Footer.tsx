@@ -146,10 +146,7 @@ export function Footer({ phoneBottomBar = false }: { phoneBottomBar?: boolean })
       <div className="container-page flex flex-col">
         <div className="grid gap-8 bg-surface p-6 md:grid-cols-2 md:p-8 xl:grid-cols-[265px_265px_265px_minmax(0,1fr)] xl:gap-0">
           {HIGHLIGHTS.map(({ mark, title, text }) => (
-            <div
-              key={title}
-              className="flex flex-col gap-3 xl:border-r xl:border-primary xl:px-4"
-            >
+            <div key={title} className="flex flex-col gap-3 xl:border-r xl:border-primary xl:px-4">
               <span
                 aria-hidden="true"
                 className="grid size-[74px] place-items-center rounded-full bg-primary text-h2 leading-8 font-bold text-ink"

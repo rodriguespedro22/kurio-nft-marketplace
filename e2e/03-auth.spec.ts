@@ -150,7 +150,12 @@ test('sessão expirada no servidor: aviso "Sua sessão expirou" e retomada do po
 
   await expect(page).toHaveURL(/\/login\?.*redirect=%2Fperfil/);
   await expect(page.getByText('Sua sessão expirou. Entre novamente para continuar.')).toBeVisible();
-  await expect(page.getByRole('banner').getByRole('link', { name: 'Entrar' })).toBeVisible();
+  // No desktop o login é um modal: o header fica atrás (fora da árvore de acessibilidade).
+  await expect(
+    page
+      .getByRole('banner', { includeHidden: true })
+      .getByRole('link', { name: 'Entrar', includeHidden: true }),
+  ).toBeVisible();
 
   await submitLogin(page, USERS.colecionador);
   await expect(page).toHaveURL('/perfil');

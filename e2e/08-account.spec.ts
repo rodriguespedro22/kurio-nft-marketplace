@@ -226,7 +226,11 @@ test('senha: atual errada dá erro no campo; troca válida desloga e só a nova 
   await form.getByRole('button', { name: 'Alterar senha' }).click();
   await expect(page).toHaveURL(/\/login\?.*motivo=senha/);
   await expect(page.getByText('Senha alterada. Entre com a nova senha.')).toBeVisible();
-  await expect(page.getByRole('banner').getByRole('link', { name: 'Entrar' })).toBeVisible();
+  await expect(
+    page
+      .getByRole('banner', { includeHidden: true })
+      .getByRole('link', { name: 'Entrar', includeHidden: true }),
+  ).toBeVisible();
 
   await submitLogin(page, USERS.ana);
   await expect(page.getByText('E-mail ou senha inválidos.')).toBeVisible();

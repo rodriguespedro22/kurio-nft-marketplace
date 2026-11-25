@@ -34,7 +34,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
   });
 
   return (
-    <form aria-label="Criar conta" noValidate onSubmit={onSubmit} className="flex flex-col gap-4">
+    <form aria-label="Criar conta" noValidate onSubmit={onSubmit} className="flex flex-col gap-4 md:gap-3">
       {formError ? (
         <div
           role="alert"
@@ -50,11 +50,13 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
         hint="3 a 24 caracteres: letras, números, ponto ou _"
         error={errors.username?.message}
         required
+        labelClassName="md:sr-only"
+        hintClassName="md:sr-only"
       >
         <Input autoComplete="username" placeholder="Nome de usuário" {...form.register('username')} />
       </FormField>
 
-      <FormField label="E-mail" error={errors.email?.message} required>
+      <FormField label="E-mail" error={errors.email?.message} required labelClassName="md:sr-only">
         <Input
           type="email"
           autoComplete="email"
@@ -68,11 +70,18 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
         hint="Mínimo de 8 caracteres, com maiúscula, número e símbolo"
         error={errors.password?.message}
         required
+        labelClassName="md:sr-only"
+        hintClassName="md:sr-only"
       >
         <PasswordInput autoComplete="new-password" placeholder="Senha" {...form.register('password')} />
       </FormField>
 
-      <FormField label="Confirmar senha" error={errors.confirmPassword?.message} required>
+      <FormField
+        label="Confirmar senha"
+        error={errors.confirmPassword?.message}
+        required
+        labelClassName="md:sr-only"
+      >
         <PasswordInput
           autoComplete="new-password"
           placeholder="Confirmar senha"
@@ -80,7 +89,12 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
         />
       </FormField>
 
-      <Button type="submit" size="lg" loading={register.isPending} className="w-full">
+      <Button
+        type="submit"
+        size="lg"
+        loading={register.isPending}
+        className="w-full md:mt-3 md:h-[45px] md:rounded-field md:text-body-lg"
+      >
         <span className="md:hidden">Criar perfil</span>
         <span className="hidden md:inline">Criar conta</span>
       </Button>

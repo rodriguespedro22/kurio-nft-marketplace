@@ -1,6 +1,7 @@
 import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-router';
 
 import { AuthCard } from '@/features/auth/components/AuthCard';
+import { HomeContent } from '@/features/catalog/components/HomeContent';
 import { LoginForm } from '@/features/auth/components/LoginForm';
 import { PasswordChangedNotice, SessionExpiredNotice } from '@/features/auth/components/SessionNotice';
 import { AuthSearchSchema } from '@/features/auth/search';
@@ -28,6 +29,7 @@ function LoginPage() {
     <>
       <title>Entrar · Kurio</title>
       <AuthCard
+        backdrop={<HomeContent />}
         active="login"
         redirect={target}
         mobileTitle="Entrar na Kurio"

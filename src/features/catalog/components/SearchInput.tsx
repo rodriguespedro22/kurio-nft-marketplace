@@ -84,7 +84,7 @@ export function SearchInput({ className, id = SEARCH_INPUT_ID, onSubmitted }: Se
         autoComplete="off"
         enterKeyHint="search"
         maxLength={80}
-        className="h-12 scroll-mt-28 rounded-[10px] border-border bg-surface pl-12 text-body"
+        className="h-[45px] scroll-mt-28 rounded-[10px] border-transparent bg-surface pl-12 text-body-sm placeholder:font-bold"
       />
     </form>
   );

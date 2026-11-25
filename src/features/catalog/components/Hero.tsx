@@ -15,33 +15,33 @@ const SLIDES = [
 export function Hero() {
   const [active, setActive] = useState(0);
   const slide = SLIDES[active] ?? SLIDES[0];
+  const nextSlide = SLIDES[(active + 1) % SLIDES.length] ?? SLIDES[0];
 
   return (
     <section
       aria-labelledby="hero-title"
-      className="relative grid grid-cols-[1fr_auto] items-center gap-4 overflow-hidden rounded-3xl bg-linear-to-br from-surface-dark via-surface to-surface p-4 sm:p-6 xl:h-[450px] xl:grid-cols-[600px_450px] xl:justify-between xl:gap-0 xl:rounded-none xl:bg-none xl:p-0 xl:pl-10"
+      className="relative grid grid-cols-[1fr_auto] items-center gap-2 overflow-hidden rounded-[30px] bg-linear-to-br from-surface-dark via-surface to-surface p-4 sm:p-6 xl:h-[450px] xl:grid-cols-[600px_450px] xl:justify-between xl:gap-0 xl:rounded-none xl:bg-none xl:p-0 xl:pl-10"
     >
       {/* Layout: coluna de 600 px centrada na altura; os pontos ficam nela, à direita, 44 px abaixo do botão. */}
       <div className="flex flex-col items-start gap-3 xl:gap-11">
-        <div className="flex flex-col items-start gap-3 xl:gap-8">
-          <div className="flex flex-col gap-3 xl:gap-1">
-            <div className="flex flex-col gap-3 xl:gap-2">
-              <p className="text-caption font-medium tracking-brand text-foreground xl:text-body-sm xl:leading-4">
+        <div className="flex flex-col items-start gap-0 sm:gap-3 xl:gap-8">
+          <div className="flex flex-col gap-1.5 sm:gap-3 xl:gap-1">
+            <div className="flex flex-col gap-1.5 sm:gap-3 xl:gap-2">
+              <p className="text-[0.75rem] leading-4 font-medium text-foreground sm:text-caption xl:text-body-sm xl:leading-4 xl:tracking-brand">
                 Bem-vindo à Kurio
               </p>
               <h1
                 id="hero-title"
-                className="text-title-sm font-bold uppercase sm:text-h2 xl:text-display xl:leading-[70px]"
+                className="text-section leading-[29px] font-bold uppercase sm:text-h2 sm:leading-tight xl:text-display xl:leading-[70px]"
               >
                 <span className="xl:hidden">Seja dono da cultura digital</span>
                 <span className="hidden xl:inline">
                   Seja dono do futuro
-                  <br />
-                  da arte digital
+                  <br /> da arte digital
                 </span>
               </h1>
             </div>
-            <p className="max-w-lg text-caption text-secondary sm:text-body-sm xl:max-w-[557px] xl:leading-6">
+            <p className="max-w-lg text-[0.75rem] leading-[18px] text-secondary sm:text-body-sm xl:max-w-[557px] xl:leading-6">
               <span className="xl:hidden">Descubra NFTs selecionados de criadores do mundo todo.</span>
               <span className="hidden xl:inline">
                 Descubra NFTs selecionados de criadores emergentes e consagrados. Colecione arte digital rara,
@@ -55,7 +55,7 @@ export function Hero() {
             search={(prev) => prev}
             hash="catalogo"
             className={cn(
-              'inline-flex items-center gap-2 text-body-sm font-bold text-accent uppercase',
+              'inline-flex items-center gap-2 text-[0.75rem] leading-[14px] font-bold text-accent uppercase sm:text-body-sm',
               'xl:h-10 xl:w-[140px] xl:rounded-[6px] xl:bg-primary xl:pr-9 xl:pl-7 xl:text-body-lg xl:leading-5 xl:text-ink xl:hover:bg-primary-dark',
             )}
           >
@@ -66,15 +66,21 @@ export function Hero() {
         <SlideDots active={active} onSelect={setActive} className="hidden xl:flex xl:self-end" />
       </div>
 
-      <div className="size-32 overflow-hidden rounded-2xl sm:size-44 xl:size-[450px] xl:rounded-3xl">
-        <NftImage
-          key={slide.asset}
-          asset={slide.asset}
-          alt={slide.alt}
-          priority
-          sizes="(min-width: 1280px) 450px, (min-width: 640px) 176px, 128px"
-          className="animate-in duration-300 fade-in-0"
-        />
+      <div className="relative size-[138px] sm:size-44 xl:size-[450px]">
+        <div className="size-full overflow-hidden rounded-2xl xl:rounded-3xl">
+          <NftImage
+            key={slide.asset}
+            asset={slide.asset}
+            alt={slide.alt}
+            priority
+            sizes="(min-width: 1280px) 450px, (min-width: 640px) 176px, 138px"
+            className="animate-in duration-300 fade-in-0"
+          />
+        </div>
+        {/* Frame mobile: miniatura da próxima arte sobre o canto inferior esquerdo. */}
+        <div className="absolute top-[88px] left-3.5 size-[58px] overflow-hidden rounded-2xl sm:hidden">
+          <NftImage asset={nextSlide.asset} alt="" sizes="58px" />
+        </div>
       </div>
 
       <SlideDots active={active} onSelect={setActive} className="col-span-2 justify-center xl:hidden" />

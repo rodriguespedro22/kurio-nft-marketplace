@@ -55,7 +55,11 @@ test('só com Tab: header → busca e filtros → card, sempre com foco visível
       const el = document.activeElement!;
       return {
         header: !!el.closest('header'),
-        search: el.getAttribute('type') === 'search' || el.getAttribute('role') === 'searchbox',
+        // No desktop a busca abre pela lupa do header (popover); abaixo de 1280 px é o campo.
+        search:
+          el.getAttribute('type') === 'search' ||
+          el.getAttribute('role') === 'searchbox' ||
+          el.getAttribute('aria-label') === 'Buscar NFTs',
         filters: !!el.closest('aside[aria-label="Filtros"]') || el.getAttribute('aria-label') === 'Filtros',
         card: !!el.closest('[aria-label="NFTs do catálogo"]'),
       };

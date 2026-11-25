@@ -49,7 +49,7 @@ export function BarCartLink({ className }: { className?: string }) {
         <ShopIcon aria-hidden="true" className="size-6" />
         <CartBadge count={count} className="-top-1.5 -right-2" />
       </span>
-      <span>Carrinho</span>
+      <span className="sr-only">Carrinho</span>
     </Link>
   );
 }

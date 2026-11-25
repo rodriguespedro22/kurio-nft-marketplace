@@ -1,8 +1,6 @@
 import { createFileRoute, stripSearchParams } from '@tanstack/react-router';
 
-import { CatalogSection } from '@/features/catalog/components/CatalogSection';
-import { Hero } from '@/features/catalog/components/Hero';
-import { MintDiary, Promos } from '@/features/catalog/components/HomeEditorial';
+import { HomeContent } from '@/features/catalog/components/HomeContent';
 import { catalogQueries } from '@/features/catalog/queries';
 import { catalogSearchSchema, toCatalogParams } from '@/features/catalog/search';
 
@@ -20,12 +18,9 @@ export const Route = createFileRoute('/')({
 
 function HomePage() {
   return (
-    <div className="container-page flex flex-col gap-10 py-6 xl:gap-24 xl:pt-8 xl:pb-0">
+    <>
       <title>Kurio · Marketplace de NFTs</title>
-      <Hero />
-      <CatalogSection />
-      <Promos />
-      <MintDiary />
-    </div>
+      <HomeContent />
+    </>
   );
 }

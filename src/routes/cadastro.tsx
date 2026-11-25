@@ -1,6 +1,7 @@
 import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-router';
 
 import { AuthCard } from '@/features/auth/components/AuthCard';
+import { HomeContent } from '@/features/catalog/components/HomeContent';
 import { RegisterForm } from '@/features/auth/components/RegisterForm';
 import { AuthSearchSchema } from '@/features/auth/search';
 import { getSession, isSessionExpired, safeRedirect } from '@/features/auth/session';
@@ -27,6 +28,7 @@ function RegisterPage() {
     <>
       <title>Criar conta · Kurio</title>
       <AuthCard
+        backdrop={<HomeContent />}
         active="register"
         redirect={target}
         mobileTitle="Criar perfil de colecionador"

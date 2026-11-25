@@ -1,12 +1,14 @@
 import { useCallback } from 'react';
-import { getRouteApi, useNavigate } from '@tanstack/react-router';
+import { useMatch, useNavigate } from '@tanstack/react-router';
 
-import { mergeCatalogSearch, type CatalogSearchPatch } from './search';
+import { catalogSearchSchema, mergeCatalogSearch, type CatalogSearchPatch } from './search';
 
-const homeRoute = getRouteApi('/');
+/** Catálogo sem filtros: o que aparece atrás do modal de Login/Cadastro no desktop. */
+const DEFAULT_SEARCH = catalogSearchSchema.parse({});
 
-/** Busca validada da Início (fonte única: a URL). */
-export const useCatalogSearch = () => homeRoute.useSearch();
+/** Busca validada da Início (fonte única: a URL); fora da Início, o catálogo padrão. */
+export const useCatalogSearch = () =>
+  useMatch({ from: '/', shouldThrow: false, select: (match) => match.search }) ?? DEFAULT_SEARCH;
 
 type UpdateOptions = {
   /** Digitação da busca substitui a entrada do histórico em vez de criar uma por tecla. */

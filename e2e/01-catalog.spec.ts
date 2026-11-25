@@ -24,7 +24,15 @@ async function closeFilters(page: Page, isMobile: boolean) {
   if (isMobile) await page.keyboard.press('Escape');
 }
 
-const searchBox = (page: Page) => page.getByRole('searchbox', { name: 'Buscar NFTs' });
+/** Campo de busca: no catálogo abaixo de 1280 px; no desktop, no popover aberto pela lupa do header. */
+async function searchBox(page: Page): Promise<Locator> {
+  const box = page.getByRole('searchbox', { name: 'Buscar NFTs' });
+  const opener = page.getByRole('button', { name: 'Buscar NFTs' });
+  // Espera a Início montar: aparece o campo (celular) ou a lupa que o abre (desktop).
+  await expect(box.or(opener).first()).toBeVisible();
+  if (!(await box.isVisible())) await opener.click();
+  return box;
+}
 
 test.beforeEach(async ({ page }) => {
   await bootScenario(page, 'default');
@@ -34,7 +42,7 @@ test('busca por "baron" vai para a URL e mostra só cards com "Baron"', async ({
   await page.goto('/');
   await expect(cards(page)).toHaveCount(9);
 
-  await searchBox(page).fill('baron');
+  await (await searchBox(page)).fill('baron');
   await expect(page).toHaveURL(/[?&]q=baron/);
   await expect.poll(async () => (await cardNames(page)).length).toBeGreaterThan(0);
   await expect.poll(async () => (await cardNames(page)).every((n) => /baron/i.test(n))).toBe(true);
@@ -43,8 +51,8 @@ test('busca por "baron" vai para a URL e mostra só cards com "Baron"', async ({
 test('2 categorias + menor preço: URL guarda tudo e os preços ficam em ordem', async ({ page, isMobile }) => {
   await page.goto('/');
   const filters = await openFilters(page, isMobile);
-  await filters.getByRole('checkbox', { name: /^Arte digital/ }).check();
-  await filters.getByRole('checkbox', { name: /^Música/ }).check();
+  await filters.getByRole('button', { name: /^Arte digital/ }).click();
+  await filters.getByRole('button', { name: /^Música/ }).click();
   await closeFilters(page, isMobile);
   await page.getByLabel('Ordenar por').selectOption({ label: 'Menor preço' });
 
@@ -70,7 +78,7 @@ test('página 2 + novo filtro zera page; voltar restaura; reload preserva', asyn
   const page2Names = await cardNames(page);
 
   const filters = await openFilters(page, isMobile);
-  await filters.getByRole('checkbox', { name: /^Polygon/ }).check();
+  await filters.getByRole('button', { name: /^Polygon/ }).click();
   await closeFilters(page, isMobile);
   await expect(page).toHaveURL(/polygon/);
   await expect(page).not.toHaveURL(/page=/);
@@ -98,9 +106,9 @@ test('cenário out-of-order: a resposta atrasada de "a" não sobrescreve "ivory"
   await page.goto('/');
   await expect(cards(page)).toHaveCount(9, { timeout: 10_000 });
 
-  await searchBox(page).fill('a');
+  await (await searchBox(page)).fill('a');
   await expect(page).toHaveURL(/[?&]q=a(&|$)/);
-  await searchBox(page).fill('ivory');
+  await (await searchBox(page)).fill('ivory');
   await expect(page).toHaveURL(/[?&]q=ivory/);
 
   // "ivory" casa nome, coleção ou criador: o esperado é a 1ª página que a API devolve para "ivory".
@@ -113,7 +121,7 @@ test('cenário out-of-order: a resposta atrasada de "a" não sobrescreve "ivory"
   // Depois que a resposta lenta de "a" chega, o grid continua com o resultado de "ivory".
   await page.waitForTimeout(2000);
   expect(await cardNames(page)).toEqual(expected);
-  await expect(searchBox(page)).toHaveValue('ivory');
+  await expect(await searchBox(page)).toHaveValue('ivory');
 });
 
 test('cenário slow-network: 9 skeletons com a mesma altura do card final', async ({ page }) => {
