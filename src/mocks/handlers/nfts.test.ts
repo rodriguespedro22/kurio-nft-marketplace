@@ -141,13 +141,13 @@ describe('GET /nfts — ordenação, abas e paginação', () => {
     expect(dates).toEqual([...dates].sort().reverse());
   });
 
-  test('pageSize 12 por padrão; página além do total → items [] com totalPages correto', async () => {
+  test('pageSize 9 por padrão; página além do total → items [] com totalPages correto', async () => {
     const first = await page({});
-    expect(first).toMatchObject({ page: 1, pageSize: 12, total: 60, totalPages: 5 });
-    expect(first.items).toHaveLength(12);
+    expect(first).toMatchObject({ page: 1, pageSize: 9, total: 60, totalPages: 7 });
+    expect(first.items).toHaveLength(9);
 
     const beyond = await page({ page: 99 });
-    expect(beyond).toMatchObject({ page: 99, pageSize: 12, total: 60, totalPages: 5, items: [] });
+    expect(beyond).toMatchObject({ page: 99, pageSize: 9, total: 60, totalPages: 7, items: [] });
   });
 
   test('itens de lista trazem imagem principal e preço de vitrine', async () => {

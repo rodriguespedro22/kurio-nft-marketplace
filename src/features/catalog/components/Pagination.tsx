@@ -7,7 +7,7 @@ import { cn } from '@/shared/lib/utils';
 import { pageWindow } from '../pagination';
 
 const linkClass = cn(
-  'grid size-11 place-items-center rounded-[4px] border border-border text-body text-foreground transition-colors hover:border-primary hover:text-accent xl:size-[35px]',
+  'grid size-11 place-items-center rounded-[4px] border border-border text-section text-foreground transition-colors hover:border-primary hover:text-accent xl:size-[35px]',
   'data-[status=active]:border-primary data-[status=active]:bg-primary data-[status=active]:font-bold data-[status=active]:text-ink',
 );
 
@@ -38,12 +38,12 @@ export function Pagination({ page, totalPages }: { page: number; totalPages: num
   const slots = pageWindow(page, totalPages);
 
   return (
-    <nav aria-label="Paginação" className="flex justify-center md:justify-end">
+    <nav aria-label="Paginação" className="flex justify-center md:justify-end xl:mt-14">
       <ul className="flex flex-wrap items-center gap-2">
         {page > 1 ? (
           <li>
             <PageLink page={Math.min(page - 1, totalPages)} label="Página anterior">
-              <ChevronLeft aria-hidden="true" className="size-4" />
+              <ChevronLeft aria-hidden="true" className="size-[18px]" />
             </PageLink>
           </li>
         ) : null}
@@ -63,7 +63,7 @@ export function Pagination({ page, totalPages }: { page: number; totalPages: num
         {page < totalPages ? (
           <li>
             <PageLink page={page + 1} label="Próxima página">
-              <ChevronRight aria-hidden="true" className="size-4" />
+              <ChevronRight aria-hidden="true" className="size-[18px]" />
             </PageLink>
           </li>
         ) : null}

@@ -17,7 +17,7 @@ export function CartBadge({ count, className }: { count: number; className?: str
       aria-hidden="true"
       data-text={count > 99 ? '99+' : String(count)}
       className={cn(
-        'absolute grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] leading-none font-bold text-ink tabular-nums before:content-[attr(data-text)]',
+        'absolute grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] leading-none font-medium text-ink tabular-nums ring-2 ring-ink before:content-[attr(data-text)]',
         className,
       )}
     />
@@ -31,10 +31,11 @@ export function HeaderCartLink() {
     <Link
       to="/carrinho"
       aria-label={cartShortcutLabel(count)}
-      className="relative hidden size-11 place-items-center rounded-full text-foreground transition-colors hover:text-accent data-[status=active]:text-accent xl:grid"
+      className="relative -m-2 hidden place-items-center rounded-full p-2 text-foreground transition-colors hover:text-accent data-[status=active]:text-accent xl:grid"
     >
+      {/* Layout: ícone de 24 px e a bolinha de 16 px no canto superior direito, 7 px para fora. */}
       <CartIcon aria-hidden="true" className="size-6" />
-      <CartBadge count={count} className="top-1.5 right-1" />
+      <CartBadge count={count} className="top-2 -right-px" />
     </Link>
   );
 }

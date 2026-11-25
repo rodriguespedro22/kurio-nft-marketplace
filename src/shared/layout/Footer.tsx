@@ -1,27 +1,24 @@
 import { useId, useState, type FormEvent, type ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
-import { BellRing, ShieldCheck, Sparkles } from 'lucide-react';
 
 import { cn } from '@/shared/lib/utils';
-import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
-import { LiveRegion } from '@/shared/ui/live-region';
-
+import { FacebookIcon, InstagramIcon, LinkedinIcon, TwitterIcon, YoutubeIcon } from '@/shared/ui/icons';
 import { InertLink } from '@/shared/ui/inert-link';
+import { LiveRegion } from '@/shared/ui/live-region';
 
 const HIGHLIGHTS = [
   {
-    icon: ShieldCheck,
+    mark: 'W',
     title: 'Segurança da carteira',
     text: 'Proteja sua carteira e colecione arte digital verificada com confiança.',
   },
   {
-    icon: Sparkles,
+    mark: 'C',
     title: 'Criadores em destaque',
     text: 'Conheça artistas, estúdios e comunidades que moldam a cultura digital na rede.',
   },
   {
-    icon: BellRing,
+    mark: 'D',
     title: 'Alertas de lançamentos',
     text: 'Receba calendários de cunhagem, novidades de listas de acesso e análises do mercado.',
   },
@@ -53,20 +50,28 @@ const COLLECTIONS = [
 ] as const;
 
 const SOCIAL = [
-  { label: 'Facebook', mono: 'f' },
-  { label: 'Instagram', mono: 'ig' },
-  { label: 'Twitter', mono: 'x' },
-  { label: 'LinkedIn', mono: 'in' },
-  { label: 'YouTube', mono: 'yt' },
+  { label: 'Facebook', Icon: FacebookIcon },
+  { label: 'Instagram', Icon: InstagramIcon },
+  { label: 'Twitter', Icon: TwitterIcon },
+  { label: 'LinkedIn', Icon: LinkedinIcon },
+  { label: 'YouTube', Icon: YoutubeIcon },
 ] as const;
 
-const linkClass = 'text-body-sm text-foreground/90 transition-colors hover:text-accent';
+const linkClass = 'text-body-sm leading-[30px] text-foreground transition-colors hover:text-accent';
 
-function FooterColumn({ title, children }: { title: string; children: ReactNode }) {
+function FooterColumn({
+  title,
+  className,
+  children,
+}: {
+  title: string;
+  className?: string;
+  children: ReactNode;
+}) {
   const id = useId();
   return (
-    <section aria-labelledby={id} className="flex flex-col gap-3">
-      <h2 id={id} className="text-body-lg font-bold text-foreground">
+    <section aria-labelledby={id} className={cn('flex flex-col gap-2', className)}>
+      <h2 id={id} className="text-section leading-4 font-bold text-foreground">
         {title}
       </h2>
       {children}
@@ -74,18 +79,13 @@ function FooterColumn({ title, children }: { title: string; children: ReactNode 
   );
 }
 
-/** Itens da coluna fora do escopo (não fazem nada); `children` acrescenta os que levam a telas reais. */
-function SoonList({ links, children }: { links: SoonLink[]; children?: ReactNode }) {
-  return (
-    <ul className="flex flex-col gap-2">
-      {links.map((link) => (
-        <li key={link.label}>
-          <InertLink className={linkClass}>{link.label}</InertLink>
-        </li>
-      ))}
-      {children}
-    </ul>
-  );
+/** Itens fora do escopo do desafio: aparecem como no layout e não fazem nada. */
+function SoonItems({ links }: { links: SoonLink[] }) {
+  return links.map((link) => (
+    <li key={link.label}>
+      <InertLink className={linkClass}>{link.label}</InertLink>
+    </li>
+  ));
 }
 
 /** Newsletter fora do escopo: o envio só explica que ainda não existe — nunca simula sucesso. */
@@ -99,77 +99,103 @@ function Newsletter() {
   }
 
   return (
-    <section aria-labelledby={`${inputId}-title`} className="flex flex-col gap-3">
-      <h2 id={`${inputId}-title`} className="text-body-lg font-bold text-foreground">
-        Antecipe-se ao próximo lançamento
-      </h2>
-      <form onSubmit={handleSubmit} noValidate className="flex">
-        <label htmlFor={inputId} className="sr-only">
-          E-mail para a newsletter
-        </label>
-        <Input
-          id={inputId}
-          type="email"
-          name="email"
-          autoComplete="email"
-          placeholder="digite seu e-mail..."
-          className="rounded-r-none"
-        />
-        <Button type="submit" className="h-11 rounded-l-none">
-          Enviar
-        </Button>
-      </form>
-      <LiveRegion className="min-h-5 text-caption text-accent">{notice}</LiveRegion>
-      <p className="text-caption text-secondary">
+    <section aria-labelledby={`${inputId}-title`} className="flex flex-col gap-3 xl:px-4">
+      <div className="flex flex-col gap-4">
+        <h2 id={`${inputId}-title`} className="text-section leading-4 font-bold text-foreground">
+          Antecipe-se ao próximo lançamento
+        </h2>
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="flex h-10 overflow-hidden rounded-[6px] bg-surface-dark focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary"
+        >
+          <label htmlFor={inputId} className="sr-only">
+            E-mail para a newsletter
+          </label>
+          <input
+            id={inputId}
+            type="email"
+            name="email"
+            autoComplete="email"
+            placeholder="digite seu e-mail..."
+            className="min-w-0 flex-1 bg-transparent px-3 text-body-sm text-foreground outline-none placeholder:text-muted"
+          />
+          <button
+            type="submit"
+            className="w-[85px] shrink-0 bg-primary text-section leading-4 font-bold text-ink transition-colors hover:bg-primary-dark"
+          >
+            Enviar
+          </button>
+        </form>
+      </div>
+      <LiveRegion className="text-caption text-accent empty:hidden">{notice}</LiveRegion>
+      <p className="text-caption leading-[22px] text-secondary">
         Receba lançamentos selecionados, histórias de criadores e novidades do mercado.
       </p>
     </section>
   );
 }
 
-/** `phoneBottomBar`: a página tem barra fixa mais alta que a navegação no celular. */
+/**
+ * Rodapé: destaques W/C/D + newsletter, faixa de contato, colunas de links e copyright.
+ * `phoneBottomBar`: a página tem barra fixa mais alta que a navegação no celular.
+ */
 export function Footer({ phoneBottomBar = false }: { phoneBottomBar?: boolean }) {
   return (
-    <footer className={cn('mt-20 pb-28 xl:pb-10', phoneBottomBar && 'max-md:pb-48')}>
+    <footer className={cn('mt-20 pb-28 xl:mt-24 xl:pb-6', phoneBottomBar && 'max-md:pb-48')}>
       <div className="container-page flex flex-col">
-        <div className="grid gap-8 bg-surface p-6 md:grid-cols-2 md:p-8 xl:grid-cols-4">
-          {HIGHLIGHTS.map(({ icon: Icon, title, text }) => (
-            <div key={title} className="flex flex-col gap-3 xl:border-r xl:border-primary/60 xl:pr-6">
+        <div className="grid gap-8 bg-surface p-6 md:grid-cols-2 md:p-8 xl:grid-cols-[265px_265px_265px_minmax(0,1fr)] xl:gap-0">
+          {HIGHLIGHTS.map(({ mark, title, text }) => (
+            <div
+              key={title}
+              className="flex flex-col gap-3 xl:border-r xl:border-primary xl:px-4"
+            >
               <span
                 aria-hidden="true"
-                className="grid size-14 place-items-center rounded-full bg-primary text-ink"
+                className="grid size-[74px] place-items-center rounded-full bg-primary text-h2 leading-8 font-bold text-ink"
               >
-                <Icon className="size-6" strokeWidth={1.5} />
+                {mark}
               </span>
-              <h2 className="text-body-lg font-bold text-foreground">{title}</h2>
-              <p className="text-body-sm text-secondary">{text}</p>
+              <h2 className="text-[1.0625rem] leading-4 font-bold text-foreground">{title}</h2>
+              <p className="max-w-[204px] text-body-sm leading-[22px] text-secondary">{text}</p>
             </div>
           ))}
           <Newsletter />
         </div>
 
-        <div className="grid gap-3 bg-surface-dark px-6 py-6 text-body-sm text-foreground sm:grid-cols-2 xl:grid-cols-4 xl:items-center">
+        <div className="grid gap-3 bg-surface-dark p-6 text-body-sm leading-[22px] text-foreground sm:grid-cols-2 md:p-8 xl:grid-cols-[303px_302px_303px_minmax(0,1fr)] xl:items-center xl:gap-0">
           <span className="font-bold tracking-brand">KURIO</span>
-          <span>Feito para colecionadores, criadores e cultura</span>
+          <span>
+            Feito para colecionadores,
+            <br className="max-xl:hidden" /> criadores e cultura
+          </span>
           <span>contato@email.com</span>
           <span>+55 11 4002 8922</span>
         </div>
 
-        <div className="grid gap-8 bg-surface px-6 py-8 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-8 bg-surface p-6 sm:grid-cols-2 md:p-8 xl:grid-cols-[303px_302px_303px_minmax(0,1fr)] xl:gap-0">
           <FooterColumn title="Meu perfil">
-            <SoonList links={PROFILE_LINKS}>
+            <ul className="flex flex-col">
+              <li>
+                <Link to="/perfil" className={linkClass}>
+                  Meu perfil
+                </Link>
+              </li>
+              <SoonItems links={PROFILE_LINKS} />
               <li>
                 <Link to="/favoritos" className={linkClass}>
                   Lista de interesse
                 </Link>
               </li>
-            </SoonList>
+            </ul>
           </FooterColumn>
           <FooterColumn title="Central de ajuda">
-            <SoonList links={HELP_LINKS} />
+            <ul className="flex flex-col">
+              <SoonItems links={HELP_LINKS} />
+            </ul>
           </FooterColumn>
           <FooterColumn title="Coleções">
-            <ul className="flex flex-col gap-2">
+            <ul className="flex flex-col">
               {COLLECTIONS.map(({ id, name }) => (
                 <li key={id}>
                   <Link to="/" search={{ category: [id] }} hash="catalogo" className={linkClass}>
@@ -179,35 +205,30 @@ export function Footer({ phoneBottomBar = false }: { phoneBottomBar?: boolean })
               ))}
             </ul>
           </FooterColumn>
-          <div className="flex flex-col gap-6">
-            <FooterColumn title="Redes sociais">
-              <ul className="flex flex-wrap gap-2">
-                {SOCIAL.map(({ label, mono }) => (
+          <div className="flex flex-col gap-8">
+            <FooterColumn title="Redes sociais" className="gap-5">
+              <ul className="flex flex-wrap gap-2.5">
+                {SOCIAL.map(({ label, Icon }) => (
                   <li key={label}>
                     <InertLink
                       label={label}
-                      className="grid size-11 place-items-center rounded-control border border-primary text-caption font-bold text-accent uppercase"
+                      className="grid size-[30px] place-items-center rounded-[4px] border border-primary text-accent"
                     >
-                      {/* Monograma via CSS: o nome acessível é o da rede (rótulo no nome). */}
-                      <span
-                        aria-hidden="true"
-                        data-text={mono}
-                        className="before:content-[attr(data-text)]"
-                      />
+                      <Icon className="size-3.5" />
                     </InertLink>
                   </li>
                 ))}
               </ul>
             </FooterColumn>
-            <FooterColumn title="Carteiras compatíveis">
-              <p className="w-fit rounded-control border border-primary/60 px-3 py-1.5 text-micro font-bold tracking-brand text-accent">
-                METAMASK • WALLETCONNECT • COINBASE
+            <FooterColumn title="Carteiras compatíveis" className="gap-3">
+              <p className="flex h-[26px] w-fit items-center rounded-[6px] border border-border-soft bg-surface-dark px-2.5 text-[0.5625rem] leading-3 font-bold tracking-[0.01em] whitespace-pre text-accent">
+                {'METAMASK  •  WALLETCONNECT  •  COINBASE'}
               </p>
             </FooterColumn>
           </div>
         </div>
 
-        <p className="py-6 text-center text-caption text-muted">
+        <p className="pt-1.5 text-center text-body-sm leading-[30px] text-foreground">
           © 2026 Kurio. Propriedade digital para todos.
         </p>
       </div>

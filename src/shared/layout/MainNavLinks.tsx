@@ -9,10 +9,11 @@ type MainNavLinksProps = {
 };
 
 const variants = {
+  // Layout: texto no topo da linha de 45 px, sublinhado de 3 px do ativo sobre o divisor do header.
   bar: cn(
-    'relative inline-flex h-17 items-center px-1 text-body-lg text-foreground transition-colors hover:text-accent',
+    'relative inline-flex h-[46px] items-start text-body-lg leading-[21px] text-foreground transition-colors hover:text-accent',
     'data-[status=active]:font-bold data-[status=active]:text-accent',
-    'after:absolute after:inset-x-0 after:-bottom-px after:h-[3px] after:rounded-full after:bg-primary after:opacity-0 data-[status=active]:after:opacity-100',
+    'after:absolute after:inset-x-0 after:-bottom-px after:h-[3px] after:bg-primary after:opacity-0 data-[status=active]:after:opacity-100',
   ),
   sheet: cn(
     'flex min-h-12 items-center rounded-field border-l-4 border-transparent px-4 text-body-lg text-foreground transition-colors hover:bg-surface-raised',
@@ -24,7 +25,7 @@ const variants = {
 export function MainNavLinks({ variant, onNavigate }: MainNavLinksProps) {
   const className = variants[variant];
   return (
-    <ul className={variant === 'bar' ? 'flex items-center gap-8' : 'flex flex-col gap-1'}>
+    <ul className={variant === 'bar' ? 'flex items-start gap-10' : 'flex flex-col gap-1'}>
       <li>
         <Link
           to="/"

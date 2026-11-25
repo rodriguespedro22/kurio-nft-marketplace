@@ -19,7 +19,7 @@ import { buildCategories } from '../fixtures/categories';
 import { withNetwork } from '../network/with-network';
 import { apiError, apiPath, validationError } from './http';
 
-export const DEFAULT_PAGE_SIZE = 12;
+export const DEFAULT_PAGE_SIZE = 9;
 const MAX_PAGE_SIZE = 48;
 /** "Novos lançamentos" e "Em alta" = os N mais recentes / com maior trendingScore. */
 export const TAB_SIZE = 24;

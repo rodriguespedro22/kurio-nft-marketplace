@@ -21,7 +21,7 @@ export function Slider({ className, thumbLabels, valueText, ...props }: SliderPr
       )}
       {...props}
     >
-      <SliderPrimitive.Track className="relative h-0.5 grow overflow-hidden rounded-full bg-border-soft">
+      <SliderPrimitive.Track className="relative h-1 grow overflow-hidden bg-primary">
         <SliderPrimitive.Range className="absolute h-full bg-primary" />
       </SliderPrimitive.Track>
       {values.map((value, i) => (
@@ -29,7 +29,7 @@ export function Slider({ className, thumbLabels, valueText, ...props }: SliderPr
           key={thumbLabels[i] ?? i}
           aria-label={thumbLabels[i]}
           aria-valuetext={valueText?.(value)}
-          className="relative block size-4 rounded-full border-2 border-ink bg-primary ring-1 ring-primary transition-transform before:absolute before:-inset-3.5 hover:scale-110 focus-visible:scale-110"
+          className="relative block size-[15px] rounded-full border-3 border-ink bg-primary transition-transform before:absolute before:-inset-3.5 hover:scale-110 focus-visible:scale-110"
         />
       ))}
     </SliderPrimitive.Root>

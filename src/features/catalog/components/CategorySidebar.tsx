@@ -3,7 +3,6 @@ import { useId, useState, type ReactNode } from 'react';
 import type { CatalogFacets } from '@/contracts';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/button';
-import { Checkbox } from '@/shared/ui/checkbox';
 import { Skeleton } from '@/shared/ui/skeleton';
 import { Slider } from '@/shared/ui/slider';
 
@@ -16,7 +15,7 @@ function FilterGroup({ title, children }: { title: string; children: ReactNode }
   const id = useId();
   return (
     <section aria-labelledby={id} className="flex flex-col gap-3">
-      <h3 id={id} className="text-section font-bold text-foreground">
+      <h3 id={id} className="text-section leading-4 font-bold text-foreground">
         {title}
       </h3>
       {children}
@@ -24,34 +23,44 @@ function FilterGroup({ title, children }: { title: string; children: ReactNode }
   );
 }
 
-function CheckboxList({
+/**
+ * Lista de opções como no Layout: só texto, sem caixa de seleção. Cada linha é um botão de alternar
+ * (`aria-pressed`, várias ao mesmo tempo); a selecionada fica na cor de destaque e sublinhada, para
+ * não depender só da cor.
+ */
+function ToggleList({
   options,
   selected,
   onToggle,
+  boldCount = false,
+  className,
 }: {
   options: Option[];
   selected: readonly string[];
-  onToggle: (id: string, checked: boolean) => void;
+  onToggle: (id: string, pressed: boolean) => void;
+  boldCount?: boolean;
+  className?: string;
 }) {
-  const baseId = useId();
   return (
-    <ul className="flex flex-col">
+    <ul className={cn('flex flex-col', className)}>
       {options.map((option) => {
-        const id = `${baseId}-${option.id}`;
+        const pressed = selected.includes(option.id);
         return (
-          <li key={option.id} className="flex items-center gap-3">
-            <Checkbox
-              id={id}
-              checked={selected.includes(option.id)}
-              onCheckedChange={(checked) => onToggle(option.id, checked === true)}
-            />
-            <label
-              htmlFor={id}
-              className="flex min-h-10 flex-1 cursor-pointer items-center justify-between gap-2 text-body text-secondary transition-colors peer-data-[state=checked]:text-accent hover:text-foreground"
+          <li key={option.id}>
+            <button
+              type="button"
+              aria-pressed={pressed}
+              onClick={() => onToggle(option.id, !pressed)}
+              className={cn(
+                'flex h-10 w-full items-center justify-between gap-2 text-left text-body leading-10 transition-colors',
+                pressed ? 'text-accent' : 'text-secondary hover:text-foreground',
+              )}
             >
-              <span>{option.name}</span>
-              <span className="tabular-nums">({option.count})</span>
-            </label>
+              <span className={cn(pressed && 'underline decoration-1 underline-offset-4')}>
+                {option.name}
+              </span>
+              <span className={cn('tabular-nums', boldCount && 'font-bold')}>({option.count})</span>
+            </button>
           </li>
         );
       })}
@@ -86,6 +95,7 @@ const floor2 = (eth: string) => Math.floor(Number(eth) * 100 + 1e-6) / 100;
 const ceil2 = (eth: string) => Math.ceil(Number(eth) * 100 - 1e-6) / 100;
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 const fmt = (value: number) => value.toFixed(2);
+const fmtBr = (value: number) => fmt(value).replace('.', ',');
 
 type PriceRangeProps = {
   range: NonNullable<CatalogFacets['priceRange']>;
@@ -110,7 +120,7 @@ function PriceRange({ range, minPrice, maxPrice, onApply }: PriceRangeProps) {
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3 pl-3">
       <Slider
         min={lo}
         max={hi}
@@ -120,11 +130,12 @@ function PriceRange({ range, minPrice, maxPrice, onApply }: PriceRangeProps) {
         onValueChange={(next) => setValue([next[0] ?? lo, next[1] ?? hi])}
         thumbLabels={['Preço mínimo', 'Preço máximo']}
         valueText={(v) => `${fmt(v)} ETH`}
+        className="h-[21px]"
       />
-      <p className="text-body-sm text-foreground tabular-nums">
-        Preço: {fmt(value[0])} – {fmt(value[1])} ETH
+      <p className="text-body leading-5 text-foreground tabular-nums">
+        Preço: {fmtBr(value[0])} - {fmtBr(value[1])} ETH
       </p>
-      <Button size="sm" onClick={apply} className="w-fit">
+      <Button onClick={apply} className="h-9 w-fit rounded-[6px] px-3 py-2 text-body-lg leading-5 font-bold">
         Aplicar
       </Button>
     </div>
@@ -142,16 +153,18 @@ export function FilterPanel({ className }: { className?: string }) {
   const selectedNetworks = search.network ?? [];
 
   return (
-    <div className={cn('flex flex-col gap-8', className)}>
+    <div className={cn('flex flex-col gap-10', className)}>
       <FilterGroup title="Coleções">
         {categories.isPending ? (
           <ListSkeleton rows={9} />
         ) : categories.isError ? (
           <LoadError what="as coleções" onRetry={() => void categories.refetch()} />
         ) : (
-          <CheckboxList
+          <ToggleList
             options={categories.data}
             selected={selectedCategories}
+            boldCount
+            className="px-3"
             onToggle={(id, checked) =>
               updateSearch({
                 category: checked ? [...selectedCategories, id] : selectedCategories.filter((c) => c !== id),
@@ -186,9 +199,10 @@ export function FilterPanel({ className }: { className?: string }) {
         ) : facets.isError ? (
           <LoadError what="as redes" onRetry={() => void facets.refetch()} />
         ) : (
-          <CheckboxList
+          <ToggleList
             options={facets.data.networks}
             selected={selectedNetworks}
+            className="pl-3"
             onToggle={(id, checked) => {
               const network = facets.data.networks.find((n) => n.id === id)?.id;
               if (!network) return;
@@ -208,7 +222,7 @@ export function FilterPanel({ className }: { className?: string }) {
 /** Sidebar de filtros do desktop (≥ 1280 px). */
 export function CategorySidebar({ className }: { className?: string }) {
   return (
-    <aside aria-label="Filtros" className={cn('rounded-lg bg-surface p-5', className)}>
+    <aside aria-label="Filtros" className={cn('bg-surface p-5', className)}>
       <FilterPanel />
     </aside>
   );

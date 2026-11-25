@@ -20,7 +20,7 @@ export const Route = createFileRoute('/')({
 
 function HomePage() {
   return (
-    <div className="container-page flex flex-col gap-10 py-6 xl:gap-20 xl:py-10">
+    <div className="container-page flex flex-col gap-10 py-6 xl:gap-24 xl:pt-8 xl:pb-0">
       <title>Kurio · Marketplace de NFTs</title>
       <Hero />
       <CatalogSection />

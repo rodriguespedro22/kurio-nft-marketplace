@@ -111,3 +111,57 @@ export function DeleteIcon(props: IconProps) {
     </svg>
   );
 }
+
+// Marcas das redes sociais do rodapé (glifos simples de 16 px, na cor do texto).
+
+export function FacebookIcon(props: IconProps) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" {...base(props)}>
+      <path
+        fill="currentColor"
+        d="M9.2 16V8.7h2.4l.4-2.8H9.2V4.1c0-.8.2-1.4 1.4-1.4H12V.1A19 19 0 0 0 10 0C7.9 0 6.4 1.3 6.4 3.7v2.2H4v2.8h2.4V16h2.8Z"
+      />
+    </svg>
+  );
+}
+
+export function InstagramIcon(props: IconProps) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" {...base(props)}>
+      <rect x="1.5" y="1.5" width="13" height="13" rx="3.75" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="11.9" cy="4.1" r="0.9" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function TwitterIcon(props: IconProps) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" {...base(props)}>
+      <path
+        fill="currentColor"
+        d="M16 3a6.6 6.6 0 0 1-1.9.5 3.3 3.3 0 0 0 1.5-1.8 6.6 6.6 0 0 1-2.1.8 3.3 3.3 0 0 0-5.6 3A9.3 9.3 0 0 1 1.1 2a3.3 3.3 0 0 0 1 4.4 3.3 3.3 0 0 1-1.5-.4 3.3 3.3 0 0 0 2.6 3.2 3.3 3.3 0 0 1-1.5.1 3.3 3.3 0 0 0 3.1 2.3A6.6 6.6 0 0 1 0 12.9a9.3 9.3 0 0 0 5 1.5c6 0 9.4-5 9.4-9.4v-.4A6.7 6.7 0 0 0 16 3Z"
+      />
+    </svg>
+  );
+}
+
+export function LinkedinIcon(props: IconProps) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" {...base(props)}>
+      <path
+        fill="currentColor"
+        d="M3.6 16H.3V5.3h3.3V16ZM2 3.8A1.9 1.9 0 1 1 2 0a1.9 1.9 0 0 1 0 3.8ZM16 16h-3.3v-5.2c0-1.2 0-2.8-1.7-2.8s-2 1.3-2 2.7V16H5.7V5.3h3.2v1.5c.4-.8 1.5-1.7 3.1-1.7 3.4 0 4 2.2 4 5.1V16Z"
+      />
+    </svg>
+  );
+}
+
+export function YoutubeIcon(props: IconProps) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" {...base(props)}>
+      <rect x="0.75" y="2.75" width="14.5" height="10.5" rx="3" stroke="currentColor" strokeWidth="1.5" />
+      <path fill="currentColor" d="M6.5 5.6v4.8L10.6 8 6.5 5.6Z" />
+    </svg>
+  );
+}

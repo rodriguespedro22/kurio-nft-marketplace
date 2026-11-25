@@ -33,7 +33,10 @@ export function AccountMenu() {
       <Link
         to="/login"
         search={redirect === '/' ? {} : { redirect }}
-        className={cn(buttonVariants({ size: 'sm' }), 'rounded-[6px] px-3')}
+        className={cn(
+          buttonVariants({ size: 'sm' }),
+          'h-[35px] gap-1 rounded-[6px] px-[9px] text-body-lg font-medium',
+        )}
       >
         <LoginIcon className="size-5" />
         Entrar

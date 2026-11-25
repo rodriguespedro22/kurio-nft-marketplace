@@ -100,12 +100,13 @@ export function CatalogSection() {
         <FeaturedCard />
       </div>
 
-      <div className="flex min-w-0 flex-col gap-6">
-        <div className="flex items-center gap-3">
+      <div className="flex min-w-0 flex-col gap-6 xl:gap-8">
+        {/* No desktop o layout não tem barra de busca no catálogo: ela abre pela lupa do header. */}
+        <div className="flex items-center gap-3 xl:hidden">
           <SearchInput className="flex-1" />
           <FiltersDrawer />
         </div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between xl:items-start">
           <CatalogTabs />
           <SortSelect />
         </div>

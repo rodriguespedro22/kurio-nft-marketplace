@@ -21,7 +21,7 @@ export function CatalogTabs({ className }: { className?: string }) {
         className,
       )}
     >
-      <ul className="flex items-center gap-4 whitespace-nowrap sm:gap-5">
+      <ul className="flex items-center gap-4 whitespace-nowrap sm:gap-5 xl:h-[26px] xl:items-start">
         {TABS.map(({ tab, label }) => (
           <li key={label}>
             <Link
@@ -32,9 +32,11 @@ export function CatalogTabs({ className }: { className?: string }) {
               // Ativa só quando a busca inteira coincide (a aba "Todos" não acende em "Em alta").
               activeOptions={{ exact: true }}
               className={cn(
-                'relative inline-flex min-h-11 items-center text-body-sm text-foreground transition-colors hover:text-accent sm:text-body-lg xl:text-body',
-                'data-[status=active]:font-bold data-[status=active]:text-accent',
-                'after:absolute after:inset-x-0 after:bottom-1.5 after:h-[3px] after:rounded-full after:bg-primary after:opacity-0 data-[status=active]:after:opacity-100',
+                'relative inline-flex min-h-11 items-center text-body-sm text-foreground transition-colors hover:text-accent sm:text-body-lg',
+                'xl:min-h-0 xl:pb-2.5 xl:text-body xl:leading-4 xl:font-medium',
+                'data-[status=active]:text-accent max-xl:data-[status=active]:font-bold',
+                // Layout: filete de 2 px, 6 px abaixo do texto.
+                'after:absolute after:inset-x-0 after:bottom-1.5 after:h-[3px] after:rounded-full after:bg-primary after:opacity-0 data-[status=active]:after:opacity-100 xl:after:bottom-0.5 xl:after:h-0.5 xl:after:rounded-none',
               )}
             >
               {label}

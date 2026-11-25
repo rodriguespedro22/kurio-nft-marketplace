@@ -32,7 +32,7 @@ test.beforeEach(async ({ page }) => {
 
 test('busca por "baron" vai para a URL e mostra só cards com "Baron"', async ({ page }) => {
   await page.goto('/');
-  await expect(cards(page)).toHaveCount(12);
+  await expect(cards(page)).toHaveCount(9);
 
   await searchBox(page).fill('baron');
   await expect(page).toHaveURL(/[?&]q=baron/);
@@ -96,7 +96,7 @@ test('cenário empty-catalog: "Nenhum NFT encontrado" com "Limpar filtros"', asy
 test('cenário out-of-order: a resposta atrasada de "a" não sobrescreve "ivory"', async ({ page }) => {
   await bootScenario(page, 'out-of-order');
   await page.goto('/');
-  await expect(cards(page)).toHaveCount(12, { timeout: 10_000 });
+  await expect(cards(page)).toHaveCount(9, { timeout: 10_000 });
 
   await searchBox(page).fill('a');
   await expect(page).toHaveURL(/[?&]q=a(&|$)/);
@@ -116,16 +116,16 @@ test('cenário out-of-order: a resposta atrasada de "a" não sobrescreve "ivory"
   await expect(searchBox(page)).toHaveValue('ivory');
 });
 
-test('cenário slow-network: 12 skeletons com a mesma altura do card final', async ({ page }) => {
+test('cenário slow-network: 9 skeletons com a mesma altura do card final', async ({ page }) => {
   await bootScenario(page, 'slow-network');
   await page.goto('/');
 
   const skeletons = page.getByTestId('nft-card-skeleton');
-  await expect(skeletons).toHaveCount(12);
+  await expect(skeletons).toHaveCount(9);
   await expect(skeletons.first()).toBeVisible();
   const skeletonHeight = (await skeletons.first().boundingBox())?.height ?? 0;
 
-  await expect(cards(page)).toHaveCount(12, { timeout: 15_000 });
+  await expect(cards(page)).toHaveCount(9, { timeout: 15_000 });
   const cardHeight = (await cards(page).first().boundingBox())?.height ?? 0;
   expect(skeletonHeight).toBeGreaterThan(100);
   expect(Math.abs(cardHeight - skeletonHeight)).toBeLessThanOrEqual(1);

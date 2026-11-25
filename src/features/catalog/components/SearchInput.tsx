@@ -15,7 +15,15 @@ const DEBOUNCE_MS = 300;
  * última tecla (Enter envia na hora); mudanças externas da URL (voltar, "Limpar filtros")
  * atualizam o campo sem atropelar o que o usuário ainda está digitando.
  */
-export function SearchInput({ className }: { className?: string }) {
+type SearchInputProps = {
+  className?: string;
+  /** Id do campo: o do catálogo é o alvo de `/#busca`; o do header usa outro para não duplicar. */
+  id?: string;
+  /** Enter: avisa quem abriu a busca (o popover do header fecha). */
+  onSubmitted?: () => void;
+};
+
+export function SearchInput({ className, id = SEARCH_INPUT_ID, onSubmitted }: SearchInputProps) {
   const { q } = useCatalogSearch();
   const updateSearch = useUpdateCatalogSearch();
   const urlValue = q ?? '';
@@ -45,12 +53,13 @@ export function SearchInput({ className }: { className?: string }) {
   const hash = useLocation({ select: (location) => location.hash });
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    if (hash === SEARCH_INPUT_ID) inputRef.current?.focus({ preventScroll: false });
-  }, [hash]);
+    if (id === SEARCH_INPUT_ID && hash === SEARCH_INPUT_ID) inputRef.current?.focus({ preventScroll: false });
+  }, [hash, id]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const next = value.trim();
+    onSubmitted?.();
     if (next === urlValue) return;
     setCommitted(next);
     updateSearch({ q: next }, { replace: true });
@@ -58,7 +67,7 @@ export function SearchInput({ className }: { className?: string }) {
 
   return (
     <form role="search" onSubmit={handleSubmit} className={cn('relative', className)}>
-      <label htmlFor={SEARCH_INPUT_ID} className="sr-only">
+      <label htmlFor={id} className="sr-only">
         Buscar NFTs
       </label>
       <SearchIcon
@@ -67,7 +76,7 @@ export function SearchInput({ className }: { className?: string }) {
       />
       <Input
         ref={inputRef}
-        id={SEARCH_INPUT_ID}
+        id={id}
         type="search"
         value={value}
         onChange={(event) => setValue(event.target.value)}

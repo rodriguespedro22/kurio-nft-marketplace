@@ -11,9 +11,12 @@ import {
 } from '@/contracts';
 import { request } from '@/shared/api/client';
 
+/** Grade 3 × 3 do layout. */
+export const CATALOG_PAGE_SIZE = 9;
+
 export const catalogApi = {
   list: (params: CatalogSearch, signal?: AbortSignal): Promise<Paginated<NftListItem>> =>
-    request({ url: '/nfts', params, signal }, NftPageSchema),
+    request({ url: '/nfts', params: { ...params, pageSize: CATALOG_PAGE_SIZE }, signal }, NftPageSchema),
 
   featured: (signal?: AbortSignal): Promise<NftListItem[]> =>
     request({ url: '/nfts/featured', signal }, FeaturedNftsSchema),
