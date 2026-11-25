@@ -5,6 +5,7 @@ import type { CreateOrderInput, Order } from '@/contracts';
 import { useSession } from '@/features/auth/session';
 import { ApiError } from '@/shared/api/api-error';
 import { qk } from '@/shared/api/query-keys';
+import { fetchNewest } from '@/shared/realtime/fetch-newest';
 import { useRealtimeStatus } from '@/shared/realtime/use-realtime';
 
 import { ordersApi } from './api';
@@ -27,7 +28,8 @@ export function useOrder(orderId: string) {
   const realtime = useRealtimeStatus();
   const query = useQuery({
     queryKey: qk.user(userId).order(orderId),
-    queryFn: ({ signal }) => ordersApi.get(orderId, signal),
+    queryFn: ({ client, queryKey, signal }) =>
+      fetchNewest(client, queryKey, () => ordersApi.get(orderId, signal)),
     enabled: Boolean(userId),
     retry: (count, error) => !(error instanceof ApiError && error.status === 404) && count < 2,
     refetchInterval: (query) =>

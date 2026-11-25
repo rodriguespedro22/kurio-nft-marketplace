@@ -206,6 +206,10 @@ Envelope comum (`src/contracts/events.ts`):
   (preço, disponibilidade e status) e invalida carrinho e cotação; `order.updated` grava o pedido no cache,
   com toast global "Pedido confirmado" / "Pagamento recusado".
 - **Porta** antes de tudo (deduplicação + versão por recurso, §3).
+- **REST nunca regride o que o evento trouxe**: as buscas do pedido e do detalhe do NFT passam por
+  `fetchNewest`. Se, enquanto a resposta viajava, um evento gravou no cache uma versão mais nova, a
+  resposta (lida antes do evento) é descartada. Sem isso, um refetch em andamento podia devolver
+  "Pendente" depois do `order.updated` "Confirmado" e, com o socket conectado, nada mais corrigia a tela.
 - **Reconexão**: o socket reconecta sozinho (backoff do socket.io-client). No `connect` depois de uma queda,
   `refreshAfterReconnect` invalida, **só nas queries ativas**, tudo o que eventos mantêm (catálogo,
   destaques, detalhe, carrinho, cotação, pedido). Eventos perdidos durante a queda são recuperados pelo REST.
