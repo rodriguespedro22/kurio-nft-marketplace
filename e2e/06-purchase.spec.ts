@@ -143,10 +143,14 @@ test('compra completa: pendente → confirmado; recibo do snapshot; carrinho só
   await loginViaUi(page, USERS.colecionador);
   await page.goto('/');
   await page.getByRole('searchbox', { name: /Buscar/ }).fill('ivory');
-  await page
-    .getByRole('link', { name: /Ivory Baron #088/ })
-    .first()
-    .click();
+  // Clica só depois que a grade da busca chegou (a da página inicial é trocada).
+  const grid = page.getByRole('list', { name: 'NFTs do catálogo' });
+  await expect(page).toHaveURL(/[?&]q=ivory/);
+  await expect(grid).toHaveAttribute('aria-busy', 'false');
+  // "ivory" também casa com outros NFTs: o card certo é o do Ivory Baron #088.
+  const ivoryCard = grid.getByRole('link', { name: 'Ivory Baron #088', exact: true });
+  await expect(ivoryCard).toBeVisible();
+  await ivoryCard.click();
   await expect(page).toHaveURL(IVORY);
   await addFromDetail(page, IVORY, /1\/10/);
   await addFromDetail(page, GOLDEN_BEAT, /1\/50/);
