@@ -33,7 +33,7 @@ export const apiClient = axios.create({
 
 let getAuthToken: () => string | null = () => null;
 let getGuestCart: () => string | null = () => null;
-const unauthorizedListeners = new Set<(err: ApiError) => void>();
+const unauthorizedListeners = new Set<(err: ApiError, sentToken: string) => void>();
 
 /** Quem conhece a sessão (features/auth) informa o token; lido a cada requisição. */
 export function setAuthTokenGetter(fn: () => string | null): void {
@@ -46,7 +46,7 @@ export function setGuestCartGetter(fn: () => string | null): void {
 }
 
 /** Notificado em 401 de requisição que levava token (sessão expirada/revogada no servidor). */
-export function onUnauthorized(fn: (err: ApiError) => void): () => void {
+export function onUnauthorized(fn: (err: ApiError, sentToken: string) => void): () => void {
   unauthorizedListeners.add(fn);
   return () => {
     unauthorizedListeners.delete(fn);
@@ -66,9 +66,10 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(undefined, (error: unknown) => {
   const apiError = toApiError(error);
   const config = axios.isAxiosError(error) ? error.config : undefined;
-  const sentToken = Boolean(config?.headers?.get?.('Authorization'));
+  const authorization = config?.headers?.get?.('Authorization');
+  const sentToken = typeof authorization === 'string' ? authorization.replace(/^Bearer /, '') : '';
   if (apiError.status === 401 && sentToken && !config?.skipUnauthorizedHandler) {
-    for (const listener of [...unauthorizedListeners]) listener(apiError);
+    for (const listener of [...unauthorizedListeners]) listener(apiError, sentToken);
   }
   return Promise.reject(apiError);
 });

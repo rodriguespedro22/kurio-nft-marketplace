@@ -206,3 +206,22 @@ test('logado, /login redireciona para o destino em vez de mostrar o formulário'
   await page.goto('/login?redirect=%2Fperfil');
   await expect(page).toHaveURL('/perfil');
 });
+
+test('duas abas: logout e novo login em uma não derrubam a sessão pela outra', async ({ page, context }) => {
+  await loginViaUi(page, USERS.colecionador);
+  const other = await context.newPage();
+  await other.goto('/');
+  await expect(other.getByRole('banner')).toContainText(USERS.colecionador.displayName);
+
+  await logoutViaUi(page);
+  await expect(other.getByRole('banner').getByRole('link', { name: 'Entrar' })).toBeVisible();
+
+  // O novo token nasce no banco simulado desta aba; a outra aba precisa enxergá-lo.
+  await loginViaUi(page, USERS.colecionador);
+  await expect(other.getByRole('banner')).toContainText(USERS.colecionador.displayName);
+  await other.reload();
+  await page.waitForTimeout(1500);
+  await expect(page.getByRole('banner')).toContainText(USERS.colecionador.displayName);
+  await expect(other.getByRole('banner')).toContainText(USERS.colecionador.displayName);
+  await other.close();
+});

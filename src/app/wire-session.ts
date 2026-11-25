@@ -23,8 +23,9 @@ export function wireSession(queryClient: QueryClient, router: AppRouter): () => 
     if (prev?.user.id !== next?.user.id) queryClient.removeQueries({ queryKey: ['user'] });
   });
 
-  const offUnauthorized = onUnauthorized(() => {
-    if (!getSession()) return;
+  const offUnauthorized = onUnauthorized((_error, sentToken) => {
+    // Resposta a um token antigo (logout seguido de novo login) não encerra a sessão nova.
+    if (getSession()?.token !== sentToken) return;
     signOutLocal('expired');
     consumeSignOutReason();
     const { href, pathname } = router.state.location;
