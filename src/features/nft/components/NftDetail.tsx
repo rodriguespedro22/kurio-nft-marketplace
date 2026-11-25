@@ -28,34 +28,39 @@ function LoadedNft({ nft }: { nft: Nft }) {
   const listItem = useMemo(() => toListItem(nft), [nft]);
 
   return (
-    <div className="container-page flex flex-col gap-12 py-4 md:py-8 xl:gap-20">
+    <div className="container-page flex flex-col gap-12 pb-4 md:gap-16 md:pt-8 md:pb-6 xl:gap-24">
       <title>{`${nft.name} · Kurio`}</title>
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between md:hidden">
-          <BackButton />
-          <FavoriteButton
-            item={listItem}
-            label="Favoritar"
-            className="size-11 border border-border-soft bg-transparent backdrop-blur-none"
-          />
-        </div>
-        <Breadcrumb current={nft.name} />
-        <div className="grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:grid-cols-[572px_minmax(0,1fr)] xl:gap-[33px]">
-          <Gallery images={nft.images} name={nft.name} />
-          <NftInfo
-            nft={nft}
-            edition={edition}
-            onEditionChange={setEditionId}
-            purchase={
-              <PurchasePanel
-                nft={nft}
-                listItem={listItem}
-                edition={edition}
-                quantity={effectiveQuantity}
-                onQuantityChange={setQuantity}
+      <div className="flex flex-col gap-3">
+        <Breadcrumb current={nft.name} hideCurrent />
+        <div className="grid md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-8 xl:grid-cols-[573px_minmax(0,1fr)]">
+          {/* Celular: arte sobre o degradê, com Voltar e Favoritar no topo (como no layout mobile). */}
+          <div className="flex flex-col gap-2 max-md:-mx-4 max-md:bg-linear-[135deg] max-md:from-surface max-md:to-surface-raised max-md:px-7 max-md:pt-6">
+            <div className="flex items-center justify-between md:hidden">
+              <BackButton className="size-[35px] border-border bg-surface-raised text-secondary" />
+              <FavoriteButton
+                item={listItem}
+                label="Favoritar"
+                className="size-[35px] border border-border bg-surface-raised text-accent backdrop-blur-none hover:bg-surface-raised [&_svg]:size-4"
               />
-            }
-          />
+            </div>
+            <Gallery images={nft.images} name={nft.name} />
+          </div>
+          <div className="max-md:relative max-md:z-10 max-md:-mx-4 max-md:-mt-[30px] max-md:rounded-t-[31px] max-md:bg-surface max-md:px-6 max-md:pt-8 max-md:pb-8">
+            <NftInfo
+              nft={nft}
+              edition={edition}
+              onEditionChange={setEditionId}
+              purchase={
+                <PurchasePanel
+                  nft={nft}
+                  listItem={listItem}
+                  edition={edition}
+                  quantity={effectiveQuantity}
+                  onQuantityChange={setQuantity}
+                />
+              }
+            />
+          </div>
         </div>
       </div>
       <NftDetailsTabs nft={nft} />

@@ -4,7 +4,7 @@ import { Tabs as TabsPrimitive } from 'radix-ui';
 import { cn } from '@/shared/lib/utils';
 
 export function Tabs({ className, ...props }: ComponentProps<typeof TabsPrimitive.Root>) {
-  return <TabsPrimitive.Root data-slot="tabs" className={cn('flex flex-col gap-6', className)} {...props} />;
+  return <TabsPrimitive.Root data-slot="tabs" className={cn('flex flex-col gap-3', className)} {...props} />;
 }
 
 export function TabsList({ className, ...props }: ComponentProps<typeof TabsPrimitive.List>) {
@@ -12,7 +12,7 @@ export function TabsList({ className, ...props }: ComponentProps<typeof TabsPrim
     <TabsPrimitive.List
       data-slot="tabs-list"
       className={cn(
-        'flex [scrollbar-width:none] items-end gap-6 overflow-x-auto overflow-y-hidden border-b border-border [&::-webkit-scrollbar]:hidden',
+        'flex [scrollbar-width:none] items-end gap-8 overflow-x-auto overflow-y-hidden border-b border-primary/30 [&::-webkit-scrollbar]:hidden',
         className,
       )}
       {...props}
@@ -20,13 +20,14 @@ export function TabsList({ className, ...props }: ComponentProps<typeof TabsPrim
   );
 }
 
-/** Aba com sublinhado de 3px `primary` quando ativa (Layout: "Todos / Mais vendidos / …"). */
+/** Aba com sublinhado de 3 px `primary` quando ativa, sobre o divisor da lista. */
 export function TabsTrigger({ className, ...props }: ComponentProps<typeof TabsPrimitive.Trigger>) {
   return (
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        'inline-flex min-h-11 items-center border-b-[3px] border-transparent pb-2 text-body-lg whitespace-nowrap text-secondary transition-colors hover:text-foreground data-[state=active]:border-primary data-[state=active]:font-bold data-[state=active]:text-foreground',
+        'relative -mb-px inline-flex min-h-7 items-start pb-3 text-[1.0625rem] leading-4 whitespace-nowrap text-foreground transition-colors hover:text-accent data-[state=active]:font-bold data-[state=active]:text-accent',
+        'after:absolute after:inset-x-0 after:-bottom-px after:h-[3px] after:bg-primary after:opacity-0 data-[state=active]:after:opacity-100',
         className,
       )}
       {...props}

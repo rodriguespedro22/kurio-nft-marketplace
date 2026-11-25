@@ -12,12 +12,12 @@ export function cartShortcut(page: Page, isMobile: boolean) {
 
 export const cartList = (page: Page) => page.getByRole('list', { name: 'Itens do carrinho' });
 
-/** Abre o detalhe, escolhe a edição e adiciona ao carrinho (espera o toast de confirmação). */
+/** Abre o detalhe, escolhe a edição e compra: o item entra no carrinho e a página vai para ele. */
 export async function addFromDetail(page: Page, path: string, edition: RegExp) {
   await page.goto(path);
   await page.getByRole('radiogroup', { name: 'Edição' }).getByRole('radio', { name: edition }).click();
-  await page.getByRole('button', { name: 'Adicionar ao carrinho' }).click();
-  await expect(page.getByText('Adicionado ao carrinho')).toBeVisible();
+  await page.getByRole('button', { name: /^Comprar/ }).click();
+  await expect(page).toHaveURL(/\/carrinho$/);
 }
 
 export const summary = (page: Page) => page.getByRole('complementary', { name: 'Resumo da carteira' });

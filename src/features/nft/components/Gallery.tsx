@@ -12,8 +12,8 @@ const NEXT_KEYS = new Set(['ArrowRight', 'ArrowDown']);
 const PREV_KEYS = new Set(['ArrowLeft', 'ArrowUp']);
 
 /**
- * Galeria: miniaturas como abas (setas, Home/End) controlando a arte principal; lupa abre a
- * arte ampliada num diálogo.
+ * Galeria: as abas trocam a arte principal (setas, Home/End). No desktop são miniaturas em coluna;
+ * no celular, os pontos sobre a arte. A lupa (no celular, a própria arte) abre a arte ampliada.
  */
 export function Gallery({ images, name }: GalleryProps) {
   const [active, setActive] = useState(0);
@@ -42,14 +42,14 @@ export function Gallery({ images, name }: GalleryProps) {
   if (!current) return null;
 
   return (
-    <div className="flex flex-col gap-4 md:flex-row-reverse md:items-start md:gap-7">
+    <div className="relative flex flex-col md:flex-row-reverse md:items-start md:gap-7">
       <div
         role="tabpanel"
         id={panelId}
         aria-labelledby={`${baseId}-tab-${active}`}
-        className="relative min-w-0 flex-1 rounded-lg bg-surface p-3 md:p-5"
+        className="relative min-w-0 flex-1 md:rounded-[6px] md:bg-surface md:p-4 xl:max-w-[444px]"
       >
-        <div data-testid="nft-main-image" className="overflow-hidden rounded-art">
+        <div data-testid="nft-main-image" className="overflow-hidden rounded-3xl">
           <NftImage
             key={current.asset}
             asset={current.asset}
@@ -62,9 +62,13 @@ export function Gallery({ images, name }: GalleryProps) {
         <Dialog>
           <DialogTrigger
             aria-label="Ampliar imagem"
-            className="absolute top-5 right-5 grid size-11 place-items-center rounded-full bg-ink/80 text-foreground transition-colors hover:text-accent md:top-7 md:right-7"
+            className={cn(
+              // Celular: a arte inteira é o gatilho (o layout mobile não desenha a lupa).
+              'absolute inset-0 rounded-3xl',
+              'md:inset-auto md:top-[13px] md:right-3 md:grid md:size-[30px] md:place-items-center md:rounded-full md:border md:border-border md:bg-surface-raised md:text-foreground md:transition-colors md:hover:text-accent',
+            )}
           >
-            <SearchIcon aria-hidden="true" className="size-5" />
+            <SearchIcon aria-hidden="true" className="hidden size-5 md:block" />
           </DialogTrigger>
           <DialogContent className="max-w-[min(92vw,900px)] p-3 sm:p-4">
             <DialogTitle className="sr-only">{name} — imagem ampliada</DialogTitle>
@@ -80,7 +84,7 @@ export function Gallery({ images, name }: GalleryProps) {
           role="tablist"
           aria-label="Imagens do NFT"
           onKeyDown={handleKeyDown}
-          className="flex gap-3 md:flex-col md:gap-4"
+          className="absolute bottom-[50px] left-1/2 z-10 flex -translate-x-1/2 items-center gap-[7px] md:static md:translate-x-0 md:flex-col md:gap-4"
         >
           {images.map((image, index) => (
             <button
@@ -97,11 +101,13 @@ export function Gallery({ images, name }: GalleryProps) {
               tabIndex={index === active ? 0 : -1}
               onClick={() => select(index, false)}
               className={cn(
-                'size-18 overflow-hidden rounded-lg border-2 border-transparent opacity-70 transition md:size-25',
-                'hover:opacity-100 aria-selected:border-primary aria-selected:opacity-100',
+                // Celular: ponto de 7 px (o ativo vira pílula de 28 px), com área de toque maior.
+                'relative h-[7px] w-[7px] shrink-0 rounded-full bg-primary transition-[width] before:absolute before:-inset-x-[3px] before:-inset-y-2.5 aria-selected:w-7',
+                // Desktop: miniatura de 100 px sobre o fundo `surface`.
+                'md:size-25 md:overflow-hidden md:rounded-lg md:border md:border-transparent md:bg-surface md:transition-colors md:before:hidden md:hover:border-border-soft md:aria-selected:w-25 md:aria-selected:border-primary',
               )}
             >
-              <NftImage asset={image.asset} alt="" sizes="100px" />
+              <NftImage asset={image.asset} alt="" sizes="100px" className="hidden md:block" />
             </button>
           ))}
         </div>

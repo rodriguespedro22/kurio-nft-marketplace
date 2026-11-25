@@ -6,9 +6,9 @@ import { cartErrorMessage, useAddToCart } from '@/features/cart/queries';
 import { FavoriteButton } from '@/features/favorites/components/FavoriteButton';
 import { formatEth } from '@/shared/money/eth';
 import { announce } from '@/shared/ui/announce';
-import { buttonVariants } from '@/shared/ui/button-variants';
 import { CartIcon } from '@/shared/ui/icons';
 import { cn } from '@/shared/lib/utils';
+import { useMediaQuery } from '@/shared/lib/use-media-query';
 import { QuantityStepper } from '@/shared/ui/quantity-stepper';
 
 type PurchasePanelProps = {
@@ -28,6 +28,7 @@ export function PurchasePanel({ nft, listItem, edition, quantity, onQuantityChan
   const addToCart = useAddToCart();
   const available = edition?.available ?? 0;
   const soldOut = available === 0;
+  const desktop = useMediaQuery('(min-width: 48rem)');
 
   function add(goToCart: boolean) {
     if (!edition || soldOut || addToCart.isPending) return;
@@ -57,23 +58,27 @@ export function PurchasePanel({ nft, listItem, edition, quantity, onQuantityChan
     <div
       data-testid="purchase-panel"
       data-bottom-bar=""
-      className="max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-40 max-md:rounded-t-[28px] max-md:border-t max-md:border-border max-md:bg-surface max-md:px-6 max-md:pt-4 max-md:pb-[calc(1rem+env(safe-area-inset-bottom))] max-md:shadow-bar"
+      className="max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-40 max-md:rounded-t-[40px] max-md:bg-surface max-md:px-6 max-md:pt-5 max-md:pb-[calc(2.25rem+env(safe-area-inset-bottom))] max-md:shadow-[0_0_20px_rgb(10_6_4/0.45)]"
     >
-      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-5 md:flex-nowrap">
         <QuantityStepper
           label="Quantidade"
           visibleLabel="Qtd."
           labelClassName="md:sr-only"
+          size="responsive"
           value={quantity}
           min={1}
           max={Math.max(available, 1)}
           onChange={onQuantityChange}
           disabled={soldOut}
+          className="[&>p:empty]:-mt-1.5 [&>p:empty]:min-h-0"
         />
-        <p className="pt-1 text-title-sm font-bold text-accent tabular-nums md:hidden">
-          <span className="sr-only">Preço da edição: </span>
-          {edition ? formatEth(edition.price) : null}
-        </p>
+        {desktop ? null : (
+          <p className="pt-[7px] text-title-sm leading-4 font-bold text-accent tabular-nums">
+            <span className="sr-only">Preço da edição: </span>
+            <span data-testid="nft-price">{edition ? formatEth(edition.price) : null}</span>
+          </p>
+        )}
 
         <div className="flex w-full items-center gap-3 md:w-auto md:gap-2">
           <button
@@ -82,18 +87,18 @@ export function PurchasePanel({ nft, listItem, edition, quantity, onQuantityChan
             disabled={soldOut}
             aria-busy={addToCart.isPending || undefined}
             className={cn(
-              buttonVariants({ variant: 'primary', size: 'lg', shape: 'pill' }),
-              'flex-1 md:h-10 md:flex-none md:rounded-field md:px-8 md:text-body-sm md:uppercase',
+              'inline-flex h-[60px] w-[196px] items-center justify-center rounded-[40px] bg-linear-[133deg] from-primary to-primary/80 text-body-lg leading-5 font-bold text-ink transition-colors hover:from-primary-dark hover:to-primary-dark disabled:cursor-not-allowed disabled:opacity-40',
+              'md:h-10 md:w-[130px] md:rounded-[6px] md:bg-primary md:bg-none md:text-body-sm md:uppercase md:hover:bg-primary-dark',
             )}
           >
-            Comprar<span className="md:hidden"> NFT</span>
+            Comprar<span className="whitespace-pre md:hidden"> NFT</span>
           </button>
           <button
             type="button"
             aria-label="Adicionar ao carrinho"
             onClick={() => add(false)}
             disabled={soldOut}
-            className="grid size-14 shrink-0 place-items-center rounded-full border border-border bg-surface-raised text-accent transition-colors hover:border-primary disabled:cursor-not-allowed disabled:opacity-40 md:size-10 md:rounded-field md:bg-transparent"
+            className="grid size-[60px] shrink-0 place-items-center rounded-[40px] border border-border bg-surface-raised text-muted transition-colors hover:border-primary hover:text-accent disabled:cursor-not-allowed disabled:opacity-40 md:hidden"
           >
             <CartIcon aria-hidden="true" className="size-5" />
           </button>

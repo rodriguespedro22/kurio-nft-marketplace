@@ -16,6 +16,8 @@ type QuantityStepperProps = {
   labelClassName?: string;
   id?: string;
   disabled?: boolean;
+  /** `sm`: botões de 20×30 (carrinho, celular); `responsive`: `sm` no celular e 33×50 a partir do tablet (detalhe). */
+  size?: 'sm' | 'responsive';
   className?: string;
 };
 
@@ -23,7 +25,17 @@ type QuantityStepperProps = {
 const lowerFirst = (text: string) => text.charAt(0).toLowerCase() + text.slice(1);
 
 const stepButton =
-  'relative grid size-8 shrink-0 place-items-center rounded-full bg-primary text-ink transition-colors before:absolute before:-inset-1.5 hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-40';
+  'relative grid h-[30px] w-5 shrink-0 place-items-center rounded-full border border-ink bg-primary text-ink transition-colors before:absolute before:-inset-x-0.5 before:-inset-y-1 hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-40';
+
+const sizes = {
+  sm: { button: stepButton, icon: 'size-3', input: 'w-8 text-[1.0625rem] leading-6' },
+  responsive: {
+    button: cn(stepButton, 'md:h-[50px] md:w-[33px] md:before:hidden'),
+    icon: 'size-3 md:size-[18px]',
+    input:
+      'w-8 text-[1.125rem] leading-[25px] font-medium md:w-9 md:text-title-sm md:leading-7 md:font-normal',
+  },
+} as const;
 
 /**
  * Campo numérico com − / +. O texto digitado só vale ao confirmar (Enter ou sair do campo), e o
@@ -41,8 +53,10 @@ export function QuantityStepper({
   labelClassName,
   id,
   disabled = false,
+  size = 'sm',
   className,
 }: QuantityStepperProps) {
+  const look = sizes[size];
   const autoId = useId();
   const inputId = id ?? autoId;
   const noticeId = `${inputId}-ajuste`;
@@ -99,10 +113,14 @@ export function QuantityStepper({
 
   return (
     <div data-slot="quantity-stepper" className={cn('flex flex-col gap-1.5', className)}>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1">
         <label
           htmlFor={inputId}
-          className={visibleLabel ? cn('text-body-sm font-medium text-secondary', labelClassName) : 'sr-only'}
+          className={
+            visibleLabel
+              ? cn('mr-1 text-body leading-4 font-medium text-secondary', labelClassName)
+              : 'sr-only'
+          }
         >
           {visibleLabel ?? label}
           {visibleLabel ? <span className="sr-only"> ({label})</span> : null}
@@ -113,9 +131,9 @@ export function QuantityStepper({
           aria-controls={inputId}
           disabled={disabled || value <= min}
           onClick={() => onChange(Math.max(value - 1, min))}
-          className={stepButton}
+          className={look.button}
         >
-          <Minus aria-hidden="true" className="size-4" strokeWidth={2.5} />
+          <Minus aria-hidden="true" className={look.icon} strokeWidth={2.5} />
         </button>
         <input
           id={inputId}
@@ -128,7 +146,10 @@ export function QuantityStepper({
           onChange={(event) => setDraft(event.target.value)}
           onBlur={commit}
           onKeyDown={handleKeyDown}
-          className="h-10 w-12 rounded-field border border-transparent bg-transparent text-center text-body-lg text-foreground tabular-nums transition-colors hover:border-border focus-visible:border-primary"
+          className={cn(
+            'h-10 rounded-field border border-transparent bg-transparent text-center text-foreground tabular-nums transition-colors hover:border-border focus-visible:border-primary',
+            look.input,
+          )}
         />
         <button
           type="button"
@@ -136,9 +157,9 @@ export function QuantityStepper({
           aria-controls={inputId}
           disabled={disabled || atMax}
           onClick={() => onChange(Math.min(value + 1, upper))}
-          className={stepButton}
+          className={look.button}
         >
-          <Plus aria-hidden="true" className="size-4" strokeWidth={2.5} />
+          <Plus aria-hidden="true" className={look.icon} strokeWidth={2.5} />
         </button>
       </div>
       {notice ? (
