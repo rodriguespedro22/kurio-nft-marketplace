@@ -31,7 +31,9 @@ export function useOrder(orderId: string) {
     queryFn: ({ client, queryKey, signal }) =>
       fetchNewest(client, queryKey, () => ordersApi.get(orderId, signal)),
     enabled: Boolean(userId),
-    retry: (count, error) => !(error instanceof ApiError && error.status === 404) && count < 2,
+    // 404/403 são respostas definitivas: só falhas de rede ou do servidor são tentadas de novo.
+    retry: (count, error) =>
+      !(error instanceof ApiError && error.status < 500 && error.status >= 400) && count < 2,
     refetchInterval: (query) =>
       query.state.data?.status === 'pending' && realtime !== 'connected' ? 5000 : false,
   });

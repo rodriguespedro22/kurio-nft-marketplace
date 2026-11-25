@@ -175,11 +175,13 @@ describe('POST /orders', () => {
     expect(edition().available).toBe(0);
   });
 
-  test('pedido de outro usuário → 404', async () => {
+  test('pedido de outro usuário → 403, sem expor o pedido; inexistente → 404', async () => {
     await addToCart(1);
     const order = (await createOrder(await orderInput(), 'key-1')).data as Order;
     await login('ana@kurio.test');
-    await expectError(client.get(`/orders/${order.id}`, auth()), 404, 'NOT_FOUND');
+    const denied = await expectError(client.get(`/orders/${order.id}`, auth()), 403, 'FORBIDDEN');
+    expect(JSON.stringify(denied)).not.toContain(order.snapshot.total);
+    await expectError(client.get('/orders/order-nao-existe', auth()), 404, 'NOT_FOUND');
   });
 });
 

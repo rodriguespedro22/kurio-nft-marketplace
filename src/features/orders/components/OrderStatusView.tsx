@@ -59,6 +59,7 @@ export function OrderStatusView({ orderId }: { orderId: string }) {
   useSettleWhenTerminal(order.data);
   const userId = useSession()?.user.id;
   const notFound = order.error instanceof ApiError && order.error.status === 404;
+  const forbidden = order.error instanceof ApiError && order.error.status === 403;
   // Pedido lembrado que o servidor não conhece (ex.: dados do mock resetados): esquece, senão o
   // checkout voltaria sempre para cá.
   useEffect(() => {
@@ -79,6 +80,19 @@ export function OrderStatusView({ orderId }: { orderId: string }) {
         <EmptyState
           title="Pedido não encontrado"
           description="Confira o link ou veja os NFTs disponíveis no catálogo."
+          action={
+            <Link to="/" hash="catalogo" className={buttonVariants({ variant: 'primary' })}>
+              Explorar o catálogo
+            </Link>
+          }
+        />
+      );
+    }
+    if (forbidden) {
+      return (
+        <EmptyState
+          title="Este pedido é de outra conta"
+          description="Entre com a conta que fez a compra para ver o status e o recibo."
           action={
             <Link to="/" hash="catalogo" className={buttonVariants({ variant: 'primary' })}>
               Explorar o catálogo

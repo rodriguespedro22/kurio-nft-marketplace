@@ -339,8 +339,9 @@ export const orderHandlers = [
       const auth = authenticate(request);
       if (auth instanceof Response) return auth;
       const order = db.get().orders[params.id];
-      if (!order || order.userId !== auth.user.id)
-        return apiError(404, 'NOT_FOUND', 'Pedido não encontrado.');
+      if (!order) return apiError(404, 'NOT_FOUND', 'Pedido não encontrado.');
+      if (order.userId !== auth.user.id)
+        return apiError(403, 'FORBIDDEN', 'Este pedido pertence a outra conta.');
       return HttpResponse.json(toOrder(order));
     }),
   ),

@@ -173,6 +173,8 @@ test('pedido de A resolvido depois que B entrou: B não recebe aviso nem vê o p
   await page.waitForTimeout(300);
   await expect(page.getByText(/Pedido confirmado|Pagamento recusado/)).toHaveCount(0);
 
+  // Acesso direto ao pedido de A: a API nega (403) e a tela não mostra status nem recibo.
   await page.goto(`/pedido/${orderId}`);
-  await expect(page.getByRole('heading', { name: 'Pedido não encontrado' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Este pedido é de outra conta' })).toBeVisible();
+  await expect(orderStatus(page)).toHaveCount(0);
 });

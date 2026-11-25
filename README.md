@@ -115,7 +115,8 @@ Em todos os roteiros, "entrar" = login com `colecionador@kurio.test` / `Kurio@20
 4. **Sessão expirada e não autorizado**: entre, vá ao checkout, preencha parte do formulário e use
    `POST /__mock/session/expire` (ou o cenário `session-expired` e espere 60 s). Na próxima requisição o app
    leva ao login com aviso; depois de entrar, volta ao checkout com o rascunho preservado. Abrir `/perfil` sem
-   sessão leva ao login com `redirect`.
+   sessão leva ao login com `redirect`. Sem permissão (403): entre como `colecionador@kurio.test`, faça uma compra,
+   copie a URL `/pedido/…`, saia, entre como `ana@kurio.test` e abra a URL: "Este pedido é de outra conta".
 5. **Conflito no cadastro e validação**: em `register-conflict`, cadastre-se: o erro 409 aparece no campo
    nome de usuário. Cadastrar `ana@kurio.test` mostra "e-mail já cadastrado" em qualquer cenário. Campos
    inválidos mostram a mensagem junto do campo.

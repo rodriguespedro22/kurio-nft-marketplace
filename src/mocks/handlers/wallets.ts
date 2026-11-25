@@ -23,11 +23,13 @@ function fieldsOf({ slot: _slot, ...input }: WalletInput) {
   return { ...input, secondaryAddressOrEns: input.secondaryAddressOrEns || null };
 }
 
-function findOwned(userId: string, id: string): WalletRecord | undefined {
-  return db.get().wallets.find((w) => w.id === id && w.userId === userId);
+/** Carteira do usuário; de outra conta → 403, inexistente → 404. */
+function findOwned(userId: string, id: string): WalletRecord | Response {
+  const wallet = db.get().wallets.find((w) => w.id === id);
+  if (!wallet) return apiError(404, 'NOT_FOUND', 'Carteira não encontrada.');
+  if (wallet.userId !== userId) return apiError(403, 'FORBIDDEN', 'Esta carteira pertence a outra conta.');
+  return wallet;
 }
-
-const notFound = () => apiError(404, 'NOT_FOUND', 'Carteira não encontrada.');
 
 /** Atualiza a carteira do usuário dentro de `db.update` e devolve a versão gravada. */
 function updateWallet(userId: string, id: string, change: (w: WalletRecord) => void): Wallet {
@@ -99,7 +101,7 @@ export const walletHandlers = [
       if (auth instanceof Response) return auth;
       const id = String(params.id);
       const current = findOwned(auth.user.id, id);
-      if (!current) return notFound();
+      if (current instanceof Response) return current;
       const parsed = WalletInputSchema.safeParse(await readJson(request));
       if (!parsed.success) return validationError(parsed.error);
 
@@ -124,7 +126,7 @@ export const walletHandlers = [
       if (auth instanceof Response) return auth;
       const id = String(params.id);
       const current = findOwned(auth.user.id, id);
-      if (!current) return notFound();
+      if (current instanceof Response) return current;
       if (declines(current)) {
         updateWallet(auth.user.id, id, (w) => {
           w.connection = 'declined';
@@ -145,7 +147,8 @@ export const walletHandlers = [
       const auth = authenticate(request);
       if (auth instanceof Response) return auth;
       const id = String(params.id);
-      if (!findOwned(auth.user.id, id)) return notFound();
+      const owned = findOwned(auth.user.id, id);
+      if (owned instanceof Response) return owned;
       return HttpResponse.json(
         updateWallet(auth.user.id, id, (w) => {
           w.connection = 'disconnected';

@@ -99,7 +99,7 @@ describe('carteiras', () => {
     expect((await wallets(token)).map((w) => w.slot)).toEqual(['primary', 'secondary']);
   });
 
-  test('PATCH edita; trocar endereço, rede ou tipo desconecta; carteira de outro usuário → 404', async () => {
+  test('PATCH edita; trocar endereço, rede ou tipo desconecta; carteira de outro usuário → 403', async () => {
     const token = await tokenFor('colecionador@kurio.test');
 
     const renamed = WalletSchema.parse(
@@ -121,9 +121,15 @@ describe('carteiras', () => {
 
     await expectError(
       client.patch('/wallets/wallet-1', input(), auth(await tokenFor('ana@kurio.test'))),
-      404,
-      'NOT_FOUND',
+      403,
+      'FORBIDDEN',
     );
+    await expectError(
+      client.post('/wallets/wallet-1/connect', null, auth(await tokenFor('ana@kurio.test'))),
+      403,
+      'FORBIDDEN',
+    );
+    await expectError(client.patch('/wallets/wallet-nao-existe', input(), auth(token)), 404, 'NOT_FOUND');
   });
 
   test('conectar: MetaMask conecta; WalletConnect recusa (409) e fica "declined"; desconectar', async () => {
