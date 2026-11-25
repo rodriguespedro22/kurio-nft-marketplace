@@ -208,7 +208,9 @@ test('avatar: acima de 2 MB dá erro; imagem válida aparece, continua após o r
   await expect(avatarImage(page)).toHaveCount(0);
 });
 
-test('senha: atual errada dá erro no campo; troca válida desloga e só a nova senha entra', async ({ page }) => {
+test('senha: atual errada dá erro no campo; troca válida desloga e só a nova senha entra', async ({
+  page,
+}) => {
   await loginViaUi(page, USERS.ana, '/perfil');
   const form = passwordForm(page);
   const current = form.getByLabel('Senha atual', { exact: true });

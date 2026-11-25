@@ -7,3 +7,4 @@ lighthouse/reports
 public/mockServiceWorker.js
 src/routeTree.gen.ts
 e2e/__screenshots__
+lighthouse/SUMMARY.md
