@@ -46,6 +46,20 @@ function applyBootSelection(): void {
   }
 }
 
+/**
+ * O MSW só intercepta páginas sob o controle do Service Worker. O worker se desregistra quando a
+ * última aba sai, e uma navegação logo em seguida (reload seguido de outra página) pode nascer antes
+ * de o novo registro ativar: sem controlador. O MSW recarrega essa página, mas `worker.start()`
+ * resolve antes disso, e o app renderizaria mandando as chamadas para a rede real (um reenvio de
+ * pedido respondido com 404, por exemplo). Espera a ativação assumir a página ou a recarga trocá-la.
+ */
+function waitForController(): Promise<void> {
+  if (navigator.serviceWorker.controller) return Promise.resolve();
+  return new Promise((resolve) => {
+    navigator.serviceWorker.addEventListener('controllerchange', () => resolve(), { once: true });
+  });
+}
+
 export async function enableMocking(): Promise<void> {
   applyBootSelection();
   const worker = setupWorker(...handlers);
@@ -54,6 +68,7 @@ export async function enableMocking(): Promise<void> {
     quiet: import.meta.env.PROD,
     serviceWorker: { url: '/mockServiceWorker.js' },
   });
+  await waitForController();
   // Pedidos pendentes de antes do reload voltam à agenda (resolução a partir de `createdAt`).
   scheduleOpenOrders();
   mountMockPanel();

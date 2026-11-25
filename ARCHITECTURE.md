@@ -254,6 +254,10 @@ Limitações (aceitas e cobertas pelos testes):
 - **Painel de cenários** (`src/mocks/panel`): montado numa raiz React própria, só com mocks ligados; usa a
   mesma API `/__mock/*` dos testes. Fica acima das barras fixas do rodapé (`data-bottom-bar`).
 - Com `VITE_ENABLE_MOCKS` diferente de `true`, `src/mocks` não entra no bundle (import dinâmico).
+- **Boot só sob o Service Worker**: o worker do MSW se desregistra quando a última aba sai, e uma navegação
+  logo em seguida pode nascer sem controlador. O MSW recarrega essa página, mas `worker.start()` resolve
+  antes; por isso `enableMocking()` espera o `controllerchange` (ou a recarga) antes de o app renderizar.
+  Sem isso, as primeiras chamadas iam para a rede real (na Vercel, a reescrita de SPA).
 
 ## 11. Decisões de UX
 
