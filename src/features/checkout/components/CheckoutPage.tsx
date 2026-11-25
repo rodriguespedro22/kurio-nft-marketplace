@@ -19,7 +19,9 @@ import { CREATE_ORDER_KEY, isUncertain, useCreateOrder } from '@/features/orders
 import { useProfile } from '@/features/profile/queries';
 import { useWallets } from '@/features/wallets/queries';
 import { ApiError } from '@/shared/api/api-error';
+import { BackButton } from '@/shared/layout/BackButton';
 import { Breadcrumb } from '@/shared/layout/Breadcrumb';
+import { useMediaQuery } from '@/shared/lib/use-media-query';
 import { formatEth, mulEth } from '@/shared/money/eth';
 import { buttonVariants } from '@/shared/ui/button-variants';
 import { Button } from '@/shared/ui/button';
@@ -35,7 +37,7 @@ import { BuyerForm } from './BuyerForm';
 import { ReviewDialog } from './ReviewDialog';
 import { WalletNetworkPicker } from './WalletNetworkPicker';
 
-const GRID = 'grid gap-10 xl:grid-cols-[minmax(0,763px)_minmax(0,405px)] xl:justify-between';
+const GRID = 'grid gap-8 xl:grid-cols-[minmax(0,763px)_minmax(0,405px)] xl:justify-between';
 
 type CheckoutData = { userId: string; profile: Profile; wallets: Wallet[]; cart: Cart };
 
@@ -60,6 +62,7 @@ function shownReview(review: Review, live: Quote | undefined): Review {
 }
 
 function CheckoutContent(data: CheckoutData) {
+  const desktop = useMediaQuery('(min-width: 80rem)');
   const { userId, wallets, cart } = data;
   const formId = useId();
   const [initial] = useState(() => initialState(data));
@@ -186,33 +189,50 @@ function CheckoutContent(data: CheckoutData) {
     },
   );
 
+  // No celular a carteira vem antes do formulário (como no layout mobile); a ordem no DOM acompanha a
+  // ordem visual nas duas larguras.
+  const picker = (
+    <WalletNetworkPicker
+      wallets={wallets}
+      selectedId={walletId}
+      onSelect={selectWallet}
+      error={walletError}
+    />
+  );
+
   return (
     <div className={GRID}>
+      {desktop ? null : picker}
       <BuyerForm id={formId} form={form} onSubmit={onSubmit} />
 
       <aside aria-labelledby="seus-nfts" className="flex min-w-0 flex-col gap-5">
         <div className="flex flex-col gap-3">
-          <h2 id="seus-nfts" className="text-section font-bold text-foreground">
+          <h2 id="seus-nfts" className="text-[1.0625rem] leading-4 font-bold text-foreground">
             Seus NFTs
           </h2>
-          <div aria-hidden="true" className="flex justify-between text-body text-foreground">
-            <span>NFTs</span>
-            <span>Subtotal</span>
+          <div
+            aria-hidden="true"
+            className="flex justify-between border-b border-primary/30 pb-3 text-body-lg leading-4 text-foreground"
+          >
+            <span className="font-bold">NFTs</span>
+            <span className="font-medium">Subtotal</span>
           </div>
           <ul aria-label="Itens da compra" className="flex flex-col gap-3">
             {cart.items.map((item) => (
-              <li key={item.id} className="flex items-center gap-3 bg-surface p-1 pr-4">
+              <li key={item.id} className="flex items-center gap-2 bg-surface p-1 pr-3">
                 <NftImage asset={item.nft.image.asset} alt="" sizes="66px" className="size-16.5 shrink-0" />
-                <div className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate text-body font-bold text-foreground">{item.nft.name}</span>
-                  <span className="truncate text-body-sm text-accent">
+                <div className="ml-1 flex min-w-0 flex-1 flex-col">
+                  <span className="truncate text-body-lg leading-4 font-bold text-foreground">
+                    {item.nft.name}
+                  </span>
+                  <span className="mt-1.5 truncate text-body-sm leading-4 text-muted">
                     ID do token: #{item.nft.tokenNumber}
                   </span>
                 </div>
-                <span className="shrink-0 text-body-sm text-secondary">
+                <span className="shrink-0 text-body-sm leading-4 text-secondary">
                   <span className="sr-only">Quantidade: </span>(x {item.quantity})
                 </span>
-                <span className="shrink-0 text-body-lg font-bold text-accent tabular-nums">
+                <span className="shrink-0 text-section leading-4 font-bold text-accent tabular-nums">
                   {formatEth(mulEth(item.unitPrice, item.quantity))}
                 </span>
               </li>
@@ -220,14 +240,14 @@ function CheckoutContent(data: CheckoutData) {
           </ul>
           <Link
             to="/carrinho"
-            className="self-center text-body-sm text-foreground underline-offset-4 hover:underline"
+            className="self-center text-body-sm leading-4 text-foreground underline-offset-4 hover:underline"
           >
             Tem um código promocional? <span className="text-accent">Aplique aqui</span>
           </Link>
         </div>
 
         {quote.data ? (
-          <OrderSummary quote={quote.data} updating={quote.isFetching} />
+          <OrderSummary quote={quote.data} updating={quote.isFetching} totalDivider />
         ) : quote.isError ? (
           <PageError
             error={quote.error}
@@ -238,13 +258,7 @@ function CheckoutContent(data: CheckoutData) {
         ) : (
           <OrderSummarySkeleton />
         )}
-
-        <WalletNetworkPicker
-          wallets={wallets}
-          selectedId={walletId}
-          onSelect={selectWallet}
-          error={walletError}
-        />
+        {desktop ? picker : null}
 
         <Button
           ref={confirmRef}
@@ -252,7 +266,7 @@ function CheckoutContent(data: CheckoutData) {
           form={formId}
           size="lg"
           disabled={!quote.data}
-          className="w-full"
+          className="h-[60px] w-full rounded-[40px] bg-linear-[133deg] from-primary to-primary/80 text-body-lg leading-4 font-bold md:h-10 md:rounded-[3px] md:bg-primary md:bg-none md:text-body"
         >
           Confirmar compra
         </Button>
@@ -400,9 +414,12 @@ export function CheckoutPage() {
   }
 
   return (
-    <div className="container-page flex flex-col gap-6 py-4 md:py-8">
+    <div className="container-page flex flex-col gap-4 py-4 md:gap-8 md:pt-8 md:pb-6">
       <title>Pagamento · Kurio</title>
-      <h1 className="sr-only">Pagamento</h1>
+      <div className="flex items-center gap-6 md:sr-only">
+        <BackButton className="size-[35px] border-border bg-surface-raised text-secondary md:hidden" />
+        <h1 className="text-title-sm leading-4 font-bold text-foreground">Pagamento com carteira</h1>
+      </div>
       <Breadcrumb current="Pagamento" />
       {content}
     </div>

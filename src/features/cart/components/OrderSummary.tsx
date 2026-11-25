@@ -9,6 +9,8 @@ type OrderSummaryProps = {
   quote: Quote;
   /** Carrinho mudou e a cotação nova ainda não chegou. */
   updating?: boolean;
+  /** Pagamento: divisor acima do total. */
+  totalDivider?: boolean;
   className?: string;
 };
 
@@ -18,7 +20,12 @@ const row = 'flex items-baseline justify-between gap-4 [&>dd]:shrink-0 [&>dd]:wh
  * Valores exatamente como a API cotou — o front só formata. Mudança de total é anunciada
  * (polite) para quem alterou a quantidade sem ver o resumo.
  */
-export function OrderSummary({ quote, updating = false, className }: OrderSummaryProps) {
+export function OrderSummary({
+  quote,
+  updating = false,
+  totalDivider = false,
+  className,
+}: OrderSummaryProps) {
   const [seenTotal, setSeenTotal] = useState(quote.total);
   const [announcement, setAnnouncement] = useState('');
   if (quote.total !== seenTotal) {
@@ -62,7 +69,7 @@ export function OrderSummary({ quote, updating = false, className }: OrderSummar
             <span className="text-[0.75rem] leading-4 text-accent">Taxa estimada</span>
           </dd>
         </div>
-        <div className={cn(row, 'md:mt-3')}>
+        <div className={cn(row, 'md:mt-3', totalDivider && 'border-t border-primary/30 pt-3')}>
           <dt className="text-body-lg leading-4 font-bold">Total</dt>
           <dd
             data-testid="summary-total"

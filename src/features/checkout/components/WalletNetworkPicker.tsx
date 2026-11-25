@@ -23,13 +23,20 @@ type WalletNetworkPickerProps = {
   onSelect: (wallet: Wallet) => void;
   /** Erro da tentativa de revisão (sem carteira ou carteira desconectada). */
   error?: string | null;
+  className?: string;
 };
 
 /**
  * "Carteira e rede": as carteiras cadastradas como cartões com radio (a principal vem marcada).
  * A carteira escolhida precisa estar conectada — a conexão é a mesma simulação de /carteiras.
  */
-export function WalletNetworkPicker({ wallets, selectedId, onSelect, error }: WalletNetworkPickerProps) {
+export function WalletNetworkPicker({
+  wallets,
+  selectedId,
+  onSelect,
+  error,
+  className,
+}: WalletNetworkPickerProps) {
   const titleId = useId();
   const errorId = useId();
   const [connecting, setConnecting] = useState<Wallet | null>(null);
@@ -40,9 +47,9 @@ export function WalletNetworkPicker({ wallets, selectedId, onSelect, error }: Wa
       role="group"
       aria-labelledby={titleId}
       aria-describedby={error ? errorId : undefined}
-      className="flex flex-col gap-3"
+      className={cn('flex flex-col gap-3', className)}
     >
-      <h3 id={titleId} className="text-center text-body-lg font-bold text-foreground">
+      <h3 id={titleId} className="text-[1.0625rem] leading-4 font-bold text-foreground">
         Carteira e rede
       </h3>
 
@@ -56,6 +63,7 @@ export function WalletNetworkPicker({ wallets, selectedId, onSelect, error }: Wa
       ) : (
         <RadioGroup
           aria-labelledby={titleId}
+          className="gap-4"
           value={selectedId ?? ''}
           onValueChange={(id) => {
             const wallet = wallets.find((item) => item.id === id);
@@ -69,13 +77,13 @@ export function WalletNetworkPicker({ wallets, selectedId, onSelect, error }: Wa
               <div
                 key={wallet.id}
                 className={cn(
-                  'flex items-center gap-4 rounded-field border px-4 py-3 transition-colors',
-                  checked ? 'border-foreground' : 'border-border',
+                  'flex min-h-[45px] items-center gap-2.5 rounded-[14px] border bg-surface p-4 transition-colors md:rounded-[3px] md:bg-transparent md:px-3 md:py-2',
+                  checked ? 'border-primary' : 'border-transparent hover:border-border-soft md:border-border',
                 )}
               >
                 <RadioGroupItem id={itemId} value={wallet.id} />
                 <label htmlFor={itemId} className="flex min-w-0 flex-1 cursor-pointer flex-col gap-0.5">
-                  <span className="truncate text-body text-foreground">
+                  <span className="truncate text-body leading-5 text-foreground">
                     {wallet.label} <span className="text-secondary">· {SLOT_TITLES[wallet.slot]}</span>
                   </span>
                   <span className="truncate text-caption text-secondary">
