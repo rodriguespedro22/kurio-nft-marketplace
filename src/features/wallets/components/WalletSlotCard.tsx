@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { WALLET_PROVIDER_LABELS, type Wallet, type WalletConnection, type WalletSlot } from '@/contracts';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/button';
+import { FORM_TITLE } from '@/shared/ui/form-look';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Label } from '@/shared/ui/label';
 
@@ -96,15 +97,15 @@ export function WalletSlotCard({ slot, wallet, primary, account }: WalletSlotCar
     <section aria-labelledby={titleId} className="flex flex-col gap-5">
       <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2">
         <div className="flex min-w-0 flex-col gap-1">
-          <h2 id={titleId} className="text-section font-bold text-foreground">
+          <h2 id={titleId} className={FORM_TITLE}>
             {title}
           </h2>
           {slot === 'primary' ? (
-            <p className="text-body-sm text-accent">
+            <p className="text-body-sm text-secondary">
               Estas carteiras ficam disponíveis no pagamento e para receber NFTs comprados.
             </p>
           ) : null}
-          {!showForm ? <p className="text-body-sm text-accent">{EMPTY[slot]}</p> : null}
+          {!showForm ? <p className="text-body-sm text-secondary">{EMPTY[slot]}</p> : null}
         </div>
 
         <div className="flex items-center gap-4">

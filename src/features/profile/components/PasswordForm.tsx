@@ -7,7 +7,9 @@ import { useForm } from 'react-hook-form';
 import { ChangePasswordInputSchema } from '@/contracts';
 import { signOutLocal } from '@/features/auth/sign-out';
 import { applyServerErrors } from '@/shared/lib/form-errors';
+import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/button';
+import { TIGHT_LABELS, DENSE_FIELDS, FORM_TITLE } from '@/shared/ui/form-look';
 import { FormField } from '@/shared/ui/form-field';
 import { PasswordInput } from '@/shared/ui/password-input';
 
@@ -43,10 +45,15 @@ export function PasswordForm() {
 
   return (
     <section aria-labelledby={titleId} className="flex flex-col gap-6 md:max-w-104.25">
-      <h2 id={titleId} className="text-section font-bold text-foreground">
+      <h2 id={titleId} className={FORM_TITLE}>
         Alterar senha
       </h2>
-      <form aria-labelledby={titleId} noValidate onSubmit={onSubmit} className="flex flex-col gap-6">
+      <form
+        aria-labelledby={titleId}
+        noValidate
+        onSubmit={onSubmit}
+        className={cn('flex flex-col gap-6', DENSE_FIELDS, TIGHT_LABELS)}
+      >
         {formError ? (
           <div
             role="alert"

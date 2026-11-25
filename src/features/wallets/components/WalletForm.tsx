@@ -14,6 +14,8 @@ import {
 } from '@/contracts';
 import { applyServerErrors } from '@/shared/lib/form-errors';
 import { Button } from '@/shared/ui/button';
+import { TIGHT_LABELS, DENSE_FIELDS } from '@/shared/ui/form-look';
+import { cn } from '@/shared/lib/utils';
 import { FormField } from '@/shared/ui/form-field';
 import { EnsNameInput } from '@/shared/ui/ens-name-input';
 import { Input } from '@/shared/ui/input';
@@ -71,7 +73,7 @@ export function WalletForm({ walletId, defaultValues }: WalletFormProps) {
       aria-label={`Dados da ${slotTitle.toLowerCase()}`}
       noValidate
       onSubmit={onSubmit}
-      className="flex flex-col gap-6"
+      className={cn('flex flex-col gap-6', DENSE_FIELDS, TIGHT_LABELS)}
     >
       {formError ? (
         <div

@@ -23,7 +23,7 @@ const variants = {
 
 /** Páginas de compra ficam sob "Mercado"; as da conta, sob "Início" (destaque visual, sem `aria-current`). */
 const MARKET = /^\/(nft|carrinho|checkout|pedido)(\/|$)/;
-const ACCOUNT = /^\/(perfil|favoritos)(\/|$)/;
+const ACCOUNT = /^\/(perfil|carteiras|favoritos)(\/|$)/;
 
 /** Início · Mercado (= catálogo) · Criadores · Aprenda — os dois últimos, fora do escopo, não fazem nada. */
 export function MainNavLinks({ variant, onNavigate }: MainNavLinksProps) {

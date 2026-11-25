@@ -6,7 +6,9 @@ import { toast } from 'sonner';
 
 import { UpdateProfileInputSchema, type Profile, type UpdateProfileInput } from '@/contracts';
 import { applyServerErrors } from '@/shared/lib/form-errors';
+import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/button';
+import { DENSE_FIELDS, FORM_TITLE } from '@/shared/ui/form-look';
 import { EnsNameInput } from '@/shared/ui/ens-name-input';
 import { FormField } from '@/shared/ui/form-field';
 import { Input } from '@/shared/ui/input';
@@ -53,11 +55,16 @@ export function ProfileForm({ profile }: { profile: Profile }) {
   });
 
   return (
-    <section aria-labelledby={titleId} className="flex flex-col gap-6">
-      <h2 id={titleId} className="text-section font-bold text-foreground">
+    <section aria-labelledby={titleId} className="flex flex-col gap-8">
+      <h2 id={titleId} className={FORM_TITLE}>
         Perfil do colecionador
       </h2>
-      <form aria-labelledby={titleId} noValidate onSubmit={onSubmit} className="flex flex-col gap-6">
+      <form
+        aria-labelledby={titleId}
+        noValidate
+        onSubmit={onSubmit}
+        className={cn('flex flex-col gap-6', DENSE_FIELDS, '[&_[data-slot=form-field]]:gap-2.5')}
+      >
         {formError ? (
           <div
             role="alert"

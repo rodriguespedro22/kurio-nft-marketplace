@@ -8,6 +8,7 @@ import { FormField } from '@/shared/ui/form-field';
 import { cn } from '@/shared/lib/utils';
 import { Input, Textarea } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
+import { TIGHT_LABELS, DENSE_FIELDS, FORM_TITLE } from '@/shared/ui/form-look';
 import { Select } from '@/shared/ui/select';
 
 import type { BuyerFormValues } from '../schema';
@@ -23,14 +24,6 @@ type BuyerFormProps = {
  * "Perfil do colecionador" do frame Pagamento: duas colunas no desktop, uma no
  * mobile. O envio fica no resumo ("Confirmar compra", `form={id}`).
  */
-/** Campos do pagamento: rótulo 15 px, asterisco coral grande, controles de 40 px com canto de 3 px. */
-const FIELD_LOOK = cn(
-  '[&_[data-slot=form-field]]:gap-0 [&_[data-slot=form-field]>div:first-child>label]:text-body [&_[data-slot=form-field]>div:first-child>label]:leading-[15px] [&_[data-slot=form-field]>div:first-child>label]:font-normal',
-  '[&_[data-slot=form-field]>div:first-child]:min-h-[29px] [&_[data-slot=form-field]>div:first-child>span]:text-[1.375rem] [&_[data-slot=form-field]>div:first-child>span]:leading-[29px]',
-  '[&_[data-slot=form-field]>p]:mt-1.5',
-  '[&_input]:rounded-[3px] [&_input:not([type=checkbox])]:h-10 [&_select]:h-10 [&_select]:rounded-[3px] [&_textarea]:rounded-[3px]',
-);
-
 export function BuyerForm({ id, form, onSubmit, className }: BuyerFormProps) {
   const titleId = useId();
   const otherWalletId = useId();
@@ -44,7 +37,7 @@ export function BuyerForm({ id, form, onSubmit, className }: BuyerFormProps) {
 
   return (
     <section aria-labelledby={titleId} className={cn('flex min-w-0 flex-col gap-3', className)}>
-      <h2 id={titleId} className="text-[1.0625rem] leading-4 font-bold text-foreground">
+      <h2 id={titleId} className={FORM_TITLE}>
         Perfil do colecionador
       </h2>
       <form
@@ -52,7 +45,7 @@ export function BuyerForm({ id, form, onSubmit, className }: BuyerFormProps) {
         aria-labelledby={titleId}
         noValidate
         onSubmit={onSubmit}
-        className={cn('flex flex-col gap-6', FIELD_LOOK)}
+        className={cn('flex flex-col gap-6', DENSE_FIELDS, TIGHT_LABELS)}
       >
         <div className="grid gap-x-6 gap-y-3 md:grid-cols-2">
           <FormField label="Nome de exibição" error={errors.displayName?.message} required>
