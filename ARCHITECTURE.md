@@ -233,7 +233,7 @@ Limitações (aceitas e cobertas pelos testes):
   emissão, e a confiabilidade vem da porta de eventos + revalidação REST, não de confirmação de entrega.
 - **Depende do Service Worker**: sem SW (navegação privada restrita, primeiro carregamento antes de o worker
   assumir), nem REST nem socket existem. `enableMocking()` registra o worker antes de o app renderizar, e
-  esse custo aparece no Lighthouse mobile (ver `lighthouse/SUMMARY.md`).
+  esse custo pesa no Lighthouse mobile, sobretudo no `vite preview` local (ver `lighthouse/SUMMARY.md`).
 - **Mesma aba, mesmo banco**: cada aba tem seu próprio servidor mock, e o banco é compartilhado via
   localStorage. Duas abas veem o mesmo estado ao recarregar, e eventos emitidos numa aba chegam aos sockets
   daquela aba.

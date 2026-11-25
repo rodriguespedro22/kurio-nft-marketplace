@@ -2,7 +2,8 @@
 // e perfil (mobile padrão com throttling simulado; desktop preset), cada uma num Chrome headless
 // com perfil limpo. Guarda o relatório da rodada mediana e escreve SUMMARY.md com as medianas.
 //
-// Uso: pnpm lighthouse [--skip-build] [--runs=3]
+// Uso: pnpm lighthouse [--skip-build] [--runs=3] [--url=https://…]
+//   --url audita uma publicação (ex.: a da Vercel) em vez do `vite preview` local; não faz build.
 import { execSync } from 'node:child_process';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
@@ -19,6 +20,11 @@ const REPORTS = path.join(DIR, 'reports');
 const PORT = 4174;
 const args = process.argv.slice(2);
 const RUNS = Number(args.find((a) => a.startsWith('--runs='))?.split('=')[1] ?? 3);
+const REMOTE = args
+  .find((a) => a.startsWith('--url='))
+  ?.slice('--url='.length)
+  .replace(/\/$/, '');
+const BASE = REMOTE ?? `http://localhost:${PORT}`;
 
 const PAGES = [
   { slug: 'inicio', label: 'Início', path: '/' },
@@ -63,18 +69,20 @@ async function audit(url, config) {
   }
 }
 
-if (!args.includes('--skip-build')) {
+if (!REMOTE && !args.includes('--skip-build')) {
   execSync('pnpm build:demo', { cwd: ROOT, stdio: 'inherit' });
 }
 
 await rm(REPORTS, { recursive: true, force: true });
 await mkdir(REPORTS, { recursive: true });
 
-const server = await preview({
-  root: ROOT,
-  mode: 'demo',
-  preview: { port: PORT, strictPort: true, open: false },
-});
+const server = REMOTE
+  ? null
+  : await preview({
+      root: ROOT,
+      mode: 'demo',
+      preview: { port: PORT, strictPort: true, open: false },
+    });
 const rows = [];
 let environment = null;
 
@@ -85,7 +93,7 @@ try {
       const runs = [];
       for (let n = 1; n <= RUNS; n++) {
         process.stdout.write(`${page.slug} · ${profile} · ${n}/${RUNS}… `);
-        const { lhr, report } = await audit(`http://localhost:${PORT}${page.path}`, config);
+        const { lhr, report } = await audit(`${BASE}${page.path}`, config);
         environment ??= lhr;
         runs.push({ lhr, report });
         const perf = Math.round((lhr.categories.performance.score ?? 0) * 100);
@@ -121,7 +129,7 @@ try {
     }
   }
 } finally {
-  await new Promise((resolve) => server.httpServer.close(resolve));
+  if (server) await new Promise((resolve) => server.httpServer.close(resolve));
 }
 
 const env = environment.environment;
@@ -164,9 +172,22 @@ custo vem do mock, que faz parte da demo:
 - **A imagem do LCP só é descoberta depois da API.** É uma SPA sem SSR: a imagem do 1º card (home) ou da arte
   (detalhe) depende do JSON. Ela já tem \`fetchpriority="high"\`, carregamento imediato, AVIF/WebP com
   \`srcset\` e dimensões fixas (CLS ≈ 0).
-- **Sem throttling o LCP é curto** (observado: ${observed}), e no desktop o mesmo build fica em ${desktop}.
+- **Sem throttling o LCP é curto** (observado: ${observed}), e no desktop o mesmo build fica em ${desktop}.`;
+}
 
-Corrigido nesta auditoria: \`robots.txt\` (SEO 92 → 100), altura mínima do \`<main>\` (CLS do detalhe no
+/** Histórico das otimizações e diferença entre a medição local e a publicada (sempre no SUMMARY). */
+function notes() {
+  return `## Otimizações e notas
+
+**Onde medir.** O \`vite preview\` local serve gzip em HTTP/1.1; a Vercel serve Brotli em HTTP/2 a partir
+da CDN. Com o mesmo build, a performance mobile medida localmente fica em ~84–86 e a da publicação passa de
+90: menos bytes no caminho crítico e todos os chunks numa conexão só. Por isso a auditoria oficial roda contra
+a URL publicada (\`pnpm lighthouse --url=…\`), que é o ambiente que o avaliador abre; \`pnpm lighthouse\` sem
+\`--url\` continua medindo o build local. Na publicação, o "LCP observado" (sem throttling) inclui a abertura
+da primeira conexão de cada Chrome recém-iniciado (~2 s até o 1º byte do HTML); o HTML em si sai do cache da
+Vercel em ~0,3 s, e do 1º byte até o LCP passam ~0,7 s.
+
+Corrigido na primeira auditoria: \`robots.txt\` (SEO 92 → 100), altura mínima do \`<main>\` (CLS do detalhe no
 desktop 0,127 → 0), app e mocks baixando em paralelo, prioridade alta nas imagens da 1ª fileira do
 catálogo e a lista de sufixos públicos (~250 KiB) fora do chunk dos mocks.
 
@@ -195,8 +216,8 @@ const below = rows.flatMap(({ page, profile, scores }) =>
 const summary = `# Lighthouse — Kurio (build de demo)
 
 Gerado por \`pnpm lighthouse\` em ${new Date().toLocaleDateString('sv-SE')}. Mediana de ${RUNS} rodadas por página e perfil,
-cada uma num Chrome headless com perfil limpo, contra \`vite preview\` (build \`--mode demo\`, mocks MSW ligados,
-painel de cenários visível — ele faz parte da demo).
+cada uma num Chrome headless com perfil limpo, contra ${REMOTE ? `a publicação na Vercel (${REMOTE})` : 'o `vite preview` local'},
+com o build \`--mode demo\`, mocks MSW ligados, cenário padrão e painel de cenários visível (ele faz parte da demo).
 
 ${header}
 ${divider}
@@ -205,8 +226,11 @@ ${table.join('\n')}
 Metas: Performance ≥ 90, Acessibilidade ≥ 95, Boas práticas ≥ 95, SEO ≥ 90. ⚠ = abaixo da meta.
 
 ${below.length ? `## Abaixo da meta\n\n${below.join('\n')}\n\n${justification()}\n` : '## Abaixo da meta\n\nNenhuma.\n'}
+${notes()}
+
 ## Ambiente
 
+- Alvo: ${REMOTE ? `${REMOTE} (publicação na Vercel, build \`--mode demo\`)` : `\`vite preview\` local (build \`--mode demo\`)`}
 - Lighthouse ${environment.lighthouseVersion} · Chrome ${chromeVersion} · Node ${process.version}
 - SO: ${os.type()} ${os.release()} (${os.arch()}) · CPU: ${os.cpus()[0]?.model.trim()} (${os.cpus().length} núcleos) · benchmarkIndex ${Math.round(env.benchmarkIndex)}
 - Mobile: preset padrão do Lighthouse (Moto G Power), throttling simulado — RTT ${mobileThrottle.rttMs} ms, ${(mobileThrottle.throughputKbps / 1024).toFixed(1)} Mbps, CPU ${mobileThrottle.cpuSlowdownMultiplier}× mais lenta
