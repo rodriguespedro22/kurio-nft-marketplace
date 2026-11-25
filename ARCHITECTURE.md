@@ -234,6 +234,11 @@ Limitações (aceitas e cobertas pelos testes):
 - **Depende do Service Worker**: sem SW (navegação privada restrita, primeiro carregamento antes de o worker
   assumir), nem REST nem socket existem. `enableMocking()` registra o worker antes de o app renderizar, e
   esse custo pesa no Lighthouse mobile, sobretudo no `vite preview` local (ver `lighthouse/SUMMARY.md`).
+- **Worker reiniciado pelo navegador**: o MSW guarda em memória quais abas ativaram os mocks, e o navegador
+  encerra o worker ocioso (aba em segundo plano, economia de energia). Ao voltar, a lista estava vazia e as
+  chamadas da API iam para a rede (a hospedagem respondia com o `index.html`). O worker registrado é o
+  `public/mock-sw.js`, que carrega o `mockServiceWorker.js` original e readota a aba na primeira chamada da
+  API. O teste `13-mock-worker-restart` reinicia o worker no meio da sessão e confere login e catálogo.
 - **Mesma aba, mesmo banco**: cada aba tem seu próprio servidor mock, e o banco é compartilhado via
   localStorage. Duas abas veem o mesmo estado ao recarregar, e eventos emitidos numa aba chegam aos sockets
   daquela aba.

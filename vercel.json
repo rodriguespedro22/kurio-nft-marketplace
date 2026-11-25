@@ -6,13 +6,13 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/((?!mockServiceWorker\\.js$|assets/|images/|fonts/|favicon\\.svg$|robots\\.txt$).*)",
+      "source": "/((?!mockServiceWorker\\.js$|mock-sw\\.js$|assets/|images/|fonts/|favicon\\.svg$|robots\\.txt$).*)",
       "destination": "/index.html"
     }
   ],
   "headers": [
     {
-      "source": "/mockServiceWorker.js",
+      "source": "/(mockServiceWorker|mock-sw).js",
       "headers": [
         { "key": "Cache-Control", "value": "no-cache" },
         { "key": "Service-Worker-Allowed", "value": "/" }

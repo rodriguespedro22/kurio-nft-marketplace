@@ -5,6 +5,7 @@ playwright-report
 test-results
 lighthouse/reports
 public/mockServiceWorker.js
+public/mock-sw.js
 src/routeTree.gen.ts
 e2e/__screenshots__
 lighthouse/SUMMARY.md

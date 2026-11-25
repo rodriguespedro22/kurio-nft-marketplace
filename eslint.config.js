@@ -13,6 +13,7 @@ export default tseslint.config(
       'test-results',
       'lighthouse/reports',
       'public/mockServiceWorker.js',
+      'public/mock-sw.js',
       'src/routeTree.gen.ts',
     ],
   },

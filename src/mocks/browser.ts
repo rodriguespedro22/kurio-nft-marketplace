@@ -80,7 +80,10 @@ export async function enableMocking(): Promise<void> {
   await worker.start({
     onUnhandledRequest: 'bypass',
     quiet: import.meta.env.PROD,
-    serviceWorker: { url: '/mockServiceWorker.js' },
+    // mock-sw.js carrega o worker do MSW e readota a aba se o navegador reiniciar o worker (veja o arquivo).
+    serviceWorker: {
+      url: `/mock-sw.js?api=${encodeURIComponent(new URL(API_PREFIX).pathname.replace(/\/$/, ''))}`,
+    },
   });
   await waitForController();
   // Pedidos pendentes de antes do reload voltam à agenda (resolução a partir de `createdAt`).

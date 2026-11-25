@@ -201,8 +201,8 @@ artefato). O job de baselines visuais só roda manualmente.
 ## Deploy na Vercel
 
 O `vercel.json` já configura tudo: `buildCommand: pnpm build:demo`, saída `dist/`, reescrita de SPA para
-`index.html` (exceto Service Worker, assets, imagens e fontes) e `Cache-Control: no-cache` no
-`mockServiceWorker.js`.
+`index.html` (exceto Service Workers, assets, imagens e fontes) e `Cache-Control: no-cache` nos workers
+(`mock-sw.js`, que carrega o `mockServiceWorker.js` do MSW; veja ARCHITECTURE.md §9).
 
 1. Importe o repositório na Vercel (framework: Vite; ela detecta o pnpm pelo lockfile).
 2. Não precisa de variáveis de ambiente: `.env.demo` vai versionado.
