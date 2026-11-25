@@ -21,7 +21,8 @@
     "test:unit:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:visual:update": "bash scripts/visual-update.sh",
+    "test:visual": "bash scripts/visual.sh",
+    "test:visual:update": "bash scripts/visual.sh --update",
     "lighthouse": "node lighthouse/run.mjs"
   },
   "msw": {

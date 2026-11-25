@@ -4,7 +4,7 @@ const PORT = 4173;
 
 export default defineConfig({
   testDir: './e2e',
-  // Baselines visuais só existem para Linux (container do Playwright — scripts/visual-update.sh).
+  // Baselines visuais só existem para Linux (container do Playwright — pnpm test:visual:update).
   snapshotPathTemplate: '{testDir}/__screenshots__/{projectName}/{testFilePath}/{arg}{ext}',
   expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.01, animations: 'disabled' } },
   fullyParallel: true,

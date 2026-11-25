@@ -152,7 +152,8 @@ socket, um pedido pendente passa a ser consultado a cada 5 s).
 | `pnpm test:unit`               | Vitest (contratos, mocks, hooks e componentes; `test:unit:watch` em modo watch)              |
 | `pnpm test:e2e`                | Playwright: faz `build:demo`, sobe `vite preview` e roda desktop, mobile e smoke de tablet   |
 | `pnpm test:e2e:ui`             | Playwright em modo UI                                                                        |
-| `pnpm test:visual:update`      | Regera as baselines visuais em Linux (container Docker do Playwright)                        |
+| `pnpm test:visual`             | Regressão visual no container Docker do Playwright (compara com as baselines versionadas)    |
+| `pnpm test:visual:update`      | Regera as baselines visuais no mesmo container                                               |
 | `pnpm lighthouse`              | Auditoria Lighthouse (3 rodadas × Início/Detalhe × mobile/desktop) → `lighthouse/SUMMARY.md` |
 
 ### Testes E2E
@@ -163,13 +164,18 @@ teclado/acessibilidade com axe e carregamento/recuperação). Cada teste começa
 contexto novo. Relatório HTML em `playwright-report/`, trace guardado nas falhas.
 
 **Regressão visual** (`e2e/visual.spec.ts`: Início, Detalhe, Carrinho e Checkout × desktop/mobile): as
-baselines são **só Linux**, para bater com o CI. Fora de Linux, ou sem baseline, os testes visuais são
-pulados. Para gerar:
+baselines ficam versionadas em `e2e/__screenshots__/` e são **Linux**, o mesmo render do container do
+Playwright usado no CI. No Linux (e no CI) elas rodam junto com `pnpm test:e2e`; em outros sistemas os testes
+visuais são pulados no `test:e2e` e rodam pelo Docker:
 
-- com Docker: `pnpm test:visual:update` (roda no container `mcr.microsoft.com/playwright` da mesma versão do
-  `@playwright/test`); ou
-- no GitHub Actions: rode o workflow **CI** manualmente com `visual_baselines` marcado e baixe o artefato
+- `pnpm test:visual` compara com as baselines no container `mcr.microsoft.com/playwright` da mesma versão do
+  `@playwright/test`;
+- `pnpm test:visual:update` regera as baselines no mesmo container;
+- sem Docker: rode o workflow **CI** manualmente com `visual_baselines` marcado e baixe o artefato
   `visual-baselines` para `e2e/__screenshots__/`.
+
+Se o `npm` dentro do container falhar com `ECONNRESET` no handshake TLS (algumas redes do Docker Desktop
+derrubam o ClientHello do Node 26), rode com `NODE_OPTIONS=--tls-max-v1.2`; o script repassa a variável.
 
 ### Lighthouse
 

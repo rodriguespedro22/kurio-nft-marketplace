@@ -9,7 +9,7 @@ import { bootScenario } from './support/mock';
 
 /**
  * Regressão visual (Início, Detalhe, Carrinho, Pagamento × desktop/mobile). As baselines são
- * geradas no container Linux do Playwright (`scripts/visual-update.sh` ou o job `visual-baselines`
+ * geradas no container Linux do Playwright (`pnpm test:visual:update` ou o job `visual-baselines`
  * do CI): fontes e antialiasing mudam entre sistemas, então fora do Linux os testes são pulados.
  */
 const FIXED_TIME = '2026-11-24T12:00:00Z';
@@ -19,7 +19,7 @@ function needsBaseline(info: TestInfo, name: string) {
   test.skip(process.platform !== 'linux', 'baselines só para Linux (container do Playwright)');
   test.skip(
     !UPDATING && !existsSync(info.snapshotPath(name)),
-    `sem baseline ${name}: gere com scripts/visual-update.sh`,
+    `sem baseline ${name}: gere com pnpm test:visual:update`,
   );
 }
 
@@ -31,12 +31,17 @@ async function prepare(page: Page) {
 
 /** Página pronta e estável: nada carregando, imagens decodificadas, fontes prontas. */
 async function settle(page: Page) {
+  // O app só monta depois que o Service Worker do mock assume a página: antes disso não há
+  // `aria-busy` nenhum, e a checagem abaixo passaria com a tela vazia.
+  await expect(page.locator('main img').first()).toBeVisible({ timeout: 15_000 });
   await expect(page.locator('[aria-busy="true"]')).toHaveCount(0, { timeout: 15_000 });
   await page.evaluate(async () => {
     await document.fonts.ready;
-    await Promise.all(
-      [...document.images].map((img) => (img.complete ? null : img.decode().catch(() => null))),
-    );
+    // A captura de página inteira não rola a tela: as imagens lazy abaixo da dobra carregariam no
+    // meio dela. Carrega todas antes.
+    const images = [...document.images];
+    for (const img of images) img.loading = 'eager';
+    await Promise.all(images.map((img) => img.decode().catch(() => null)));
   });
 }
 

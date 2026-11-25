@@ -365,6 +365,7 @@ Ajustes sobre o layout:
   (768×1024, só `@layout`), contra `vite preview` do build de demo. Cada teste reseta o mock num contexto novo;
   testes de tempo real disparam eventos pela API de controle e passam pelo socket.io-client de verdade.
 - **Regressão visual**: Início, Detalhe, Carrinho e Checkout × desktop/mobile com relógio fixo, animações
-  desligadas e painel oculto. Baselines só Linux, geradas no container do Playwright ou no job manual do CI.
+  desligadas e painel oculto. Baselines Linux versionadas em `e2e/__screenshots__/`, geradas e comparadas no
+  container do Playwright (`pnpm test:visual`, `pnpm test:visual:update`) e no CI.
 - **Lighthouse**: `pnpm lighthouse`, mediana de 3 rodadas; resultados e justificativa em
   `lighthouse/SUMMARY.md`.
