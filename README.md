@@ -59,7 +59,7 @@ banco do zero e ajusta o comportamento do servidor.
 
 **Como escolher um cenário:**
 
-1. **Painel de cenários**: botão flutuante **Cenários** no canto inferior direito, em qualquer página. Trocar o
+1. **Painel de cenários**: botão flutuante **Cenários** no canto inferior esquerdo, em qualquer página. Trocar o
    cenário reseta os dados e recarrega. Ali também ficam o perfil de rede e os gatilhos **Alterar preço** (+10%
    na 1ª edição disponível do NFT aberto), **Esgotar edição**, **Derrubar socket** e **Resetar dados**.
    Para esconder o painel (capturas de tela): `?panel=0`.
