@@ -158,16 +158,22 @@ custo vem do mock, que faz parte da demo:
 - **MSW no caminho crítico.** O app só renderiza depois de \`enableMocking()\` registrar o Service Worker.
   O chunk dos mocks (MSW, binding do Socket.IO, fixtures e painel; ${mocksKb} KiB transferidos) precisa
   baixar e ser avaliado antes da primeira requisição de dados. Com um backend real, esse chunk não existe.
-- **Latência simulada de propósito.** O perfil de rede \`normal\` do mock responde em 150–400 ms, e o
-  Lighthouse soma esse tempo de servidor à simulação.
+- **Cadeia de JavaScript antes do primeiro dado.** React, router, Query/Axios, zod e o MSW somam ~290 KiB
+  comprimidos que precisam baixar e rodar antes de o catálogo ser pedido. A simulação mobile (1,6 Mbps, CPU
+  4×) transforma isso em segundos de LCP, embora o trabalho real de CPU no carregamento fique em ~250 ms.
 - **A imagem do LCP só é descoberta depois da API.** É uma SPA sem SSR: a imagem do 1º card (home) ou da arte
   (detalhe) depende do JSON. Ela já tem \`fetchpriority="high"\`, carregamento imediato, AVIF/WebP com
   \`srcset\` e dimensões fixas (CLS ≈ 0).
 - **Sem throttling o LCP é curto** (observado: ${observed}), e no desktop o mesmo build fica em ${desktop}.
 
 Corrigido nesta auditoria: \`robots.txt\` (SEO 92 → 100), altura mínima do \`<main>\` (CLS do detalhe no
-desktop 0,127 → 0), app e mocks baixando em paralelo, e prioridade alta nas imagens da 1ª fileira do
-catálogo.`;
+desktop 0,127 → 0), app e mocks baixando em paralelo, prioridade alta nas imagens da 1ª fileira do
+catálogo e a lista de sufixos públicos (~250 KiB) fora do chunk dos mocks.
+
+Testado sem ganho: zerar a latência simulada do mock (mesma nota), carregar o painel de cenários depois do
+\`load\` (−2,5 KiB, sem efeito) e embutir a rota inicial no chunk principal (piorou: 81 → 77). Pré-carregar a
+imagem do 1º card no HTML subiria a nota, mas só porque o cenário padrão é conhecido: seria uma
+simplificação exclusiva para a auditoria, que o enunciado veda.`;
 }
 
 const below = rows.flatMap(({ page, profile, scores }) =>

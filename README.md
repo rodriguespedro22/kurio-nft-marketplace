@@ -181,8 +181,10 @@ derrubam o ClientHello do Node 26), rode com `NODE_OPTIONS=--tls-max-v1.2`; o sc
 
 `pnpm lighthouse` (`--skip-build` reaproveita o build) grava os relatórios da rodada mediana em
 `lighthouse/reports/` e o resumo em [lighthouse/SUMMARY.md](lighthouse/SUMMARY.md). Resultado da última
-rodada: Acessibilidade, Boas práticas e SEO em 100; Performance 98 no desktop e 80–81 no mobile, abaixo da
-meta de 90 pelo MSW no caminho crítico (justificado no resumo).
+rodada: Acessibilidade, Boas práticas e SEO em 100; Performance 98–99 no desktop e 84–85 no mobile, abaixo da
+meta de 90 pela cadeia de JavaScript (app + MSW) antes do primeiro dado (causas e tentativas no resumo). A nota
+mobile depende da carga da máquina, porque a simulação usa o tempo de CPU observado: com outros processos
+pesados abertos, a mesma build caiu para 75–79. Rode a auditoria com a máquina ociosa.
 
 ## CI
 
