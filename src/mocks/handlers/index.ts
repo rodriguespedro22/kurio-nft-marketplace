@@ -5,6 +5,7 @@ import { favoriteHandlers } from './favorites';
 import { nftHandlers } from './nfts';
 import { socketHandlers } from '../socket/server';
 import { quoteHandlers } from './quotes';
+import { walletHandlers } from './wallets';
 
 export const handlers = [
   ...controlHandlers,
@@ -13,5 +14,6 @@ export const handlers = [
   ...favoriteHandlers,
   ...cartHandlers,
   ...quoteHandlers,
+  ...walletHandlers,
   ...socketHandlers,
 ];

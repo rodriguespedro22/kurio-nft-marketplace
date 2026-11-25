@@ -17,6 +17,9 @@ export const COMING_SOON_SECTIONS = {
   denunciar: 'Denunciar item',
   'redes-sociais': 'Redes sociais',
   'recuperar-senha': 'Recuperação de senha',
+  ofertas: 'Ofertas',
+  arquivos: 'Arquivos baixados',
+  suporte: 'Suporte',
 } as const;
 
 export type ComingSoonSection = keyof typeof COMING_SOON_SECTIONS;

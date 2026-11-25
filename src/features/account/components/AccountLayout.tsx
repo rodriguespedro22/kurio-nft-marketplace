@@ -1,0 +1,98 @@
+import { useId, type ReactNode } from 'react';
+import { Link, useRouter } from '@tanstack/react-router';
+import {
+  Download,
+  Heart,
+  LineChart,
+  LogOut,
+  MapPin,
+  ShoppingCart,
+  TriangleAlert,
+  UserRound,
+} from 'lucide-react';
+import { toast } from 'sonner';
+
+import { useLogout } from '@/features/auth/queries';
+import type { ComingSoonSection } from '@/shared/layout/coming-soon';
+import { cn } from '@/shared/lib/utils';
+
+type NavIcon = typeof UserRound;
+type NavItem =
+  | { label: string; Icon: NavIcon; to: '/perfil' | '/carteiras' | '/favoritos' }
+  | { label: string; Icon: NavIcon; secao: ComingSoonSection };
+
+/** Sidebar da conta; o que está fora do escopo leva a `/em-breve`. */
+const ITEMS: NavItem[] = [
+  { label: 'Dados do perfil', Icon: UserRound, to: '/perfil' },
+  { label: 'Carteiras', Icon: MapPin, to: '/carteiras' },
+  { label: 'Atividade', Icon: ShoppingCart, secao: 'atividade' },
+  { label: 'Lista de interesse', Icon: Heart, to: '/favoritos' },
+  { label: 'Ofertas', Icon: LineChart, secao: 'ofertas' },
+  { label: 'Arquivos baixados', Icon: Download, secao: 'arquivos' },
+  { label: 'Suporte', Icon: TriangleAlert, secao: 'suporte' },
+];
+
+// No mobile a lista vira uma faixa rolável de atalhos; no desktop, a coluna do layout.
+const itemClass =
+  'relative flex min-h-11 shrink-0 items-center gap-3 rounded-field px-3 text-body-sm whitespace-nowrap text-primary transition-colors hover:text-accent lg:rounded-none lg:px-4 data-[status=active]:text-accent data-[status=active]:before:absolute data-[status=active]:before:inset-y-0 data-[status=active]:before:left-0 data-[status=active]:before:w-1 data-[status=active]:before:bg-primary max-lg:data-[status=active]:bg-surface-raised max-lg:data-[status=active]:before:hidden';
+
+type AccountLayoutProps = { title: string; children: ReactNode };
+
+/** Páginas da conta: sidebar "Meu perfil" + conteúdo com o `<h1>` da página (só para leitores). */
+export function AccountLayout({ title, children }: AccountLayoutProps) {
+  const navTitleId = useId();
+  const router = useRouter();
+  const logout = useLogout();
+
+  function handleLogout() {
+    logout.mutate(undefined, {
+      onSettled: () => {
+        toast('Você saiu da sua conta.');
+        void router.navigate({ to: '/' });
+      },
+    });
+  }
+
+  return (
+    <div className="container-page grid gap-8 py-6 lg:grid-cols-[19.375rem_minmax(0,1fr)] lg:gap-7 lg:py-8">
+      <nav aria-labelledby={navTitleId} className="min-w-0 rounded-sm bg-surface py-3 lg:self-start lg:py-4">
+        <p id={navTitleId} className="px-3 pb-2 text-section font-bold text-foreground lg:px-2.5">
+          Meu perfil
+        </p>
+        <ul className="flex gap-1 overflow-x-auto px-2 pb-1 lg:flex-col lg:gap-0 lg:px-0 lg:pb-0">
+          {ITEMS.map(({ label, Icon, ...target }) => (
+            <li key={label}>
+              {'to' in target ? (
+                <Link to={target.to} className={itemClass}>
+                  <Icon aria-hidden="true" className="size-4.5" strokeWidth={1.5} />
+                  {label}
+                </Link>
+              ) : (
+                <Link to="/em-breve" search={{ secao: target.secao }} className={itemClass}>
+                  <Icon aria-hidden="true" className="size-4.5" strokeWidth={1.5} />
+                  {label}
+                </Link>
+              )}
+            </li>
+          ))}
+          <li className="lg:mt-1 lg:border-t lg:border-border lg:pt-1">
+            <button
+              type="button"
+              onClick={handleLogout}
+              disabled={logout.isPending}
+              className={cn(itemClass, 'w-full font-bold text-accent disabled:opacity-60')}
+            >
+              <LogOut aria-hidden="true" className="size-4.5" strokeWidth={1.5} />
+              Sair
+            </button>
+          </li>
+        </ul>
+      </nav>
+
+      <div className="flex min-w-0 flex-col gap-10">
+        <h1 className="sr-only">{title}</h1>
+        {children}
+      </div>
+    </div>
+  );
+}
