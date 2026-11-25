@@ -99,10 +99,10 @@ export function CouponForm({ appliedCode }: { appliedCode: string | null }) {
 
   return (
     <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-2">
-      <label htmlFor={inputId} className="text-body-sm font-bold text-foreground">
+      <label htmlFor={inputId} className="text-body-sm leading-4 font-bold text-foreground max-md:sr-only">
         Código promocional
       </label>
-      <div className="flex rounded-field border border-border focus-within:border-primary has-[[aria-invalid=true]]:border-error">
+      <div className="flex h-[50px] overflow-hidden rounded-full border border-border bg-surface focus-within:border-primary has-[[aria-invalid=true]]:border-error md:h-10 md:rounded-[3px] md:border-primary md:bg-transparent">
         <input
           ref={inputRef}
           id={inputId}
@@ -114,12 +114,12 @@ export function CouponForm({ appliedCode }: { appliedCode: string | null }) {
           spellCheck={false}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
-          className="h-10 min-w-0 flex-1 bg-transparent px-3 text-body-sm text-foreground outline-none placeholder:text-muted"
+          className="min-w-0 flex-1 bg-transparent pr-2 pl-4 text-caption text-foreground outline-none placeholder:text-muted md:pl-2 md:text-[0.75rem]"
         />
         <button
           type="submit"
           aria-busy={apply.isPending || undefined}
-          className="h-10 shrink-0 rounded-r-field bg-primary px-5 text-body font-bold text-ink transition-colors hover:bg-primary-dark"
+          className="w-[97px] shrink-0 rounded-full bg-linear-[133deg] from-primary to-primary/80 text-body leading-4 font-bold text-ink transition-colors hover:from-primary-dark hover:to-primary-dark md:w-[102px] md:rounded-none md:bg-primary md:bg-none md:hover:bg-primary-dark"
         >
           Aplicar
         </button>

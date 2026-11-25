@@ -16,8 +16,11 @@ type QuantityStepperProps = {
   labelClassName?: string;
   id?: string;
   disabled?: boolean;
-  /** `sm`: botões de 20×30 (carrinho, celular); `responsive`: `sm` no celular e 33×50 a partir do tablet (detalhe). */
-  size?: 'sm' | 'responsive';
+  /**
+   * `sm`: botões de 20×30; `responsive`: `sm` no celular e 33×50 a partir do tablet (detalhe);
+   * `cart`: círculos de 24 px no celular e `sm` a partir do tablet (linha do carrinho).
+   */
+  size?: 'sm' | 'responsive' | 'cart';
   className?: string;
 };
 
@@ -34,6 +37,14 @@ const sizes = {
     icon: 'size-3 md:size-[18px]',
     input:
       'w-8 text-[1.125rem] leading-[25px] font-medium md:w-9 md:text-title-sm md:leading-7 md:font-normal',
+  },
+  cart: {
+    button: cn(
+      'relative grid size-6 shrink-0 place-items-center rounded-full border border-border bg-surface-raised text-foreground transition-colors hover:border-primary disabled:cursor-not-allowed disabled:text-border-soft disabled:hover:border-border',
+      'md:h-[30px] md:w-5 md:border-ink md:bg-primary md:text-ink md:before:absolute md:before:-inset-x-0.5 md:before:-inset-y-1 md:hover:bg-primary-dark md:disabled:text-ink md:disabled:opacity-40',
+    ),
+    icon: 'size-3.5 md:size-3',
+    input: 'w-8 text-body-lg leading-[22px] md:text-[1.0625rem] md:leading-6',
   },
 } as const;
 

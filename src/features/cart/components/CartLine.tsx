@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 
 import type { CartItem } from '@/contracts';
+import { cn } from '@/shared/lib/utils';
 import { formatEth, mulEth } from '@/shared/money/eth';
 import { announce } from '@/shared/ui/announce';
 import { DeleteIcon } from '@/shared/ui/icons';
@@ -49,61 +50,69 @@ export function CartLine({ item, onRemoved }: CartLineProps) {
   return (
     <article
       aria-busy={remove.isPending || undefined}
-      className={`grid grid-cols-[100px_minmax(0,1fr)_auto] gap-x-3 overflow-hidden rounded-lg bg-surface [grid-template-areas:"thumb_info_info"_"thumb_qty_remove"] md:items-center md:gap-x-4 ${CART_COLUMNS} ${remove.isPending ? 'opacity-60' : ''}`}
+      className={cn(
+        'relative grid h-[100px] grid-cols-[100px_minmax(0,1fr)_auto] items-center rounded-[14px] bg-linear-135 from-surface to-surface-raised [grid-template-areas:"thumb_info_qty"]',
+        'md:h-[70px] md:rounded-none md:bg-surface md:bg-none md:pr-6',
+        CART_COLUMNS,
+        remove.isPending && 'opacity-60',
+      )}
     >
-      <div className="self-stretch [grid-area:thumb] md:size-[70px] md:self-auto">
+      <div className="h-full overflow-hidden rounded-[14px] [grid-area:thumb] md:size-[70px] md:rounded-[6px]">
         <NftImage asset={item.nft.image.asset} alt="" sizes="100px" className="h-full" />
       </div>
 
-      <div className="flex min-w-0 flex-col gap-0.5 pt-3 [grid-area:info] md:pt-0">
-        <h2 className="truncate text-body font-bold text-foreground md:text-body-lg">
+      <div className="flex h-full min-w-0 flex-col py-3 pl-2 [grid-area:info] md:h-auto md:gap-1.5 md:py-0 md:pl-4">
+        <h2 className="truncate text-body leading-4 font-bold text-foreground md:text-body-lg md:leading-4">
           <Link to="/nft/$nftId" params={{ nftId: item.nftId }} className="hover:text-accent">
             {item.nft.name}
           </Link>
         </h2>
-        <p className="text-body-sm text-secondary">Edição: {item.editionLabel}</p>
-        <p className="text-section font-bold text-accent tabular-nums md:hidden">
+        <p className="mt-1.5 text-body-sm leading-4 text-secondary md:mt-0 md:text-muted">
+          Edição: {item.editionLabel}
+        </p>
+        <p className="mt-auto text-section leading-4 font-bold text-accent tabular-nums md:hidden">
           <span className="sr-only">Preço unitário: </span>
           {formatEth(item.unitPrice)}
         </p>
       </div>
 
-      <p className="hidden text-body-lg font-bold text-accent tabular-nums [grid-area:price] md:block">
+      <p className="hidden text-body-lg leading-4 font-bold text-secondary tabular-nums [grid-area:price] md:block">
         <span className="sr-only">Preço unitário: </span>
         {formatEth(item.unitPrice)}
       </p>
 
-      <div className="pb-2 [grid-area:qty] md:pt-5 md:pb-0">
+      <div className="pr-4 [grid-area:qty] md:pr-0">
         {soldOut ? (
           <p className="text-body-sm text-coral">Edição esgotada</p>
         ) : (
           <QuantityStepper
             label={`Quantidade de ${name}`}
+            size="cart"
             value={quantity}
             min={1}
             max={item.available}
             onChange={changeQuantity}
             disabled={remove.isPending}
+            // Avisos abaixo dos botões, sem mudar a altura da linha.
+            className="relative [&>p]:absolute [&>p]:top-[calc(100%+2px)] [&>p]:right-0 [&>p]:min-h-0 [&>p]:whitespace-nowrap md:[&>p]:right-auto md:[&>p]:left-0 [&>p+p]:top-[calc(100%+18px)]"
           />
         )}
       </div>
 
-      <p className="hidden text-body-lg font-bold text-accent tabular-nums [grid-area:total] md:block">
+      <p className="hidden text-body-lg leading-4 font-bold text-accent tabular-nums [grid-area:total] md:block">
         <span className="sr-only">Total da linha: </span>
         {formatEth(mulEth(item.unitPrice, quantity))}
       </p>
 
-      <div className="flex items-start justify-end pr-2 pb-2 [grid-area:remove] md:items-center md:justify-center md:p-0">
-        <button
-          type="button"
-          data-cart-remove=""
-          aria-label={`Remover ${name} do carrinho`}
-          onClick={removeLine}
-          className="grid size-11 place-items-center rounded-full text-secondary transition-colors hover:bg-surface-raised hover:text-coral"
-        >
-          <DeleteIcon className="size-5" />
-        </button>
-      </div>
+      <button
+        type="button"
+        data-cart-remove=""
+        aria-label={`Remover ${name} do carrinho`}
+        onClick={removeLine}
+        className="absolute top-1.5 right-1.5 grid size-8 place-items-center rounded-full text-secondary transition-colors hover:text-coral md:static md:size-6 md:[grid-area:remove]"
+      >
+        <DeleteIcon className="size-[18px] md:size-6" />
+      </button>
     </article>
   );
 }

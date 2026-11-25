@@ -31,34 +31,43 @@ export function OrderSummary({ quote, updating = false, className }: OrderSummar
       <dl
         aria-busy={updating || undefined}
         className={cn(
-          'flex flex-col gap-3 text-body text-secondary transition-opacity',
+          'flex flex-col gap-3 text-body leading-5 text-foreground transition-opacity',
           updating && 'opacity-60',
         )}
       >
         <div className={row}>
           <dt>Subtotal</dt>
-          <dd data-testid="summary-subtotal" className="text-body-lg text-foreground tabular-nums">
+          <dd
+            data-testid="summary-subtotal"
+            className="text-body-lg leading-4 tabular-nums md:text-section md:leading-4"
+          >
             {formatEth(quote.subtotal)}
           </dd>
         </div>
         <div className={row}>
           <dt>Desconto do lançamento</dt>
-          <dd data-testid="summary-discount" className="text-foreground tabular-nums">
+          <dd data-testid="summary-discount" className="tabular-nums">
             (-) {formatEth(quote.discount)}
           </dd>
         </div>
         <div className={row}>
           <dt>Taxa de rede</dt>
-          <dd className="flex flex-col items-end">
-            <span data-testid="summary-fee" className="text-body-lg text-foreground tabular-nums">
+          <dd className="flex flex-col items-end md:gap-3">
+            <span
+              data-testid="summary-fee"
+              className="text-body-lg leading-4 tabular-nums md:text-section md:leading-4"
+            >
               {formatEth(quote.networkFee)}
             </span>
-            <span className="text-caption text-accent">Taxa estimada</span>
+            <span className="text-[0.75rem] leading-4 text-accent">Taxa estimada</span>
           </dd>
         </div>
-        <div className={cn(row, 'mt-3 border-t border-border pt-4')}>
-          <dt className="font-bold text-foreground">Total</dt>
-          <dd data-testid="summary-total" className="text-title-sm font-bold text-accent tabular-nums">
+        <div className={cn(row, 'md:mt-3')}>
+          <dt className="text-body-lg leading-4 font-bold">Total</dt>
+          <dd
+            data-testid="summary-total"
+            className="text-section leading-4 font-bold text-accent tabular-nums"
+          >
             {formatEth(quote.total)}
           </dd>
         </div>
