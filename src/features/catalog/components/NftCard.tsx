@@ -7,13 +7,14 @@ import { NftImage } from '@/shared/ui/nft-image';
 
 const CARD_IMAGE_SIZES = '(min-width: 1280px) 258px, (min-width: 768px) 30vw, 46vw';
 
-type NftCardProps = { nft: NftListItem };
+/** `priority`: card na primeira dobra (no celular, a 1ª fileira é o LCP da home). */
+type NftCardProps = { nft: NftListItem; priority?: boolean };
 
 /**
  * Card do catálogo. O nome é o link (esticado sobre o card inteiro), então o card todo é
  * clicável; o coração de favorito fica acima do link (`z-10`), sem aninhar controles. Alturas fixas no texto: o skeleton tem a mesma altura.
  */
-export function NftCard({ nft }: NftCardProps) {
+export function NftCard({ nft, priority = false }: NftCardProps) {
   return (
     <article className="group relative flex flex-col gap-3">
       <div className="relative rounded-lg bg-surface p-1 pb-10 transition-colors group-hover:bg-surface-raised">
@@ -22,6 +23,7 @@ export function NftCard({ nft }: NftCardProps) {
             asset={nft.image.asset}
             alt={nft.image.alt}
             sizes={CARD_IMAGE_SIZES}
+            priority={priority}
             className="transition-transform duration-300 group-hover:scale-[1.03] motion-reduce:transition-none"
           />
         </div>

@@ -28,7 +28,8 @@ function RootLayout() {
         Pular para o conteúdo
       </a>
       <Header />
-      <main id="conteudo" tabIndex={-1} className="flex-1 outline-none">
+      {/* Altura mínima: enquanto a página carrega, o rodapé não sobe para a tela (CLS). */}
+      <main id="conteudo" tabIndex={-1} className="min-h-dvh flex-1 outline-none">
         <Outlet />
       </main>
       <Footer phoneBottomBar={phoneBottomBar} />

@@ -14,6 +14,9 @@ type NftGridProps = {
   label?: string;
 };
 
+/** Cards da 1ª fileira no celular (2 colunas): carregam cedo, com prioridade alta. */
+const PRIORITY_CARDS = 2;
+
 export function NftGrid({ items, busy = false, label = 'NFTs do catálogo' }: NftGridProps) {
   return (
     <ul
@@ -21,9 +24,9 @@ export function NftGrid({ items, busy = false, label = 'NFTs do catálogo' }: Nf
       aria-busy={busy}
       className={cn(GRID_CLASSES, 'transition-opacity duration-200', busy && 'opacity-60')}
     >
-      {items.map((nft) => (
+      {items.map((nft, index) => (
         <li key={nft.id}>
-          <NftCard nft={nft} />
+          <NftCard nft={nft} priority={index < PRIORITY_CARDS} />
         </li>
       ))}
     </ul>
