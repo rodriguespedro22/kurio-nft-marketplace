@@ -46,7 +46,7 @@ export function BarCartLink({ className }: { className?: string }) {
   return (
     <Link to="/carrinho" aria-label={cartShortcutLabel(count)} className={className}>
       <span className="relative">
-        <ShopIcon aria-hidden="true" className="size-6" />
+        <ShopIcon aria-hidden="true" className="size-5" />
         <CartBadge count={count} className="-top-1.5 -right-2" />
       </span>
       <span className="sr-only">Carrinho</span>

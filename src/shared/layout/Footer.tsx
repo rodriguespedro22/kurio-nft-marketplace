@@ -142,7 +142,7 @@ function Newsletter() {
  */
 export function Footer({ phoneBottomBar = false }: { phoneBottomBar?: boolean }) {
   return (
-    <footer className={cn('mt-20 pb-28 xl:mt-24 xl:pb-6', phoneBottomBar && 'max-md:pb-48')}>
+    <footer className={cn('mt-20 pb-32 xl:mt-24 xl:pb-6', phoneBottomBar && 'max-md:pb-48')}>
       <div className="container-page flex flex-col">
         <div className="grid gap-8 bg-surface p-6 md:grid-cols-2 md:p-8 xl:grid-cols-[265px_265px_265px_minmax(0,1fr)] xl:gap-0">
           {HIGHLIGHTS.map(({ mark, title, text }) => (
