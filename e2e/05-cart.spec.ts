@@ -179,3 +179,27 @@ test('slow-network: skeleton do resumo até a cotação chegar', async ({ page }
   await expect(summary(page).getByTestId('summary-total')).toBeVisible({ timeout: 15_000 });
   await expect(page.getByTestId('order-summary-skeleton')).toHaveCount(0);
 });
+
+test('carrinho do card soma unidades sem sair da lista', async ({ page, isMobile }) => {
+  test.skip(
+    isMobile,
+    'as ações do card (carrinho, ver) aparecem no hover do desktop; no celular fica o coração',
+  );
+  await page.goto('/?q=Ivory');
+  const add = page.getByRole('button', { name: 'Adicionar Ivory Baron #088 ao carrinho' });
+  await page.getByRole('article').filter({ has: add }).hover();
+
+  for (let i = 1; i <= 3; i++) {
+    await add.click();
+    await expect(cartShortcut(page, false)).toHaveAccessibleName(
+      `Carrinho, ${i} ${i === 1 ? 'item' : 'itens'}`,
+    );
+  }
+  await expect(page).toHaveURL(/\/\?q=Ivory$/);
+  await expect(page.getByText(/Ivory Baron #088 · edição .+ · 3 no carrinho/)).toBeVisible();
+  await expect.poll(async () => (await serverCart(page)).map((line) => line.quantity)).toEqual([3]);
+
+  await cartShortcut(page, false).click();
+  await expect(cartList(page).getByRole('listitem')).toHaveCount(1);
+  await expect(page.getByRole('textbox', { name: /^Quantidade de Ivory Baron #088/ })).toHaveValue('3');
+});

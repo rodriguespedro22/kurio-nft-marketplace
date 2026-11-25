@@ -4,8 +4,10 @@ import type { NftListItem } from '@/contracts';
 import { FavoriteButton } from '@/features/favorites/components/FavoriteButton';
 import { cn } from '@/shared/lib/utils';
 import { formatEth } from '@/shared/money/eth';
-import { CartIcon, SearchIcon } from '@/shared/ui/icons';
+import { SearchIcon } from '@/shared/ui/icons';
 import { NftImage } from '@/shared/ui/nft-image';
+
+import { CardCartButton } from './CardCartButton';
 
 const CARD_IMAGE_SIZES = '(min-width: 1280px) 250px, (min-width: 768px) 30vw, 46vw';
 
@@ -19,8 +21,9 @@ type NftCardProps = { nft: NftListItem; priority?: boolean };
 /**
  * Card do catálogo (layout: bloco de 258 × 300 com a arte de 250 px centrada, nome e preço abaixo).
  * O nome é o link, esticado sobre o card inteiro. No desktop, o hover (ou o foco dentro do card)
- * acende o filete superior e mostra carrinho, favorito e ver; o carrinho leva ao detalhe, onde se
- * escolhe a edição. Abaixo de 1280 px fica só o coração, no canto da arte, como no frame mobile.
+ * acende o filete superior e mostra carrinho, favorito e ver; o carrinho soma uma unidade sem sair
+ * da lista (veja CardCartButton); outras edições se escolhem no detalhe. Abaixo de 1280 px fica só o
+ * coração, no canto da arte, como no frame mobile.
  */
 export function NftCard({ nft, priority = false }: NftCardProps) {
   return (
@@ -55,22 +58,12 @@ export function NftCard({ nft, priority = false }: NftCardProps) {
             'xl:top-auto xl:right-auto xl:bottom-[7px] xl:left-1/2 xl:-translate-x-1/2 xl:opacity-0 xl:group-focus-within:opacity-100 xl:group-hover:opacity-100',
           )}
         >
-          {/* Atalhos de mouse para o mesmo destino do nome (fora da ordem de tabulação). */}
-          <Link
-            to="/nft/$nftId"
-            params={{ nftId: nft.id }}
-            hash="comprar"
-            tabIndex={-1}
-            aria-hidden="true"
-            title="Comprar"
-            className={cn(actionClass, 'hidden xl:grid')}
-          >
-            <CartIcon className="size-5" />
-          </Link>
+          <CardCartButton nft={nft} className={cn(actionClass, 'hidden xl:grid')} />
           <FavoriteButton
             item={nft}
             className="size-7 border border-border bg-surface-raised backdrop-blur-none hover:bg-surface-raised xl:size-[35px] xl:rounded-[4px] xl:before:inset-0 xl:hover:border-primary [&_svg]:size-4 xl:[&_svg]:size-5"
           />
+          {/* Atalho de mouse para o mesmo destino do nome (fora da ordem de tabulação). */}
           <Link
             to="/nft/$nftId"
             params={{ nftId: nft.id }}

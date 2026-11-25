@@ -60,6 +60,8 @@ export function useAddToCart() {
   const owner = useCartOwner();
   return useMutation<Cart, Error, AddCartItemInput, KeyContext>({
     mutationKey: [...CART_MUTATION, 'add'],
+    // Cliques seguidos no carrinho do card chegam ao servidor em ordem, um de cada vez.
+    scope: { id: 'cart-add' },
     mutationFn: (input) => cartApi.add(input),
     onMutate: () => ({ key: cartKey(owner) }),
     onSuccess: (cart, _input, context) => {
