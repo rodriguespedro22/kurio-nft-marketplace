@@ -19,14 +19,23 @@ async function settled(page: Page) {
   await expect(page.locator('[aria-busy="true"]')).toHaveCount(0, { timeout: 15_000 });
 }
 
-/** O elemento focado tem contorno visível — nele ou no `::after` (cards com link esticado). */
+/**
+ * O elemento focado tem contorno visível — nele, no `::after` (cards com link esticado) ou no pai
+ * (campos agrupados que desenham o anel com `focus-within`, como a newsletter).
+ */
 async function focusWithoutOutline(page: Page): Promise<string | null> {
   return page.evaluate(() => {
     const el = document.activeElement;
     if (!el || el === document.body) return 'body';
     const visible = (style: CSSStyleDeclaration) =>
       style.outlineStyle !== 'none' && parseFloat(style.outlineWidth) > 0;
-    if (visible(getComputedStyle(el)) || visible(getComputedStyle(el, '::after'))) return null;
+    const parent = el.parentElement;
+    if (
+      visible(getComputedStyle(el)) ||
+      visible(getComputedStyle(el, '::after')) ||
+      (parent?.matches(':focus-within') && visible(getComputedStyle(parent)))
+    )
+      return null;
     return el.outerHTML.slice(0, 160);
   });
 }
@@ -46,6 +55,8 @@ async function expectNoSeriousViolations(page: Page, route: string) {
 test('só com Tab: header → busca e filtros → card, sempre com foco visível', async ({ page, isMobile }) => {
   await page.goto('/');
   await settled(page);
+  // `settled` pode passar antes de o catálogo começar a carregar; o percurso precisa dos cards.
+  await expect(page.getByRole('list', { name: 'NFTs do catálogo' }).getByRole('link').first()).toBeVisible();
 
   const reached = { header: false, search: false, filters: false, card: false };
   for (let i = 0; i < 150 && !reached.card; i++) {

@@ -6,7 +6,9 @@ export default defineConfig({
   testDir: './e2e',
   // Baselines visuais só existem para Linux (container do Playwright — pnpm test:visual:update).
   snapshotPathTemplate: '{testDir}/__screenshots__/{projectName}/{testFilePath}/{arg}{ext}',
-  expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.01, animations: 'disabled' } },
+  // 10 s: cada carga completa espera o Service Worker dos mocks assumir a página antes de o app montar,
+  // o que passa de 5 s com a suíte inteira disputando CPU.
+  expect: { timeout: 10_000, toHaveScreenshot: { maxDiffPixelRatio: 0.01, animations: 'disabled' } },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
