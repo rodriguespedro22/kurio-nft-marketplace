@@ -12,6 +12,7 @@ import { PageError } from '@/shared/ui/page-error';
 import { Skeleton } from '@/shared/ui/skeleton';
 
 import { isTerminal, settleOrder } from '../apply-order-updated';
+import { clearPendingOrder } from '../pending-order';
 import { useOrder } from '../queries';
 import { Receipt } from './Receipt';
 
@@ -56,6 +57,13 @@ function useSettleWhenTerminal(order: Order | undefined) {
 export function OrderStatusView({ orderId }: { orderId: string }) {
   const order = useOrder(orderId);
   useSettleWhenTerminal(order.data);
+  const userId = useSession()?.user.id;
+  const notFound = order.error instanceof ApiError && order.error.status === 404;
+  // Pedido lembrado que o servidor não conhece (ex.: dados do mock resetados): esquece, senão o
+  // checkout voltaria sempre para cá.
+  useEffect(() => {
+    if (notFound && userId) clearPendingOrder(userId, orderId);
+  }, [notFound, userId, orderId]);
 
   if (order.isPending) {
     return (
@@ -66,7 +74,7 @@ export function OrderStatusView({ orderId }: { orderId: string }) {
     );
   }
   if (order.isError) {
-    if (order.error instanceof ApiError && order.error.status === 404) {
+    if (notFound) {
       return (
         <EmptyState
           title="Pedido não encontrado"

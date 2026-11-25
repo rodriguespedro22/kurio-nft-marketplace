@@ -128,8 +128,8 @@ Em todos os roteiros, "entrar" = login com `colecionador@kurio.test` / `Kurio@20
    **Esgotar edição** no painel com o checkout aberto.
 8. **Timeout após criar o pedido**: em `order-timeout-idempotent`, confirme a compra. O cliente desiste em
    8 s, mostra "Verificando seu pedido…" e oferece **Tentar novamente**; o reenvio usa a mesma
-   `Idempotency-Key` e recebe o mesmo pedido, sem duplicar. Recarregar a página no meio retoma o pedido
-   pendente.
+   `Idempotency-Key` e recebe o mesmo pedido, sem duplicar. Se a página recarregar antes da resposta, voltar
+   ao checkout reenvia a mesma tentativa e leva ao mesmo pedido (um só no banco).
 9. **Pagamento confirmado ou recusado**: `payment-confirmed` leva à tela de status, que vira "Pedido
    confirmado" com recibo em ~4 s (por `order.updated` no socket). `payment-declined` mostra a recusa com o
    motivo e mantém o carrinho; conectar uma carteira em /carteiras também é recusado.

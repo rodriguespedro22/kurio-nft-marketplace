@@ -19,8 +19,6 @@ type QuantityStepperProps = {
   className?: string;
 };
 
-const INTEGER = /^\d+$/;
-
 /** "Quantidade de X" → "quantidade de X": compõe "Aumentar …"/"Diminuir …" sem mexer em nomes. */
 const lowerFirst = (text: string) => text.charAt(0).toLowerCase() + text.slice(1);
 
@@ -28,9 +26,10 @@ const stepButton =
   'relative grid size-8 shrink-0 place-items-center rounded-full bg-primary text-ink transition-colors before:absolute before:-inset-1.5 hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-40';
 
 /**
- * Campo numérico com − / +. O texto digitado só vale ao confirmar (Enter ou sair do campo):
- * abaixo do mínimo vira o mínimo, acima do disponível vira o máximo (com aviso), e o que não
- * for inteiro fica marcado como inválido sem mudar a quantidade.
+ * Campo numérico com − / +. O texto digitado só vale ao confirmar (Enter ou sair do campo), e o
+ * campo passa a mostrar exatamente a quantidade que vale, com a explicação ligada a ele: abaixo do
+ * mínimo vira o mínimo ("Mínimo: 1"), fração vira o inteiro abaixo e texto que não é número volta ao
+ * valor atual ("Use um número inteiro"), acima do disponível vira o máximo ("Máximo disponível").
  */
 export function QuantityStepper({
   value,
@@ -46,35 +45,44 @@ export function QuantityStepper({
 }: QuantityStepperProps) {
   const autoId = useId();
   const inputId = id ?? autoId;
-  const errorId = `${inputId}-erro`;
+  const noticeId = `${inputId}-ajuste`;
   const hintId = `${inputId}-limite`;
   const upper = Math.max(max, min);
 
   const [draft, setDraft] = useState(String(value));
   const [seenValue, setSeenValue] = useState(value);
-  const [error, setError] = useState<string | null>(null);
+  /** Explicação do último ajuste, válida enquanto a quantidade for a que ele produziu. */
+  const [notice, setNotice] = useState<{ text: string; value: number } | null>(null);
 
   // Valor novo vindo de fora (botões, troca de edição, servidor): o campo acompanha.
   if (value !== seenValue) {
     setSeenValue(value);
     setDraft(String(value));
-    setError(null);
+    if (notice && notice.value !== value) setNotice(null);
   }
 
   function commit() {
-    const text = draft.trim();
+    const text = draft.trim().replace(',', '.');
     if (text === '') {
       setDraft(String(value));
-      setError(null);
+      setNotice(null);
       return;
     }
-    if (!INTEGER.test(text)) {
-      setError('Use um número inteiro');
+    const typed = Number(text);
+    if (!Number.isFinite(typed)) {
+      setDraft(String(value));
+      setNotice({ text: 'Use um número inteiro', value });
       return;
     }
-    const next = Math.min(Math.max(Number.parseInt(text, 10), min), upper);
-    setError(null);
+    let message = Number.isInteger(typed) ? null : 'Use um número inteiro';
+    let next = Math.trunc(typed);
+    if (next < min) {
+      next = min;
+      message ??= `Mínimo: ${min}`;
+    }
+    next = Math.min(next, upper);
     setDraft(String(next));
+    setNotice(message ? { text: message, value: next } : null);
     if (next !== value) onChange(next);
   }
 
@@ -86,7 +94,8 @@ export function QuantityStepper({
   }
 
   const atMax = value >= upper;
-  const describedBy = [error ? errorId : null, atMax ? hintId : null].filter(Boolean).join(' ') || undefined;
+  const describedBy =
+    [notice ? noticeId : null, atMax ? hintId : null].filter(Boolean).join(' ') || undefined;
 
   return (
     <div data-slot="quantity-stepper" className={cn('flex flex-col gap-1.5', className)}>
@@ -115,12 +124,11 @@ export function QuantityStepper({
           autoComplete="off"
           value={draft}
           disabled={disabled}
-          aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
           onChange={(event) => setDraft(event.target.value)}
           onBlur={commit}
           onKeyDown={handleKeyDown}
-          className="h-10 w-12 rounded-field border border-transparent bg-transparent text-center text-body-lg text-foreground tabular-nums transition-colors hover:border-border focus-visible:border-primary aria-[invalid=true]:border-error"
+          className="h-10 w-12 rounded-field border border-transparent bg-transparent text-center text-body-lg text-foreground tabular-nums transition-colors hover:border-border focus-visible:border-primary"
         />
         <button
           type="button"
@@ -133,9 +141,9 @@ export function QuantityStepper({
           <Plus aria-hidden="true" className="size-4" strokeWidth={2.5} />
         </button>
       </div>
-      {error ? (
-        <p id={errorId} role="alert" className="text-caption text-coral">
-          {error}
+      {notice ? (
+        <p id={noticeId} role="status" className="text-caption text-coral">
+          {notice.text}
         </p>
       ) : null}
       <p id={hintId} aria-live="polite" className="min-h-5 text-caption text-muted">

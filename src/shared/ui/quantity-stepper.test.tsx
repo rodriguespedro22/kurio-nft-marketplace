@@ -55,16 +55,17 @@ describe('QuantityStepper', () => {
     expect(describedText(input())).not.toContain('Máximo disponível');
   });
 
-  test('valor abaixo do mínimo vira o mínimo ao confirmar', async () => {
+  test.each(['0', '-1'])('abaixo do mínimo (%s) vira o mínimo, com mensagem no campo', async (typed) => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     render(<Harness initial={3} onChange={onChange} />);
 
     await user.clear(input());
-    await user.type(input(), '0');
+    await user.type(input(), typed);
     await user.tab();
     expect(input()).toHaveValue('1');
     expect(onChange).toHaveBeenLastCalledWith(1);
+    expect(describedText(input())).toContain('Mínimo: 1');
   });
 
   test('acima do disponível limita ao máximo e explica pelo aria-describedby', async () => {
@@ -79,7 +80,7 @@ describe('QuantityStepper', () => {
     expect(describedText(input())).toContain('Máximo disponível: 5');
   });
 
-  test('não inteiro é inválido: mensagem, aria-invalid e nenhum onChange', async () => {
+  test('não inteiro: o campo mostra o inteiro que vale, com mensagem, sem ficar inválido', async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     render(<Harness onChange={onChange} />);
@@ -87,16 +88,30 @@ describe('QuantityStepper', () => {
     await user.clear(input());
     await user.type(input(), '2.5');
     await user.tab();
-    expect(input()).toHaveAttribute('aria-invalid', 'true');
-    expect(describedText(input())).toContain('Use um número inteiro');
-    expect(onChange).not.toHaveBeenCalled();
-
-    // Corrigir limpa o erro.
-    await user.clear(input());
-    await user.type(input(), '3');
-    await user.tab();
+    expect(input()).toHaveValue('2');
+    expect(onChange).toHaveBeenLastCalledWith(2);
     expect(input()).not.toHaveAttribute('aria-invalid');
-    expect(onChange).toHaveBeenLastCalledWith(3);
+    expect(describedText(input())).toContain('Use um número inteiro');
+  });
+
+  test('texto que não é número volta ao valor atual, com mensagem', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<Harness initial={3} onChange={onChange} />);
+
+    await user.clear(input());
+    await user.type(input(), 'abc');
+    await user.tab();
+    expect(input()).toHaveValue('3');
+    expect(onChange).not.toHaveBeenCalled();
+    expect(describedText(input())).toContain('Use um número inteiro');
+
+    // Um valor válido depois limpa a mensagem.
+    await user.clear(input());
+    await user.type(input(), '4');
+    await user.tab();
+    expect(onChange).toHaveBeenLastCalledWith(4);
+    expect(describedText(input())).not.toContain('Use um número inteiro');
   });
 
   test('campo vazio ao sair volta ao valor atual', async () => {

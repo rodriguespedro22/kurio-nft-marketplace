@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useIsMutating, useQueryClient } from '@tanstack/react-query';
 import { Link, Navigate, useNavigate } from '@tanstack/react-router';
 import { useForm, useWatch } from 'react-hook-form';
+import { toast } from 'sonner';
 
 import { QuoteSchema, type Cart, type Profile, type Quote, type Wallet } from '@/contracts';
 import { useSession } from '@/features/auth/session';
@@ -12,6 +13,7 @@ import { cartLineName } from '@/features/cart/labels';
 import { useCart } from '@/features/cart/queries';
 import { useQuote } from '@/features/cart/quote-queries';
 import { quoteKey, useCartOwner } from '@/features/cart/use-cart-owner';
+import { getUnsettledAttempt, type Attempt } from '@/features/orders/idempotency';
 import { getPendingOrder } from '@/features/orders/pending-order';
 import { CREATE_ORDER_KEY, isUncertain, useCreateOrder } from '@/features/orders/queries';
 import { useProfile } from '@/features/profile/queries';
@@ -297,6 +299,50 @@ function CheckoutSkeleton() {
   );
 }
 
+/**
+ * Envio que ficou sem resposta (a página recarregou durante o timeout): o pedido pode já existir.
+ * Reenvia a mesma tentativa — mesma chave e corpo — e segue para o pedido que o servidor devolver.
+ */
+function ResumeAttempt({ attempt, onSettled }: { attempt: Attempt; onSettled: () => void }) {
+  const navigate = useNavigate();
+  const [failed, setFailed] = useState(false);
+  const createOrder = useCreateOrder();
+  const started = useRef(false);
+
+  function resume() {
+    setFailed(false);
+    createOrder.mutate(attempt.input, {
+      onSuccess: (order) =>
+        void navigate({ to: '/pedido/$orderId', params: { orderId: order.id }, replace: true }),
+      onError: (error) => {
+        if (isUncertain(error)) {
+          setFailed(true);
+          return;
+        }
+        toast.error(error instanceof ApiError ? error.message : 'Não foi possível concluir o pedido.');
+        onSettled();
+      },
+    });
+  }
+
+  useEffect(() => {
+    if (started.current) return;
+    started.current = true;
+    resume();
+  });
+
+  return (
+    <div role="status" className="flex flex-wrap items-center gap-3 text-body-sm text-amber">
+      <span>Verificando seu pedido…</span>
+      {failed ? (
+        <Button variant="outline" size="sm" onClick={resume}>
+          Tentar novamente
+        </Button>
+      ) : null}
+    </div>
+  );
+}
+
 /** Pagamento: comprador, carteira e rede, revisão. */
 export function CheckoutPage() {
   const session = useSession();
@@ -304,6 +350,8 @@ export function CheckoutPage() {
   const wallets = useWallets();
   const cart = useCart();
   const failed = [profile, wallets, cart].find((query) => query.isError);
+  // Envio sem resposta definitiva encontrado ao abrir a página (não o que esta tela enviar agora).
+  const [resumable, setResumable] = useState(() => (session ? getUnsettledAttempt(session.user.id) : null));
   // O pedido pode ser confirmado (e esvaziar o carrinho) antes da resposta chegar: durante o envio
   // o checkout continua montado para concluir a navegação ou o reenvio com a mesma chave.
   const ordering = useIsMutating({ mutationKey: CREATE_ORDER_KEY }) > 0;
@@ -312,7 +360,9 @@ export function CheckoutPage() {
   if (pendingOrder) return <Navigate to="/pedido/$orderId" params={{ orderId: pendingOrder }} replace />;
 
   let content;
-  if (failed) {
+  if (resumable && session) {
+    content = <ResumeAttempt key={resumable.key} attempt={resumable} onSettled={() => setResumable(null)} />;
+  } else if (failed) {
     content = (
       <PageError
         error={failed.error}

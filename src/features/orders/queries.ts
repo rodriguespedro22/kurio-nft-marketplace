@@ -8,7 +8,7 @@ import { qk } from '@/shared/api/query-keys';
 import { useRealtimeStatus } from '@/shared/realtime/use-realtime';
 
 import { ordersApi } from './api';
-import { getOrCreateAttemptKey } from './idempotency';
+import { beginAttempt, settleAttempt } from './idempotency';
 import { rememberPendingOrder } from './pending-order';
 
 /** Pausa antes do reenvio automático (a pessoa vê "Verificando seu pedido…"). */
@@ -57,14 +57,25 @@ export function useCreateOrder({ onUncertain }: { onUncertain?: () => void } = {
   return useMutation({
     mutationKey: CREATE_ORDER_KEY,
     mutationFn: async (input: CreateOrderInput): Promise<Order> => {
-      const key = getOrCreateAttemptKey(userId, input.quoteId);
+      // Envio anterior ainda sem resposta definitiva: reenvia aquele (mesma chave e corpo).
+      const attempt = beginAttempt(userId, input);
+      const send = async () => {
+        try {
+          const order = await ordersApi.create(attempt.input, attempt.key);
+          settleAttempt(userId);
+          return order;
+        } catch (error) {
+          if (!isUncertain(error)) settleAttempt(userId);
+          throw error;
+        }
+      };
       try {
-        return await ordersApi.create(input, key);
+        return await send();
       } catch (error) {
         if (!isUncertain(error)) throw error;
         onUncertain?.();
         await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
-        return ordersApi.create(input, key);
+        return send();
       }
     },
     onSuccess: (order) => {

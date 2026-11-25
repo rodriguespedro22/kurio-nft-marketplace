@@ -164,12 +164,17 @@ Envelope comum (`src/contracts/events.ts`):
    responde `409 QUOTE_STALE` com a cotação nova; o app grava essa cotação no cache e abre a revisão com
    antes/depois por linha, selos (Esgotado, Só N disponíveis, Preço alterado) e o botão **Confirmar novo
    total**. Um `nft.updated` com a revisão aberta também atualiza o "depois".
-4. **Idempotência**: uma `Idempotency-Key` (UUID) por tentativa de compra, guardada com a cotação em
-   `kurio:order-attempt:<userId>`. Botão travado durante a mutation. No timeout (8 s), o app mostra
-   "Verificando seu pedido…" e o reenvio usa a mesma chave: o mock devolve o mesmo pedido. Mesma chave com
-   corpo diferente dá `409 IDEMPOTENCY_CONFLICT`.
+4. **Idempotência**: uma `Idempotency-Key` (UUID) por tentativa de compra, guardada **com o corpo enviado**
+   em `kurio:order-attempt:<userId>` (sessionStorage), no estado `sent` até haver resposta definitiva (pedido
+   ou 4xx). Botão travado durante a mutation. No timeout (8 s), o app mostra "Verificando seu pedido…" e
+   reenvia; enquanto a tentativa estiver `sent`, **todo** reenvio (Tentar novamente, cotação refeita por foco
+   ou evento, Voltar → Confirmar) usa a mesma chave e o mesmo corpo, e o mock devolve o pedido já criado. Se a
+   página recarregar nesse meio-tempo, o checkout encontra a tentativa `sent` e a reenvia antes de mostrar o
+   formulário. Resolvida, a mesma cotação reusa a chave (duplo clique) e uma cotação nova começa outra
+   tentativa. Mesma chave com corpo diferente dá `409 IDEMPOTENCY_CONFLICT`.
 5. O pedido nasce `pending`; o id fica em `kurio:pending-order:<userId>`. Após refresh ou reconexão, o app
-   consulta `GET /orders/:id` e retoma a tela de status. O mock resolve para `confirmed` ou `rejected` (4 s)
+   consulta `GET /orders/:id` e retoma a tela de status; um id lembrado que o servidor não conhece (404,
+   ex.: dados do mock resetados) é esquecido, para não prender o checkout. O mock resolve para `confirmed` ou `rejected` (4 s)
    e emite `order.updated`.
 6. A confirmação só aparece com `status === 'confirmed'` vindo do servidor; o recibo usa o `snapshot` do
    pedido. Confirmado, o servidor remove do carrinho só o que foi comprado e o app invalida o carrinho;

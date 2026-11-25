@@ -74,7 +74,9 @@ test('trocar de edição atualiza o preço', async ({ page }) => {
   await expect(page.getByTestId('nft-price')).toHaveText('3.58 ETH');
 });
 
-test('quantidade: 0 → 1, 2.5 inválido, acima do disponível limita com aviso', async ({ page }) => {
+test('quantidade: 0 → 1, 2.5 → 2, acima do disponível limita, sempre com aviso no campo', async ({
+  page,
+}) => {
   await page.goto(IVORY);
   // 1/10 tem 5 disponíveis.
   await page.getByRole('radiogroup', { name: 'Edição' }).getByRole('radio', { name: /1\/10/ }).click();
@@ -83,16 +85,18 @@ test('quantidade: 0 → 1, 2.5 inválido, acima do disponível limita com aviso'
   await input.fill('0');
   await input.press('Tab');
   await expect(input).toHaveValue('1');
+  await expect(page.getByText('Mínimo: 1')).toBeVisible();
 
   await input.fill('2.5');
   await input.press('Tab');
-  await expect(input).toHaveAttribute('aria-invalid', 'true');
-  await expect(page.getByText('Use um número inteiro')).toBeVisible();
+  await expect(input).toHaveValue('2');
+  const notice = page.getByText('Use um número inteiro');
+  await expect(notice).toBeVisible();
+  expect(await input.getAttribute('aria-describedby')).toContain(await notice.getAttribute('id'));
 
   await input.fill('99');
   await input.press('Enter');
   await expect(input).toHaveValue('5');
-  await expect(input).not.toHaveAttribute('aria-invalid', 'true');
   const hint = page.getByText('Máximo disponível: 5');
   await expect(hint).toBeVisible();
   const hintId = await hint.getAttribute('id');

@@ -81,3 +81,39 @@ test('reload com o pedido pendente volta ao mesmo pedido', async ({ page }) => {
   await expect(orderStatus(page)).toHaveText('Confirmado');
   expect(await mockOrders(page)).toHaveLength(1);
 });
+
+test('reload durante o timeout do pedido: o checkout retoma o mesmo pedido, sem duplicar', async ({
+  page,
+}) => {
+  await page.clock.install();
+  await bootScenario(page, 'order-timeout-idempotent');
+  await loginViaUi(page, USERS.colecionador);
+  await addFromDetail(page, IVORY, /1\/10/);
+  await openReview(page);
+
+  await reviewDialog(page).getByRole('button', { name: 'Confirmar compra' }).click();
+  // O servidor já criou o pedido e segura a resposta: recarrega antes de ela chegar.
+  await expect.poll(async () => (await mockOrders(page)).length).toBe(1);
+  await page.reload();
+
+  await page.goto('/checkout');
+  await expect(page).toHaveURL(/\/pedido\/order-/, { timeout: 30_000 });
+  const orders = await mockOrders(page);
+  expect(orders.map((o) => o.id)).toEqual([new URL(page.url()).pathname.split('/').pop()]);
+});
+
+test('pedido lembrado que não existe mais (404) é esquecido e não trava o checkout', async ({ page }) => {
+  await bootScenario(page, 'default');
+  await loginViaUi(page, USERS.colecionador);
+  await addFromDetail(page, IVORY, /1\/10/);
+  // Ex.: "Resetar dados" com um pedido pendente — o id lembrado no navegador some do servidor.
+  await page.evaluate(() => localStorage.setItem('kurio:pending-order:user-1', 'order-9999'));
+
+  await page.goto('/checkout');
+  await expect(page).toHaveURL('/pedido/order-9999');
+  await expect(page.getByRole('heading', { name: 'Pedido não encontrado' })).toBeVisible();
+
+  await page.goto('/checkout');
+  await expect(page.getByRole('form', { name: 'Perfil do colecionador' })).toBeVisible();
+  await expect(page).toHaveURL('/checkout');
+});
