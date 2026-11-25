@@ -7,3 +7,6 @@ test-results/
 *.log
 *.tsbuildinfo
 .env*.local
+
+# Arquivos temporários do gerador de rotas do TanStack Router
+.tanstack/

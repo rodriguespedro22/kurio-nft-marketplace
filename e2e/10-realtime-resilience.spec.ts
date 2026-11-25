@@ -2,12 +2,14 @@ import type { Page } from '@playwright/test';
 
 import { submitLogin, USERS, loginViaUi, logoutViaUi } from './support/auth';
 import { addFromDetail, cartList, cartShortcut } from './support/cart';
+import { orderStatus, placeOrder } from './support/checkout';
 import { expect, test } from './support/fixtures';
 import {
   bootScenario,
   dropSocket,
   emitNftUpdate,
   emitStaleNftEvent,
+  mockControl,
   replayLastEvent,
   waitForRealtime,
 } from './support/mock';
@@ -123,4 +125,54 @@ test('socket cai e o preço muda nesse intervalo: ao reconectar, o REST traz o v
   const missed = await emitNftUpdate(page, IVORY_ID, { price: '4.20' });
   expect(missed.delivered).toBe(0);
   await expect(page.getByTestId('nft-price')).toHaveText('4.20 ETH', { timeout: 10_000 });
+});
+
+// ——— Parte 2: order.updated ———
+
+test('pedido pendente com o socket fora: ao reconectar, a tela reconcilia pelo REST', async ({ page }) => {
+  await page.clock.install();
+  await loginViaUi(page, USERS.colecionador);
+  await addFromDetail(page, IVORY, /1\/10/);
+  await placeOrder(page);
+  await expect(orderStatus(page)).toHaveText('Pendente');
+  await waitForRealtime(page, { authenticated: true });
+
+  await dropSocket(page, { holdMs: 1500 });
+  await page.clock.runFor(4000);
+  await expect(orderStatus(page)).toHaveText('Confirmado', { timeout: 15_000 });
+});
+
+test('order.updated repetido ou antigo depois de "Confirmado" não volta para "Pendente"', async ({
+  page,
+}) => {
+  await page.clock.install();
+  await loginViaUi(page, USERS.colecionador);
+  await addFromDetail(page, IVORY, /1\/10/);
+  const orderId = await placeOrder(page);
+  await waitForRealtime(page, { authenticated: true });
+  await page.clock.runFor(4000);
+  await expect(orderStatus(page)).toHaveText('Confirmado');
+
+  await mockControl(page, '/__mock/socket/emit-stale-order', { orderId });
+  await replayLastEvent(page);
+  await page.waitForTimeout(300);
+  await expect(orderStatus(page)).toHaveText('Confirmado');
+});
+
+test('pedido de A resolvido depois que B entrou: B não recebe aviso nem vê o pedido', async ({ page }) => {
+  await page.clock.install();
+  await loginViaUi(page, USERS.colecionador);
+  await addFromDetail(page, IVORY, /1\/10/);
+  const orderId = await placeOrder(page);
+  await expect(orderStatus(page)).toHaveText('Pendente');
+
+  await logoutViaUi(page);
+  await loginViaUi(page, USERS.ana);
+  await waitForRealtime(page, { authenticated: true });
+  await page.clock.runFor(4000);
+  await page.waitForTimeout(300);
+  await expect(page.getByText(/Pedido confirmado|Pagamento recusado/)).toHaveCount(0);
+
+  await page.goto(`/pedido/${orderId}`);
+  await expect(page.getByRole('heading', { name: 'Pedido não encontrado' })).toBeVisible();
 });

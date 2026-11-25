@@ -7,8 +7,16 @@ import { db } from '../db/store';
 import { isNetworkProfile } from '../network/profiles';
 import { resetNetworkState, setNetworkProfile } from '../network/with-network';
 import { isScenarioName } from '../scenarios';
-import { dropAllSockets, emitNftUpdated, emitStaleNft, replayLast, socketState } from '../socket/server';
+import {
+  dropAllSockets,
+  emitNftUpdated,
+  emitStaleNft,
+  emitStaleOrder,
+  replayLast,
+  socketState,
+} from '../socket/server';
 import { apiError, apiPath, bearerToken, readJson, validationError } from './http';
+import { clearOrderTimers } from './orders';
 
 /** Resumo do banco para testes e para o painel (`GET /__mock/state`). */
 export function mockState() {
@@ -60,6 +68,7 @@ export const controlHandlers = [
         fields: { scenario: 'Cenário desconhecido' },
       });
     }
+    clearOrderTimers();
     db.reset(scenario);
     resetNetworkState();
     return HttpResponse.json(mockState());
@@ -142,6 +151,15 @@ export const controlHandlers = [
       return apiError(404, 'NOT_FOUND', 'NFT não encontrado.');
     }
     return HttpResponse.json(emitStaleNft(nftId));
+  }),
+
+  /** Emite um `order.updated` antigo (status `pending`, versão anterior) — teste de regressão. */
+  http.post(apiPath('/__mock/socket/emit-stale-order'), async ({ request }) => {
+    const orderId = field(await readJson(request), 'orderId');
+    if (typeof orderId !== 'string' || !db.get().orders[orderId]) {
+      return apiError(404, 'NOT_FOUND', 'Pedido não encontrado.');
+    }
+    return HttpResponse.json(emitStaleOrder(orderId));
   }),
 
   http.get(apiPath('/__mock/state'), () => HttpResponse.json(mockState())),

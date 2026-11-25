@@ -1,4 +1,4 @@
-import type { RefObject } from 'react';
+import type { ReactNode, RefObject } from 'react';
 
 import { NETWORK_LABELS, WALLET_PROVIDER_LABELS, type Network, type Quote, type Wallet } from '@/contracts';
 import { shortAddress } from '@/features/wallets/short-address';
@@ -36,6 +36,8 @@ type ReviewDialogProps = {
   confirming?: boolean;
   /** Aberto por código (sem DialogTrigger): para onde o foco volta ao fechar. */
   returnFocusRef?: RefObject<HTMLElement | null>;
+  /** Situação do envio (verificando, erro) logo acima dos botões. */
+  notice?: ReactNode;
 };
 
 const row = 'flex items-baseline justify-between gap-4 [&>dd]:shrink-0 [&>dd]:text-right';
@@ -57,6 +59,7 @@ export function ReviewDialog({
   onConfirm,
   confirming = false,
   returnFocusRef,
+  notice,
 }: ReviewDialogProps) {
   const changes = current ? quoteChanges(previous, current, lineNames) : [];
   const blocked = !current || current.issues.length > 0;
@@ -141,6 +144,7 @@ export function ReviewDialog({
           </div>
         )}
 
+        {notice}
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="outline">Voltar</Button>

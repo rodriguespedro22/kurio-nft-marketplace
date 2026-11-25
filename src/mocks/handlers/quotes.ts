@@ -81,7 +81,7 @@ export function priceCart(d: MockDb, cart: CartRecord, network: Network) {
 }
 
 /** Guarda a cotação (snapshot de preços) e descarta as antigas do mesmo carrinho. Use em `db.update`. */
-function storeQuote(d: MockDb, cart: CartRecord, owner: Owner, network: Network): Quote {
+export function storeQuote(d: MockDb, cart: CartRecord, owner: Owner, network: Network): Quote {
   const previous = Object.values(d.quotes)
     .filter((q) => q.cartId === cart.id)
     .sort((a, b) => a.version - b.version);

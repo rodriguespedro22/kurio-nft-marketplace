@@ -2,6 +2,7 @@ import { setupWorker } from 'msw/browser';
 
 import { db } from './db/store';
 import { handlers } from './handlers';
+import { scheduleOpenOrders } from './handlers/orders';
 import { isNetworkProfile } from './network/profiles';
 import { resetNetworkState, setNetworkProfile } from './network/with-network';
 import { isScenarioName } from './scenarios';
@@ -52,4 +53,6 @@ export async function enableMocking(): Promise<void> {
     quiet: import.meta.env.PROD,
     serviceWorker: { url: '/mockServiceWorker.js' },
   });
+  // Pedidos pendentes de antes do reload voltam à agenda (resolução a partir de `createdAt`).
+  scheduleOpenOrders();
 }

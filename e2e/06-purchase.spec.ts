@@ -4,7 +4,15 @@ import { formatEth } from '../src/shared/money/eth';
 import { loginViaUi, submitLogin, USERS } from './support/auth';
 import { addFromDetail } from './support/cart';
 import { expect, test } from './support/fixtures';
-import { bootScenario, serverQuote } from './support/mock';
+import { checkoutSummary as summaryBox, orderStatus, placeOrder } from './support/checkout';
+import {
+  apiAsUser,
+  bootScenario,
+  emitNftUpdate,
+  serverCart,
+  serverQuote,
+  waitForRealtime,
+} from './support/mock';
 
 const IVORY = '/nft/nft-ivory-baron-088';
 const GOLDEN_BEAT = '/nft/nft-golden-beat-207';
@@ -118,4 +126,58 @@ test('revisão em diálogo: cotação atual, foco preso, Escape fecha e devolve 
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveCount(0);
   await expect(confirmButton(page)).toBeFocused();
+});
+
+// ——— Parte 2: pedido, status e recibo ———
+
+type ApiOrder = {
+  id: string;
+  txHash: string;
+  snapshot: { lines: { name: string; quantity: number }[]; networkFee: string; total: string };
+};
+
+test('compra completa: pendente → confirmado; recibo do snapshot; carrinho só sem o comprado', async ({
+  page,
+}) => {
+  await page.clock.install();
+  await loginViaUi(page, USERS.colecionador);
+  await page.goto('/');
+  await page.getByRole('searchbox', { name: /Buscar/ }).fill('ivory');
+  await page
+    .getByRole('link', { name: /Ivory Baron #088/ })
+    .first()
+    .click();
+  await expect(page).toHaveURL(IVORY);
+  await addFromDetail(page, IVORY, /1\/10/);
+  await addFromDetail(page, GOLDEN_BEAT, /1\/50/);
+  await page.goto('/carrinho');
+  await page.getByRole('link', { name: 'Conectar e finalizar' }).click();
+  await expect(summaryBox(page).getByRole('listitem')).toHaveCount(2);
+
+  const orderId = await placeOrder(page);
+  await expect(page).toHaveTitle('Pedido · Kurio');
+  await expect(orderStatus(page)).toHaveText('Pendente');
+  // Itens adicionados depois do pedido continuam no carrinho.
+  await addFromDetail(page, GOLDEN_BEAT, /1\/50/);
+  await page.goto(`/pedido/${orderId}`);
+  await waitForRealtime(page, { authenticated: true });
+
+  await page.clock.runFor(4000);
+  await expect(orderStatus(page)).toHaveText('Confirmado');
+
+  const order = await apiAsUser<ApiOrder>(page, `/orders/${orderId}`);
+  const receipt = page.getByRole('region', { name: 'Seus NFTs agora estão na sua carteira' });
+  await expect(receipt.getByTestId('receipt-tx')).toHaveAttribute('title', order.txHash);
+  await expect(receipt.getByRole('listitem')).toHaveCount(order.snapshot.lines.length);
+  for (const line of order.snapshot.lines) await expect(receipt).toContainText(line.name);
+  await expect(receipt.getByTestId('receipt-fee')).toHaveText(formatEth(order.snapshot.networkFee));
+  await expect(receipt.getByTestId('receipt-total')).toHaveText(formatEth(order.snapshot.total));
+
+  // Preço novo no catálogo não altera o recibo.
+  await emitNftUpdate(page, 'nft-ivory-baron-088', { price: '9.99' });
+  await page.waitForTimeout(300);
+  await expect(receipt.getByTestId('receipt-total')).toHaveText(formatEth(order.snapshot.total));
+  await expect(receipt).not.toContainText('9.99');
+
+  await expect.poll(() => serverCart(page)).toEqual([{ editionId: 'nft-golden-beat-207-1-50', quantity: 1 }]);
 });

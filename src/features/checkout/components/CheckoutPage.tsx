@@ -1,17 +1,20 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link } from '@tanstack/react-router';
+import { Link, Navigate, useNavigate } from '@tanstack/react-router';
 import { useForm, useWatch } from 'react-hook-form';
 
-import type { Cart, Profile, Quote, Wallet } from '@/contracts';
+import { QuoteSchema, type Cart, type Profile, type Quote, type Wallet } from '@/contracts';
 import { useSession } from '@/features/auth/session';
 import { OrderSummary } from '@/features/cart/components/OrderSummary';
 import { OrderSummarySkeleton } from '@/features/cart/components/OrderSummarySkeleton';
 import { cartLineName } from '@/features/cart/labels';
 import { useCart } from '@/features/cart/queries';
 import { useQuote } from '@/features/cart/quote-queries';
+import { getPendingOrder } from '@/features/orders/pending-order';
+import { isUncertain, useCreateOrder } from '@/features/orders/queries';
 import { useProfile } from '@/features/profile/queries';
 import { useWallets } from '@/features/wallets/queries';
+import { ApiError } from '@/shared/api/api-error';
 import { Breadcrumb } from '@/shared/layout/Breadcrumb';
 import { formatEth, mulEth } from '@/shared/money/eth';
 import { buttonVariants } from '@/shared/ui/button-variants';
@@ -52,6 +55,11 @@ function CheckoutContent(data: CheckoutData) {
   const [review, setReview] = useState<Review | null>(null);
   const [reviewOpen, setReviewOpen] = useState(false);
   const confirmRef = useRef<HTMLButtonElement>(null);
+  const navigate = useNavigate();
+  /** Timeout/rede no envio: o pedido pode existir — reenvio com a mesma chave. */
+  const [verifying, setVerifying] = useState(false);
+  const [orderError, setOrderError] = useState<string | null>(null);
+  const createOrder = useCreateOrder({ onUncertain: () => setVerifying(true) });
   // Foco do erro feito à mão (ordem da tela): o RHF seguiria a ordem de registro dos campos.
   const form = useForm<BuyerFormValues>({
     resolver: zodResolver(buyerSchema),
@@ -95,6 +103,57 @@ function CheckoutContent(data: CheckoutData) {
       error: renewed.isError ? renewed.error : null,
     });
   }
+
+  function confirmOrder(current: Quote) {
+    if (!selected) return;
+    setOrderError(null);
+    const input = {
+      quoteId: current.quoteId,
+      quoteVersion: current.version,
+      walletId: selected.id,
+      network: current.network,
+      buyer: buyerSchema.parse(form.getValues()),
+    };
+    createOrder.mutate(input, {
+      onSuccess: (order) => {
+        setVerifying(false);
+        void navigate({ to: '/pedido/$orderId', params: { orderId: order.id } });
+      },
+      onError: (error) => {
+        if (isUncertain(error)) {
+          setVerifying(true);
+          return;
+        }
+        setVerifying(false);
+        const fresh =
+          error instanceof ApiError && error.code === 'QUOTE_STALE'
+            ? QuoteSchema.safeParse((error.details as { quote?: unknown } | undefined)?.quote)
+            : null;
+        if (fresh?.success) {
+          setReview({ previous: current, current: fresh.data, error: null });
+          return;
+        }
+        setOrderError(
+          error instanceof ApiError ? error.message : 'Não foi possível criar o pedido. Tente novamente.',
+        );
+      },
+    });
+  }
+
+  const orderNotice = verifying ? (
+    <div role="status" className="flex flex-wrap items-center justify-between gap-3 text-body-sm text-amber">
+      <span>Verificando seu pedido…</span>
+      {createOrder.isError && review?.current ? (
+        <Button variant="outline" size="sm" onClick={() => review.current && confirmOrder(review.current)}>
+          Tentar novamente
+        </Button>
+      ) : null}
+    </div>
+  ) : orderError ? (
+    <p role="alert" className="text-body-sm text-coral">
+      {orderError}
+    </p>
+  ) : null;
 
   const onSubmit = form.handleSubmit(
     () => {
@@ -193,6 +252,9 @@ function CheckoutContent(data: CheckoutData) {
           wallet={selected}
           network={values.network}
           returnFocusRef={confirmRef}
+          onConfirm={confirmOrder}
+          confirming={createOrder.isPending}
+          notice={orderNotice}
         />
       ) : null}
     </div>
@@ -226,6 +288,9 @@ export function CheckoutPage() {
   const wallets = useWallets();
   const cart = useCart();
   const failed = [profile, wallets, cart].find((query) => query.isError);
+  const pendingOrder = session ? getPendingOrder(session.user.id) : null;
+  // Pedido em andamento (reload, aba nova): a tentativa continua na tela de status.
+  if (pendingOrder) return <Navigate to="/pedido/$orderId" params={{ orderId: pendingOrder }} replace />;
 
   let content;
   if (failed) {

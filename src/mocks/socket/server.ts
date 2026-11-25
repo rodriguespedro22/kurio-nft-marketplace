@@ -195,6 +195,24 @@ export function emitStaleNft(nftId: string): EmitResult<NftUpdatedEvent> {
   return { event, delivered: event ? deliver(event) : 0 };
 }
 
+/** `order.updated` atrasado: status `pending` com versão anterior à atual. Não muda o banco. */
+export function emitStaleOrder(orderId: string): EmitResult<OrderUpdatedEvent> {
+  const event = mutate((d): OrderUpdatedEvent | null => {
+    const order = d.orders[orderId];
+    if (!order) return null;
+    return {
+      eventId: nextEventId(d),
+      type: 'order.updated',
+      resource: { type: 'order', id: order.id },
+      version: Math.max(0, order.version - 1),
+      occurredAt: new Date().toISOString(),
+      userId: order.userId,
+      data: { status: 'pending', txHash: null, rejectionReason: null, explorerUrl: null },
+    };
+  });
+  return { event, delivered: event ? deliver(event) : 0 };
+}
+
 /**
  * Derruba todas as conexões (testes de reconexão); com `holdMs`, recusa reconexões por esse
  * tempo. Os sockets saem da lista na hora: nada emitido depois disso chega até reconectarem.
