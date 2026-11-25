@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { z } from 'zod';
 
-import { UserSchema } from '@/contracts';
+import { UserSchema, type User } from '@/contracts';
 
 /**
  * Sessão do cliente (ARCHITECTURE.md §4): token em localStorage (`kurio:session`) — o MSW não emite
@@ -55,6 +55,11 @@ export function setSession(session: Session): void {
   }
   lastSignOutReason = null;
   emit(session);
+}
+
+/** Perfil editado: troca o usuário da sessão atual (header e menu refletem na hora). */
+export function updateSessionUser(user: User): void {
+  if (current && current.user.id === user.id) setSession({ ...current, user });
 }
 
 export function clearSession(reason: SignOutReason): void {

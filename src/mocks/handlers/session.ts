@@ -3,12 +3,22 @@ import type { User } from '@/contracts';
 import { randomToken } from '../db/ids';
 import type { MockDb, SessionRecord, UserRecord } from '../db/schema';
 import { db } from '../db/store';
-import { apiError, bearerToken } from './http';
+import { apiError, apiPath, bearerToken } from './http';
 
-/** Projeção pública do usuário (nunca expõe hash de senha). */
+/**
+ * URL pública do avatar. O banco guarda a data URL (até ~2,7 MB); expor só esta URL curta mantém o
+ * usuário da sessão pequeno no localStorage. `v` muda a cada imagem nova (sem cache velho).
+ */
+export function avatarPath(record: UserRecord): string | null {
+  if (!record.avatarUrl) return null;
+  const version = `${record.avatarUrl.length.toString(36)}${record.avatarUrl.slice(-8)}`;
+  return `${apiPath(`/avatars/${record.id}`)}?v=${encodeURIComponent(version)}`;
+}
+
+/** Projeção pública do usuário (nunca expõe hash de senha nem a data URL do avatar). */
 export function toUser(record: UserRecord): User {
-  const { id, email, displayName, username, avatarUrl, bio } = record;
-  return { id, email, displayName, username, avatarUrl, bio };
+  const { id, email, displayName, username, bio } = record;
+  return { id, email, displayName, username, avatarUrl: avatarPath(record), bio };
 }
 
 /** Cria uma sessão com TTL do cenário. Use dentro de `db.update`. */

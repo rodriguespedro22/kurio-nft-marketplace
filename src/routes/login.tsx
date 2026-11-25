@@ -2,7 +2,7 @@ import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-ro
 
 import { AuthCard } from '@/features/auth/components/AuthCard';
 import { LoginForm } from '@/features/auth/components/LoginForm';
-import { SessionExpiredNotice } from '@/features/auth/components/SessionNotice';
+import { PasswordChangedNotice, SessionExpiredNotice } from '@/features/auth/components/SessionNotice';
 import { AuthSearchSchema } from '@/features/auth/search';
 import { getSession, isSessionExpired, safeRedirect } from '@/features/auth/session';
 import { ensureSessionValidated } from '@/features/auth/sign-out';
@@ -32,7 +32,13 @@ function LoginPage() {
         redirect={target}
         mobileTitle="Entrar na Kurio"
         description="Entre para gerenciar sua carteira, coleção e perfil de criador."
-        notice={motivo === 'expirada' ? <SessionExpiredNotice /> : null}
+        notice={
+          motivo === 'expirada' ? (
+            <SessionExpiredNotice />
+          ) : motivo === 'senha' ? (
+            <PasswordChangedNotice />
+          ) : null
+        }
         footer={
           <>
             Novo na Kurio?{' '}

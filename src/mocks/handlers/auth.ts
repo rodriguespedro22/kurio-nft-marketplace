@@ -11,8 +11,8 @@ import { getScenario } from '../scenarios';
 import { apiError, apiPath, bearerToken, readJson, validationError } from './http';
 import { authenticate, createSession, toUser } from './session';
 
-const EMAIL_TAKEN = 'E-mail já cadastrado';
-const USERNAME_TAKEN = 'Nome de usuário já em uso';
+export const EMAIL_TAKEN = 'E-mail já cadastrado';
+export const USERNAME_TAKEN = 'Nome de usuário já em uso';
 
 function authResponse(user: UserRecord, session: SessionRecord): AuthResponse {
   return { token: session.token, user: toUser(user), expiresAt: session.expiresAt };

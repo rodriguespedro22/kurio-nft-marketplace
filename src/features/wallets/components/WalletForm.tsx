@@ -1,4 +1,4 @@
-import { useState, type ComponentProps } from 'react';
+import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CircleAlert } from 'lucide-react';
 import { useController, useForm } from 'react-hook-form';
@@ -13,13 +13,13 @@ import {
   type WalletInput,
 } from '@/contracts';
 import { applyServerErrors } from '@/shared/lib/form-errors';
-import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/button';
 import { FormField } from '@/shared/ui/form-field';
+import { EnsNameInput } from '@/shared/ui/ens-name-input';
 import { Input } from '@/shared/ui/input';
 import { Select } from '@/shared/ui/select';
 
-import { ensFromLabel, ensLabel, SLOT_TITLES, walletFormValues } from '../form-values';
+import { SLOT_TITLES, walletFormValues } from '../form-values';
 import { useSaveWallet } from '../queries';
 
 const FIELDS = [
@@ -34,35 +34,6 @@ const FIELDS = [
   'email',
   'ensName',
 ] as const;
-
-type EnsNameInputProps = Omit<ComponentProps<'input'>, 'value' | 'onChange'> & {
-  value: string;
-  onChange: (ensName: string) => void;
-};
-
-/**
- * "Nome ENS": o sufixo `.eth` (único aceito) fica fixo ao lado e o campo guarda o nome completo.
- * Recebe do FormField o id e os atributos de acessibilidade e os repassa ao `<input>`.
- */
-function EnsNameInput({ value, onChange, className, ...props }: EnsNameInputProps) {
-  return (
-    <div className={cn('flex gap-2.5', className)}>
-      <span
-        aria-hidden="true"
-        className="grid h-11 w-19 shrink-0 place-items-center rounded-field border border-border text-body-sm text-foreground"
-      >
-        .eth
-      </span>
-      <Input
-        {...props}
-        autoCapitalize="none"
-        spellCheck={false}
-        value={ensLabel(value)}
-        onChange={(event) => onChange(ensFromLabel(event.target.value.trim().toLowerCase()))}
-      />
-    </div>
-  );
-}
 
 type WalletFormProps = {
   /** Carteira salva (edição); sem ela o envio cria o slot. */

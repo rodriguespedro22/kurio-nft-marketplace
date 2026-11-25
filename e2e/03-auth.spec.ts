@@ -5,6 +5,8 @@ import { expect, test } from './support/fixtures';
 import { bootScenario, expireSession } from './support/mock';
 
 const registerForm = (page: Page) => page.getByRole('form', { name: 'Criar conta' });
+/** O perfil mostra os dados da conta no formulário. */
+const displayNameField = (page: Page) => page.getByLabel('Nome de exibição', { exact: true });
 
 async function fillRegister(
   page: Page,
@@ -128,8 +130,8 @@ test('/perfil deslogado vai a /login?redirect=%2Fperfil e volta após o login', 
 
   await submitLogin(page, USERS.colecionador);
   await expect(page).toHaveURL('/perfil');
-  await expect(page.getByRole('heading', { level: 1, name: 'Meu perfil' })).toBeVisible();
-  await expect(page.getByRole('main')).toContainText(USERS.colecionador.displayName);
+  await expect(page.getByRole('heading', { level: 1, name: 'Meu perfil' })).toBeAttached();
+  await expect(displayNameField(page)).toHaveValue(USERS.colecionador.displayName);
 });
 
 test('sessão expirada no servidor: aviso "Sua sessão expirou" e retomada do ponto após login', async ({
@@ -154,13 +156,13 @@ test('sessão expirada no servidor: aviso "Sua sessão expirou" e retomada do po
 
 test('login A → logout → login B mostra só os dados de B', async ({ page }) => {
   await loginViaUi(page, USERS.colecionador, '/perfil');
-  await expect(page.getByRole('main')).toContainText(USERS.colecionador.displayName);
+  await expect(displayNameField(page)).toHaveValue(USERS.colecionador.displayName);
 
   await logoutViaUi(page);
   await loginViaUi(page, USERS.ana, '/perfil');
 
   await expect(page).toHaveURL('/perfil');
-  await expect(page.getByRole('main')).toContainText(USERS.ana.displayName);
+  await expect(displayNameField(page)).toHaveValue(USERS.ana.displayName);
   await expect(page.getByRole('main')).not.toContainText(USERS.colecionador.displayName);
   await expect(page.getByRole('banner')).not.toContainText(USERS.colecionador.displayName);
 });

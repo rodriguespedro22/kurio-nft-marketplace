@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 
-import { loginViaUi, USERS } from './support/auth';
+import { loginViaUi, submitLogin, USERS } from './support/auth';
 import { expect, test } from './support/fixtures';
 import { apiAsUser, bootScenario } from './support/mock';
 
@@ -140,4 +140,96 @@ test('conexão: desconectar e conectar; WalletConnect recusa e mostra "Recusada"
   await expect(status(primary)).toHaveText(/Recusada/);
   await expect(status(primary)).toContainText('A carteira recusou a conexão');
   await expect(primary.getByRole('button', { name: 'Tentar de novo' })).toBeVisible();
+});
+
+// ——— Perfil ———
+
+/** PNG 1×1 transparente. */
+const TINY_PNG = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+  'base64',
+);
+const NEW_PASSWORD = 'Nova@Senha26';
+
+const profileForm = (page: Page) => page.getByRole('form', { name: 'Perfil do colecionador' });
+const passwordForm = (page: Page) => page.getByRole('form', { name: 'Alterar senha' });
+const avatarImage = (page: Page) => page.getByRole('img', { name: 'Seu avatar' });
+
+test('perfil: nome de exibição salvo aparece no header e o reload mantém; nome de usuário de outro usuário dá erro no campo', async ({
+  page,
+}) => {
+  await loginViaUi(page, USERS.colecionador, '/perfil');
+  const form = profileForm(page);
+  await expect(form.getByLabel('Nome de usuário', { exact: true })).toHaveValue('colecionador');
+  await expect(form.getByLabel('Nome ENS', { exact: true })).toHaveValue('colecionador');
+
+  await form.getByLabel('Nome de exibição', { exact: true }).fill('Colecionador Lendário');
+  await form.getByRole('button', { name: 'Salvar' }).click();
+  await expect(page.getByText('Perfil salvo')).toBeVisible();
+  await expect(page.getByRole('banner')).toContainText('Colecionador Lendário');
+
+  await page.reload();
+  await expect(form.getByLabel('Nome de exibição', { exact: true })).toHaveValue('Colecionador Lendário');
+  await expect(page.getByRole('banner')).toContainText('Colecionador Lendário');
+
+  const username = form.getByLabel('Nome de usuário', { exact: true });
+  await username.fill('ana');
+  await form.getByRole('button', { name: 'Salvar' }).click();
+  await expect(username).toHaveAttribute('aria-invalid', 'true');
+  await expect(username).toHaveAccessibleDescription(/Nome de usuário já em uso/);
+});
+
+test('avatar: acima de 2 MB dá erro; imagem válida aparece, continua após o reload e pode ser removida', async ({
+  page,
+}) => {
+  await loginViaUi(page, USERS.colecionador, '/perfil');
+  const picker = page.getByLabel('Escolher imagem do avatar');
+
+  await picker.setInputFiles({
+    name: 'grande.png',
+    mimeType: 'image/png',
+    buffer: Buffer.alloc(2 * 1024 * 1024 + 1),
+  });
+  await expect(page.getByRole('alert')).toContainText('A imagem deve ter até 2 MB.');
+  await expect(avatarImage(page)).toHaveCount(0);
+
+  await picker.setInputFiles({ name: 'avatar.png', mimeType: 'image/png', buffer: TINY_PNG });
+  await expect(avatarImage(page)).toHaveAttribute('src', /\/api\/avatars\/user-1\?v=/);
+  await expect(page.getByText('Avatar atualizado')).toBeVisible();
+  await expect.poll(() => avatarImage(page).evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(1);
+
+  await page.reload();
+  await expect(avatarImage(page)).toHaveAttribute('src', /\/api\/avatars\/user-1\?v=/);
+
+  await page.getByRole('button', { name: 'Remover' }).click();
+  await expect(avatarImage(page)).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Alterar', exact: true })).toBeVisible();
+  await expect(avatarImage(page)).toHaveCount(0);
+});
+
+test('senha: atual errada dá erro no campo; troca válida desloga e só a nova senha entra', async ({ page }) => {
+  await loginViaUi(page, USERS.ana, '/perfil');
+  const form = passwordForm(page);
+  const current = form.getByLabel('Senha atual', { exact: true });
+
+  await current.fill('Errada@2026');
+  await form.getByLabel('Nova senha', { exact: true }).fill(NEW_PASSWORD);
+  await form.getByLabel('Confirmar nova senha', { exact: true }).fill(NEW_PASSWORD);
+  await form.getByRole('button', { name: 'Alterar senha' }).click();
+  await expect(current).toHaveAttribute('aria-invalid', 'true');
+  await expect(current).toHaveAccessibleDescription('Senha atual incorreta');
+
+  await current.fill(USERS.ana.password);
+  await form.getByRole('button', { name: 'Alterar senha' }).click();
+  await expect(page).toHaveURL(/\/login\?.*motivo=senha/);
+  await expect(page.getByText('Senha alterada. Entre com a nova senha.')).toBeVisible();
+  await expect(page.getByRole('banner').getByRole('link', { name: 'Entrar' })).toBeVisible();
+
+  await submitLogin(page, USERS.ana);
+  await expect(page.getByText('E-mail ou senha inválidos.')).toBeVisible();
+
+  await submitLogin(page, { email: USERS.ana.email, password: NEW_PASSWORD });
+  await expect(page).toHaveURL('/perfil');
+  await expect(page.getByRole('banner')).toContainText(USERS.ana.displayName);
 });

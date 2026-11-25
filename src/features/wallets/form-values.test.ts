@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 
 import { WalletInputSchema, type Wallet } from '@/contracts';
 
-import { copyFromPrimary, ensFromLabel, ensLabel, walletFormValues } from './form-values';
+import { copyFromPrimary, walletFormValues } from './form-values';
 
 const primary: Wallet = {
   id: 'wallet-1',
@@ -52,12 +52,5 @@ describe('valores do formulário de carteira', () => {
       provider: 'metamask',
       ensName: 'colecionador.eth',
     });
-  });
-
-  test('Nome ENS: o campo mostra só o nome; o valor guardado leva ".eth" (sem duplicar)', () => {
-    expect(ensLabel('colecionador.eth')).toBe('colecionador');
-    expect(ensFromLabel('colecionador')).toBe('colecionador.eth');
-    expect(ensFromLabel('colecionador.eth')).toBe('colecionador.eth');
-    expect(ensFromLabel('')).toBe('');
   });
 });

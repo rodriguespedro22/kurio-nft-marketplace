@@ -48,13 +48,3 @@ export function walletFormValues(slot: WalletSlot, wallet?: Wallet, account?: Ac
 export function copyFromPrimary(primary: Wallet, current: WalletInput): WalletInput {
   return { ...walletFormValues(current.slot, primary), label: current.label };
 }
-
-const ENS_SUFFIX = /\.eth$/i;
-
-/** O campo "Nome ENS" mostra só o nome; o sufixo `.eth` fica fixo ao lado. */
-export const ensLabel = (ensName: string) => ensName.replace(ENS_SUFFIX, '');
-
-export function ensFromLabel(label: string): string {
-  const name = label.replace(ENS_SUFFIX, '');
-  return name ? `${name}.eth` : '';
-}
