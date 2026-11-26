@@ -114,10 +114,9 @@ try {
         (a, b) => (a.lhr.categories.performance.score ?? 0) - (b.lhr.categories.performance.score ?? 0),
       );
       const kept = byPerf[Math.floor(byPerf.length / 2)];
-      const [html, json] = kept.report;
+      const [html] = kept.report;
       const base = path.join(REPORTS, `${page.slug}-${profile}`);
       await writeFile(`${base}.report.html`, html);
-      await writeFile(`${base}.report.json`, json);
 
       const observedLcp = median(
         runs.map((r) => r.lhr.audits.metrics.details?.items?.[0]?.observedLargestContentfulPaint ?? 0),
