@@ -1,7 +1,7 @@
 # Lighthouse — Kurio (build de demo)
 
 Gerado por `pnpm lighthouse` em 2026-11-25. Mediana de 3 rodadas por página e perfil,
-cada uma num Chrome headless com perfil limpo, contra a publicação na Vercel (https://kurio-nft-marketplace-eight-theta.vercel.app),
+cada uma num Chrome headless com perfil limpo, contra a publicação na Vercel (https://pedro-rodrigues-kurio.vercel.app),
 com o build `--mode demo`, mocks MSW ligados, cenário padrão e painel de cenários visível (ele faz parte da demo).
 
 | Página | Perfil | Performance (meta 90) | Acessibilidade (meta 95) | Boas práticas (meta 95) | SEO (meta 90) | LCP | CLS | TBT | LCP observado |
@@ -48,7 +48,7 @@ simplificação exclusiva para a auditoria, que o enunciado veda.
 
 ## Ambiente
 
-- Alvo: https://kurio-nft-marketplace-eight-theta.vercel.app (publicação na Vercel, build `--mode demo`)
+- Alvo: https://pedro-rodrigues-kurio.vercel.app (publicação na Vercel, build `--mode demo`)
 - Lighthouse 13.6.0 · Chrome 158.0.0.0 · Node v24.22.1
 - SO: Windows_NT 10.0.26300 (x64) · CPU: 13th Gen Intel(R) Core(TM) i5-13420H (12 núcleos) · benchmarkIndex 3651
 - Mobile: preset padrão do Lighthouse (Moto G Power), throttling simulado — RTT 150 ms, 1.6 Mbps, CPU 4× mais lenta

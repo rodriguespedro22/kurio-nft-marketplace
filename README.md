@@ -9,7 +9,7 @@ Tailwind v4 · shadcn/ui (Radix) · sonner · MSW 2 + `@mswjs/socket.io-binding`
 
 Decisões de arquitetura, contratos e estratégias de sincronização: [ARCHITECTURE.md](ARCHITECTURE.md).
 
-**Demo publicada:** https://kurio-nft-marketplace-eight-theta.vercel.app (mocks e tempo real ligados; o
+**Demo publicada:** https://pedro-rodrigues-kurio.vercel.app (mocks e tempo real ligados; o
 painel "Cenários", no canto inferior esquerdo, troca o cenário e o perfil de rede).
 
 ## Como usar a demo
@@ -199,7 +199,7 @@ derrubam o ClientHello do Node 26), rode com `NODE_OPTIONS=--tls-max-v1.2`; o sc
 [lighthouse/SUMMARY.md](lighthouse/SUMMARY.md). Sem argumentos, faz o build de demo e audita o `vite preview`
 local (`--skip-build` reaproveita o build); com `--url=…`, audita uma publicação.
 
-A auditoria versionada é a da demo publicada (`pnpm lighthouse --url=https://kurio-nft-marketplace-eight-theta.vercel.app`):
+A auditoria versionada é a da demo publicada (`pnpm lighthouse --url=https://pedro-rodrigues-kurio.vercel.app`):
 Performance 94 no mobile e 97 no desktop, nas duas páginas; Acessibilidade, Boas práticas e SEO em 100. No
 `vite preview` local o mobile fica em ~84–86, porque ele serve gzip em HTTP/1.1, e a Vercel, Brotli em HTTP/2
 (detalhes no resumo). A nota mobile também depende da carga da máquina, porque a simulação usa o tempo de CPU
