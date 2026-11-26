@@ -59,7 +59,7 @@ async function audit(url, config) {
   try {
     const result = await lighthouse(
       url,
-      { port: chrome.port, output: ['html', 'json'], logLevel: 'error' },
+      { port: chrome.port, output: ['html'], logLevel: 'error' },
       config,
     );
     if (!result) throw new Error(`Lighthouse não devolveu resultado para ${url}`);
