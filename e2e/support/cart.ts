@@ -6,8 +6,11 @@ import type { ServerQuote } from './mock';
 
 /** Atalho do carrinho: no header (desktop) ou na barra inferior (mobile). */
 export function cartShortcut(page: Page, isMobile: boolean) {
-  const area = isMobile ? page.getByRole('navigation', { name: 'Atalhos' }) : page.getByRole('banner');
-  return area.getByRole('link', { name: /^Carrinho/ });
+  // No carrinho e no pagamento a barra some no celular: o atalho segue na árvore, só oculto.
+  const area = isMobile
+    ? page.getByRole('navigation', { name: 'Atalhos', includeHidden: true })
+    : page.getByRole('banner');
+  return area.getByRole('link', { name: /^Carrinho/, includeHidden: isMobile });
 }
 
 export const cartList = (page: Page) => page.getByRole('list', { name: 'Itens do carrinho' });

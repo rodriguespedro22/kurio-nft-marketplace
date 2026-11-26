@@ -9,6 +9,7 @@ import { getSession, isSessionExpired, safeRedirect } from '@/features/auth/sess
 import { ensureSessionValidated } from '@/features/auth/sign-out';
 
 export const Route = createFileRoute('/login')({
+  staticData: { hidePhoneNav: true },
   validateSearch: AuthSearchSchema,
   beforeLoad: async ({ search }) => {
     await ensureSessionValidated();
@@ -32,7 +33,7 @@ function LoginPage() {
         backdrop={<HomeContent />}
         active="login"
         redirect={target}
-        mobileTitle="Entrar na Kurio"
+        mobileTitle="Entrar"
         description="Entre para gerenciar sua carteira, coleção e perfil de criador."
         notice={
           motivo === 'expirada' ? (
@@ -44,7 +45,7 @@ function LoginPage() {
         footer={
           <>
             Novo na Kurio?{' '}
-            <Link to="/cadastro" search={search} className="font-bold text-accent hover:underline">
+            <Link to="/cadastro" search={search} className="hover:text-accent hover:underline">
               Crie uma conta
             </Link>
           </>

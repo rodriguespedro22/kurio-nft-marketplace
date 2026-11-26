@@ -8,6 +8,7 @@ import { getSession, isSessionExpired, safeRedirect } from '@/features/auth/sess
 import { ensureSessionValidated } from '@/features/auth/sign-out';
 
 export const Route = createFileRoute('/cadastro')({
+  staticData: { hidePhoneNav: true },
   validateSearch: AuthSearchSchema,
   beforeLoad: async ({ search }) => {
     await ensureSessionValidated();
@@ -36,7 +37,7 @@ function RegisterPage() {
         footer={
           <>
             Já tem uma conta?{' '}
-            <Link to="/login" search={search} className="font-bold text-accent hover:underline">
+            <Link to="/login" search={search} className="hover:text-accent hover:underline">
               Entre
             </Link>
           </>

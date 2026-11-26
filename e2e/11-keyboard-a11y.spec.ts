@@ -58,7 +58,9 @@ test('só com Tab: header → busca e filtros → card, sempre com foco visível
   // `settled` pode passar antes de o catálogo começar a carregar; o percurso precisa dos cards.
   await expect(page.getByRole('list', { name: 'NFTs do catálogo' }).getByRole('link').first()).toBeVisible();
 
-  const reached = { header: false, search: false, filters: false, card: false };
+  // No celular não há header (a navegação é a barra inferior): o percurso começa na busca.
+  const phone = (page.viewportSize()?.width ?? 1440) < 768;
+  const reached = { header: phone, search: false, filters: false, card: false };
   for (let i = 0; i < 150 && !reached.card; i++) {
     await page.keyboard.press('Tab');
     expect(await focusWithoutOutline(page), `foco visível no Tab ${i + 1}`).toBeNull();

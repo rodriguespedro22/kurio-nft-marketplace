@@ -58,7 +58,7 @@ test('sem carteira: link para /carteiras; enviar incompleto marca os campos e fo
   await addFromDetail(page, GOLDEN_BEAT, /1\/50/);
   await page.goto('/checkout');
 
-  const wallets = page.getByRole('group', { name: 'Carteira e rede' });
+  const wallets = page.getByRole('group', { name: 'Carteira conectada' });
   await expect(wallets).toContainText('Você ainda não tem carteira cadastrada.');
   await wallets.getByRole('link', { name: 'Cadastrar carteira' }).click();
   await expect(page).toHaveURL('/carteiras');
@@ -84,7 +84,7 @@ test('trocar a rede pede nova cotação: taxa e total mudam', async ({ page }) =
   await page.goto('/checkout');
 
   // A carteira principal (Ethereum) vem marcada e preenche o formulário.
-  const wallets = page.getByRole('group', { name: 'Carteira e rede' });
+  const wallets = page.getByRole('group', { name: 'Carteira conectada' });
   await expect(wallets.getByRole('radio', { name: /Principal/ })).toBeChecked();
   await expect(buyerForm(page).getByLabel('Rede')).toHaveValue('ethereum');
   const ethereum = await expectCheckoutSummary(page, 'ethereum');

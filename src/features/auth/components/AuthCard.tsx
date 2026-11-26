@@ -39,7 +39,7 @@ export function AuthCard(props: AuthCardProps) {
 
   if (!desktop) {
     return (
-      <div className="flex justify-center px-4 py-8">
+      <div className="flex justify-center px-4 pt-[113px] pb-8">
         <div className="w-full max-w-[31.25rem]">
           <AuthBody {...props} desktop={false} />
         </div>
@@ -99,7 +99,7 @@ function AuthBody({
 
   return (
     <div className="flex flex-col gap-6 md:gap-0 md:pt-12 md:pb-6">
-      <p className="text-center text-display font-bold tracking-brand md:hidden" aria-hidden="true">
+      <p className="mb-12 text-center text-display font-bold tracking-brand md:hidden" aria-hidden="true">
         KURIO
       </p>
 
@@ -132,11 +132,13 @@ function AuthBody({
       </nav>
 
       {desktop ? <DialogPrimitive.Title asChild>{title}</DialogPrimitive.Title> : title}
-      <p className="text-center text-body-sm text-secondary md:mt-10 md:px-12 md:text-caption md:leading-4 md:text-foreground">
+      <p className="max-md:sr-only md:mt-10 md:px-12 md:text-center md:text-caption md:leading-4 md:text-foreground">
         {description}
       </p>
       {notice ? <div className="md:px-20 md:pt-6">{notice}</div> : null}
-      <div className="md:px-20 md:pt-6 md:[&_input]:h-10 md:[&_input]:pl-4">{children}</div>
+      <div className="md:px-20 md:pt-6 max-md:[&_button[type=submit]]:h-[60px] max-md:[&_input]:h-[50px] md:[&_input]:h-10 md:[&_input]:pl-4">
+        {children}
+      </div>
       <SocialLogin wide={active === 'register'} />
       <div className="text-center text-body-sm text-secondary md:hidden">{footer}</div>
     </div>

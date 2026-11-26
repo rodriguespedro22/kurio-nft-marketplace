@@ -20,19 +20,56 @@ export async function submitLogin(page: Page, user: { email: string; password: s
   await form.getByRole('button', { name: 'Entrar', exact: true }).click();
 }
 
-/** Login pela interface a partir de `/login`, esperando o header mostrar o usuário. */
+/** No celular (< 768 px) o header sai: a sessão aparece no atalho de perfil da barra inferior. */
+export function isPhone(page: Page): boolean {
+  return (page.viewportSize()?.width ?? 1440) < 768;
+}
+
+/** Atalho de perfil da barra inferior (lido pelo DOM: no carrinho e no pagamento a barra fica oculta). */
+const phoneProfile = (page: Page) => page.locator('nav[aria-label="Atalhos"] a[href="/perfil"]');
+
+/** Onde a tela mostra o usuário logado: header (tablet/desktop) ou atalho de perfil (celular). */
+export async function expectSignedIn(page: Page, displayName: string): Promise<void> {
+  if (isPhone(page)) await expect(phoneProfile(page)).toHaveText(`Perfil de ${displayName}`);
+  else await expect(page.getByRole('banner')).toContainText(displayName);
+}
+
+/** Sessão encerrada: link "Entrar" no header ou atalho "Perfil" sem nome no celular. */
+export async function expectSignedOut(page: Page): Promise<void> {
+  if (isPhone(page)) await expect(phoneProfile(page)).toHaveText('Perfil');
+  else await expect(page.getByRole('banner').getByRole('link', { name: 'Entrar' })).toBeVisible();
+}
+
+/** Vai ao login pela navegação da página (sem recarregar). */
+export async function openLoginFromNav(page: Page): Promise<void> {
+  if (isPhone(page)) {
+    await page
+      .getByRole('navigation', { name: 'Atalhos' })
+      .getByRole('link', { name: 'Perfil', exact: true })
+      .click();
+  } else {
+    await page.getByRole('banner').getByRole('link', { name: 'Entrar' }).click();
+  }
+}
+
+/** Login pela interface a partir de `/login`, esperando a tela mostrar o usuário. */
 export async function loginViaUi(page: Page, user: SeedUser, redirect?: string): Promise<void> {
   await page.goto(redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login');
   await submitLogin(page, user);
-  await expect(page.getByRole('banner')).toContainText(user.displayName);
+  await expectSignedIn(page, user.displayName);
 }
 
-/** Abre o menu da conta no header e clica em "Sair". */
+/** Sai pelo menu da conta no header ou, no celular, pelo botão "Sair" do perfil. */
 export async function logoutViaUi(page: Page): Promise<void> {
-  await page
-    .getByRole('banner')
-    .getByRole('button', { name: /^Conta de / })
-    .click();
-  await page.getByRole('menuitem', { name: 'Sair' }).click();
-  await expect(page.getByRole('banner').getByRole('link', { name: 'Entrar' })).toBeVisible();
+  if (isPhone(page)) {
+    await page.goto('/perfil');
+    await page.getByRole('button', { name: /^Sair/ }).first().click();
+  } else {
+    await page
+      .getByRole('banner')
+      .getByRole('button', { name: /^Conta de / })
+      .click();
+    await page.getByRole('menuitem', { name: 'Sair' }).click();
+  }
+  await expectSignedOut(page);
 }

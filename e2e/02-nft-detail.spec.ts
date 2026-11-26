@@ -26,7 +26,8 @@ test('acesso direto + reload: nome, preço e título da página', async ({ page,
   else await expect(page.getByRole('navigation', { name: 'Trilha de navegação' })).toContainText('Mercado');
 });
 
-test('galeria: miniatura troca a arte principal e as setas navegam', async ({ page }) => {
+test('galeria: miniatura troca a arte principal e as setas navegam', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'o frame mobile mostra só a arte principal, sem miniaturas');
   await page.goto(IVORY);
   const thumbs = page.getByRole('tablist', { name: 'Imagens do NFT' }).getByRole('tab');
   await expect(thumbs).toHaveCount(3);

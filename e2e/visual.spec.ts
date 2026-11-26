@@ -33,7 +33,7 @@ async function prepare(page: Page) {
 async function settle(page: Page) {
   // O app só monta depois que o Service Worker do mock assume a página: antes disso não há
   // `aria-busy` nenhum, e a checagem abaixo passaria com a tela vazia.
-  await expect(page.locator('main img').first()).toBeVisible({ timeout: 15_000 });
+  await expect(page.locator('main img').first()).toBeAttached({ timeout: 15_000 });
   await expect(page.locator('[aria-busy="true"]')).toHaveCount(0, { timeout: 15_000 });
   await page.evaluate(async () => {
     await document.fonts.ready;

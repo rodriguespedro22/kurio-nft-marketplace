@@ -67,12 +67,16 @@ export function CartLine({ item, onRemoved }: CartLineProps) {
             {item.nft.name}
           </Link>
         </h2>
-        <p className="mt-1.5 text-body-sm leading-4 text-secondary md:mt-0 md:text-muted">
-          Edição: {item.editionLabel}
+        {/* Layout: no celular a edição; no desktop o ID do token (a edição segue para o leitor de tela). */}
+        <p className="mt-1.5 text-body-sm leading-4 text-secondary md:hidden">Edição: {item.editionLabel}</p>
+        <p className="hidden text-body-sm leading-4 text-muted md:block">
+          ID do token: #{item.nft.tokenNumber}
+          <span className="sr-only"> · Edição: {item.editionLabel}</span>
         </p>
+        {/* Celular: o valor da linha (preço × quantidade), como no frame. */}
         <p className="mt-auto text-section leading-4 font-bold text-accent tabular-nums md:hidden">
-          <span className="sr-only">Preço unitário: </span>
-          {formatEth(item.unitPrice)}
+          <span className="sr-only">Total da linha: </span>
+          {formatEth(mulEth(item.unitPrice, quantity))}
         </p>
       </div>
 

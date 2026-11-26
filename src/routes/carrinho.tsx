@@ -6,6 +6,7 @@ import { cartQueries } from '@/features/cart/queries';
 import { cartOwnerOf } from '@/features/cart/use-cart-owner';
 
 export const Route = createFileRoute('/carrinho')({
+  staticData: { hidePhoneNav: true },
   // Público: visitante também tem carrinho. Prefetch sem bloquear (skeleton na hora).
   loader: ({ context: { queryClient } }) => {
     void queryClient.prefetchQuery(cartQueries.detail(cartOwnerOf(getSession())));

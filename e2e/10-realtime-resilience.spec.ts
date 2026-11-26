@@ -1,6 +1,13 @@
 import type { Page } from '@playwright/test';
 
-import { submitLogin, USERS, loginViaUi, logoutViaUi } from './support/auth';
+import {
+  expectSignedIn,
+  openLoginFromNav,
+  submitLogin,
+  USERS,
+  loginViaUi,
+  logoutViaUi,
+} from './support/auth';
 import { addFromDetail, cartList, cartShortcut } from './support/cart';
 import { orderStatus, placeOrder } from './support/checkout';
 import { expect, test } from './support/fixtures';
@@ -100,9 +107,9 @@ test('troca de usuário: carrinho e avisos de A não aparecem para B', async ({ 
 
   // Sem recarregar a página: o que ficou em memória não pode vazar.
   await logoutViaUi(page);
-  await page.getByRole('banner').getByRole('link', { name: 'Entrar' }).click();
+  await openLoginFromNav(page);
   await submitLogin(page, USERS.ana);
-  await expect(page.getByRole('banner')).toContainText(USERS.ana.displayName);
+  await expectSignedIn(page, USERS.ana.displayName);
   await cartShortcut(page, isMobile).click();
   await expect(page).toHaveURL('/carrinho');
   await expect(page.getByText('Seu carrinho está vazio')).toBeVisible();

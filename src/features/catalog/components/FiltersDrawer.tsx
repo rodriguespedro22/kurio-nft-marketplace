@@ -7,10 +7,13 @@ import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger 
 
 import { useCatalogSearch } from '../use-catalog-search';
 import { FilterPanel } from './CategorySidebar';
+import { SortSelect } from './SortSelect';
+import { useMediaQuery } from '@/shared/lib/use-media-query';
 
 /** Filtros abaixo de 1280 px: bottom sheet com foco preso; `Escape` devolve o foco ao botão. */
 export function FiltersDrawer({ className }: { className?: string }) {
   const [open, setOpen] = useState(false);
+  const phone = !useMediaQuery('(min-width: 48rem)');
   const countId = useId();
   const { category, network, minPrice, maxPrice } = useCatalogSearch();
   const active = (category?.length ?? 0) + (network?.length ?? 0) + (minPrice || maxPrice ? 1 : 0);
@@ -46,6 +49,7 @@ export function FiltersDrawer({ className }: { className?: string }) {
         <SheetHeader>
           <SheetTitle>Filtros</SheetTitle>
         </SheetHeader>
+        {phone ? <SortSelect className="rounded-field border border-border px-3" /> : null}
         <FilterPanel />
         <SheetClose asChild>
           <Button size="lg" shape="pill" className="mt-2 w-full">

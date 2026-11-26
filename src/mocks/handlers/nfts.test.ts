@@ -153,7 +153,7 @@ describe('GET /nfts — ordenação, abas e paginação', () => {
   test('itens de lista trazem imagem principal e preço de vitrine', async () => {
     const { items } = await page({ q: 'emerald ape' });
     const emerald = items.find((i) => i.id === 'nft-emerald-ape-042');
-    expect(emerald).toMatchObject({ price: '1.19', isRare: true, network: 'ethereum' });
+    expect(emerald).toMatchObject({ price: '1.19', isRare: false, network: 'ethereum' });
     expect(emerald?.image.asset).toMatch(/^ape-/);
   });
 });

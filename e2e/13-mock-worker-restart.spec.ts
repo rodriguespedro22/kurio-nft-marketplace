@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 
-import { submitLogin, USERS } from './support/auth';
+import { expectSignedIn, openLoginFromNav, submitLogin, USERS } from './support/auth';
 import { expect, test } from './support/fixtures';
 import { bootScenario } from './support/mock';
 
@@ -31,8 +31,8 @@ test('API simulada continua respondendo depois que o navegador reinicia o worker
   expect(await mockApiContentType(page)).toContain('application/json');
 
   // Login pela interface, sem recarregar: o POST passa pelo worker reiniciado.
-  await page.getByRole('banner').getByRole('link', { name: 'Entrar' }).click();
+  await openLoginFromNav(page);
   await expect(page).toHaveURL(/\/login/);
   await submitLogin(page, USERS.colecionador);
-  await expect(page.getByRole('banner')).toContainText(USERS.colecionador.displayName);
+  await expectSignedIn(page, USERS.colecionador.displayName);
 });

@@ -22,10 +22,10 @@ test.beforeEach(async ({ page }) => {
 test('visitante: adicionar, alterar, remover; contador e reload acompanham', async ({ page, isMobile }) => {
   await addFromDetail(page, IVORY, /1\/10/);
   // No celular o detalhe troca a barra inferior pela barra de compra (layout): o contador é conferido fora dele.
-  if (!isMobile) await expect(cartShortcut(page, isMobile)).toHaveAccessibleName('Carrinho, 1 item');
+  if (!isMobile) await expect(cartShortcut(page, isMobile)).toHaveAttribute('aria-label', 'Carrinho, 1 item');
   await addFromDetail(page, GOLDEN_BEAT, /1\/50/);
   if (isMobile) await page.goto('/');
-  await expect(cartShortcut(page, isMobile)).toHaveAccessibleName('Carrinho, 2 itens');
+  await expect(cartShortcut(page, isMobile)).toHaveAttribute('aria-label', 'Carrinho, 2 itens');
 
   await cartShortcut(page, isMobile).click();
   await expect(page).toHaveURL('/carrinho');
@@ -34,11 +34,11 @@ test('visitante: adicionar, alterar, remover; contador e reload acompanham', asy
 
   await page.getByRole('button', { name: `Aumentar quantidade de ${IVORY_LINE}` }).click();
   await expect(quantityOf(page, IVORY_LINE)).toHaveValue('2');
-  await expect(cartShortcut(page, isMobile)).toHaveAccessibleName('Carrinho, 3 itens');
+  await expect(cartShortcut(page, isMobile)).toHaveAttribute('aria-label', 'Carrinho, 3 itens');
 
   await page.getByRole('button', { name: `Remover ${GOLDEN_LINE} do carrinho` }).click();
   await expect(cartList(page).getByRole('listitem')).toHaveCount(1);
-  await expect(cartShortcut(page, isMobile)).toHaveAccessibleName('Carrinho, 2 itens');
+  await expect(cartShortcut(page, isMobile)).toHaveAttribute('aria-label', 'Carrinho, 2 itens');
   await expect.poll(() => serverCart(page)).toEqual([{ editionId: IVORY_1_10, quantity: 2 }]);
 
   await page.reload();
@@ -61,7 +61,7 @@ test('login: os itens do visitante continuam no carrinho do usuário', async ({ 
   await submitLogin(page, USERS.colecionador);
   await expect(page).toHaveURL('/carrinho');
   await expect(cartList(page).getByRole('listitem')).toHaveCount(2);
-  await expect(cartShortcut(page, isMobile)).toHaveAccessibleName('Carrinho, 2 itens');
+  await expect(cartShortcut(page, isMobile)).toHaveAttribute('aria-label', 'Carrinho, 2 itens');
   await expect
     .poll(() => serverCart(page))
     .toEqual([

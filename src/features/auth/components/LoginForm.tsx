@@ -44,7 +44,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         </div>
       ) : null}
 
-      <FormField label="E-mail" error={errors.email?.message} required labelClassName="md:sr-only">
+      <FormField label="E-mail" error={errors.email?.message} required labelClassName="sr-only">
         <Input
           type="email"
           autoComplete="email"
@@ -53,7 +53,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         />
       </FormField>
 
-      <FormField label="Senha" error={errors.password?.message} required labelClassName="md:sr-only">
+      <FormField label="Senha" error={errors.password?.message} required labelClassName="sr-only">
         <PasswordInput autoComplete="current-password" placeholder="Senha" {...form.register('password')} />
       </FormField>
 

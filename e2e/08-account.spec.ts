@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 
-import { loginViaUi, submitLogin, USERS } from './support/auth';
+import { expectSignedIn, isPhone, loginViaUi, submitLogin, USERS } from './support/auth';
 import { expect, test } from './support/fixtures';
 import { apiAsUser, bootScenario } from './support/mock';
 
@@ -166,11 +166,11 @@ test('perfil: nome de exibição salvo aparece no header e o reload mantém; nom
   await form.getByLabel('Nome de exibição', { exact: true }).fill('Colecionador Lendário');
   await form.getByRole('button', { name: 'Salvar' }).click();
   await expect(page.getByText('Perfil salvo')).toBeVisible();
-  await expect(page.getByRole('banner')).toContainText('Colecionador Lendário');
+  await expectSignedIn(page, 'Colecionador Lendário');
 
   await page.reload();
   await expect(form.getByLabel('Nome de exibição', { exact: true })).toHaveValue('Colecionador Lendário');
-  await expect(page.getByRole('banner')).toContainText('Colecionador Lendário');
+  await expectSignedIn(page, 'Colecionador Lendário');
 
   const username = form.getByLabel('Nome de usuário', { exact: true });
   await username.fill('ana');
@@ -226,16 +226,18 @@ test('senha: atual errada dá erro no campo; troca válida desloga e só a nova 
   await form.getByRole('button', { name: 'Alterar senha' }).click();
   await expect(page).toHaveURL(/\/login\?.*motivo=senha/);
   await expect(page.getByText('Senha alterada. Entre com a nova senha.')).toBeVisible();
-  await expect(
-    page
-      .getByRole('banner', { includeHidden: true })
-      .getByRole('link', { name: 'Entrar', includeHidden: true }),
-  ).toBeVisible();
+  if (!isPhone(page)) {
+    await expect(
+      page
+        .getByRole('banner', { includeHidden: true })
+        .getByRole('link', { name: 'Entrar', includeHidden: true }),
+    ).toBeVisible();
+  }
 
   await submitLogin(page, USERS.ana);
   await expect(page.getByText('E-mail ou senha inválidos.')).toBeVisible();
 
   await submitLogin(page, { email: USERS.ana.email, password: NEW_PASSWORD });
   await expect(page).toHaveURL('/perfil');
-  await expect(page.getByRole('banner')).toContainText(USERS.ana.displayName);
+  await expectSignedIn(page, USERS.ana.displayName);
 });

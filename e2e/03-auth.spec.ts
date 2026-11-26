@@ -1,6 +1,14 @@
 import type { Page } from '@playwright/test';
 
-import { loginViaUi, logoutViaUi, submitLogin, USERS } from './support/auth';
+import {
+  expectSignedIn,
+  expectSignedOut,
+  isPhone,
+  loginViaUi,
+  logoutViaUi,
+  submitLogin,
+  USERS,
+} from './support/auth';
 import { addFromDetail } from './support/cart';
 import { checkoutSummary } from './support/checkout';
 import { expect, test } from './support/fixtures';
@@ -108,15 +116,14 @@ test('cadastro válido loga, reload mantém a sessão e logout volta a "Entrar"'
   await fillRegister(page, { username, email: `${username}@exemplo.com`, password: 'Senha@123' });
 
   await expect(page).toHaveURL('/');
-  const header = page.getByRole('banner');
-  await expect(header).toContainText(username);
+  await expectSignedIn(page, username);
 
   await page.reload();
-  await expect(header).toContainText(username);
+  await expectSignedIn(page, username);
 
   await logoutViaUi(page);
   await page.reload();
-  await expect(header.getByRole('link', { name: 'Entrar' })).toBeVisible();
+  await expectSignedOut(page);
 });
 
 test('login com senha errada mostra erro genérico sem revelar qual campo falhou', async ({ page }) => {
@@ -151,11 +158,13 @@ test('sessão expirada no servidor: aviso "Sua sessão expirou" e retomada do po
   await expect(page).toHaveURL(/\/login\?.*redirect=%2Fperfil/);
   await expect(page.getByText('Sua sessão expirou. Entre novamente para continuar.')).toBeVisible();
   // No desktop o login é um modal: o header fica atrás (fora da árvore de acessibilidade).
-  await expect(
-    page
-      .getByRole('banner', { includeHidden: true })
-      .getByRole('link', { name: 'Entrar', includeHidden: true }),
-  ).toBeVisible();
+  if (!isPhone(page)) {
+    await expect(
+      page
+        .getByRole('banner', { includeHidden: true })
+        .getByRole('link', { name: 'Entrar', includeHidden: true }),
+    ).toBeVisible();
+  }
 
   await submitLogin(page, USERS.colecionador);
   await expect(page).toHaveURL('/perfil');
@@ -198,7 +207,7 @@ test('login A → logout → login B mostra só os dados de B', async ({ page })
   await expect(page).toHaveURL('/perfil');
   await expect(displayNameField(page)).toHaveValue(USERS.ana.displayName);
   await expect(page.getByRole('main')).not.toContainText(USERS.colecionador.displayName);
-  await expect(page.getByRole('banner')).not.toContainText(USERS.colecionador.displayName);
+  await expectSignedIn(page, USERS.ana.displayName);
 });
 
 test('logado, /login redireciona para o destino em vez de mostrar o formulário', async ({ page }) => {
@@ -211,17 +220,17 @@ test('duas abas: logout e novo login em uma não derrubam a sessão pela outra',
   await loginViaUi(page, USERS.colecionador);
   const other = await context.newPage();
   await other.goto('/');
-  await expect(other.getByRole('banner')).toContainText(USERS.colecionador.displayName);
+  await expectSignedIn(other, USERS.colecionador.displayName);
 
   await logoutViaUi(page);
-  await expect(other.getByRole('banner').getByRole('link', { name: 'Entrar' })).toBeVisible();
+  await expectSignedOut(other);
 
   // O novo token nasce no banco simulado desta aba; a outra aba precisa enxergá-lo.
   await loginViaUi(page, USERS.colecionador);
-  await expect(other.getByRole('banner')).toContainText(USERS.colecionador.displayName);
+  await expectSignedIn(other, USERS.colecionador.displayName);
   await other.reload();
   await page.waitForTimeout(1500);
-  await expect(page.getByRole('banner')).toContainText(USERS.colecionador.displayName);
-  await expect(other.getByRole('banner')).toContainText(USERS.colecionador.displayName);
+  await expectSignedIn(page, USERS.colecionador.displayName);
+  await expectSignedIn(other, USERS.colecionador.displayName);
   await other.close();
 });

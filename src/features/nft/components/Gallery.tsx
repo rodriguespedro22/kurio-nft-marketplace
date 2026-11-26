@@ -84,7 +84,7 @@ export function Gallery({ images, name }: GalleryProps) {
           role="tablist"
           aria-label="Imagens do NFT"
           onKeyDown={handleKeyDown}
-          className="absolute bottom-[50px] left-1/2 z-10 flex -translate-x-1/2 items-center md:static md:translate-x-0 md:flex-col md:gap-4"
+          className="hidden md:flex md:flex-col md:gap-4"
         >
           {images.map((image, index) => (
             <button
@@ -101,13 +101,11 @@ export function Gallery({ images, name }: GalleryProps) {
               tabIndex={index === active ? 0 : -1}
               onClick={() => select(index, false)}
               className={cn(
-                // Celular: ponto de 7 px (o ativo vira pílula de 28 px) dentro de uma área de toque de 24 px.
-                'grid h-6 min-w-6 shrink-0 place-items-center rounded-full before:h-[7px] before:w-[7px] before:rounded-full before:bg-primary before:transition-[width] aria-selected:before:w-7',
-                // Desktop: miniatura de 100 px sobre o fundo `surface`.
-                'md:block md:size-25 md:overflow-hidden md:rounded-lg md:border md:border-transparent md:bg-surface md:transition-colors md:before:hidden md:hover:border-border-soft md:aria-selected:w-25 md:aria-selected:border-primary',
+                // Miniatura de 100 px sobre o fundo `surface` (o frame mobile mostra só a arte principal).
+                'block size-25 shrink-0 overflow-hidden rounded-lg border border-transparent bg-surface transition-colors hover:border-border-soft aria-selected:border-primary',
               )}
             >
-              <NftImage asset={image.asset} alt="" sizes="100px" className="hidden md:block" />
+              <NftImage asset={image.asset} alt="" sizes="100px" />
             </button>
           ))}
         </div>

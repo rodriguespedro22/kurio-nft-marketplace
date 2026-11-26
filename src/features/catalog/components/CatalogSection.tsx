@@ -16,6 +16,7 @@ import { FiltersDrawer } from './FiltersDrawer';
 import { Pagination } from './Pagination';
 import { SearchInput } from './SearchInput';
 import { SortSelect } from './SortSelect';
+import { useMediaQuery } from '@/shared/lib/use-media-query';
 
 const CLEARED_FILTERS = {
   q: undefined,
@@ -98,6 +99,7 @@ export function CatalogSearchBar() {
 export function CatalogSection() {
   const search = useCatalogSearch();
 
+  const tabletUp = useMediaQuery('(min-width: 48rem)');
   return (
     <section
       id="catalogo"
@@ -116,7 +118,8 @@ export function CatalogSection() {
       <div className="flex min-w-0 flex-col gap-4 md:gap-6 xl:gap-8">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between xl:items-start">
           <CatalogTabs />
-          <SortSelect />
+          {/* No celular a ordenação fica no painel de filtros (o frame mobile não tem a linha). */}
+          {tabletUp ? <SortSelect /> : null}
         </div>
         <CatalogResults search={search} />
       </div>

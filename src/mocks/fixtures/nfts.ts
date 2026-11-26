@@ -86,6 +86,8 @@ type NftSpec = {
   available?: Partial<Record<EditionCode, number>>;
   soldOut?: boolean;
   extraAttribute?: string;
+  /** Popularidade fixa: o mais popular é o "NFT em destaque" do layout. */
+  trendingScore?: number;
 };
 
 /** Grade do Início no layout, na ordem exibida ("Listados recentemente"). */
@@ -101,7 +103,7 @@ const LAYOUT_NFTS: readonly NftSpec[] = [
     category: 'arte-digital',
     network: 'ethereum',
     creator: 'Nova Sato',
-    isRare: true,
+    // No layout o card não leva a etiqueta RARO; "Raro" fica só entre os atributos do detalhe.
     rating: { average: 4.8, count: 19 },
     extraAttribute: 'Raro',
   },
@@ -150,6 +152,7 @@ const LAYOUT_NFTS: readonly NftSpec[] = [
     category: 'colecionaveis',
     network: 'polygon',
     creator: 'Lia Moraes',
+    trendingScore: 1001,
   },
   {
     id: 'nft-ivory-baron-088',
@@ -361,7 +364,8 @@ function buildNft(spec: NftSpec, daysAgo: number, prng: Prng): Nft {
     editions,
     status: editions.every((e) => e.available === 0) ? 'sold_out' : 'listed',
     listedAt: listedAt(daysAgo),
-    trendingScore: prng.int(10, 1000),
+    // O sorteio acontece sempre, para não deslocar a sequência dos NFTs seguintes.
+    trendingScore: ((score) => spec.trendingScore ?? score)(prng.int(10, 1000)),
     version: 1,
   };
 }

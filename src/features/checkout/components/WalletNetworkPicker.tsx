@@ -27,7 +27,7 @@ type WalletNetworkPickerProps = {
 };
 
 /**
- * "Carteira e rede": as carteiras cadastradas como cartões com radio (a principal vem marcada).
+ * "Carteira conectada": as carteiras cadastradas como cartões com radio (a principal vem marcada).
  * A carteira escolhida precisa estar conectada — a conexão é a mesma simulação de /carteiras.
  */
 export function WalletNetworkPicker({
@@ -49,9 +49,14 @@ export function WalletNetworkPicker({
       aria-describedby={error ? errorId : undefined}
       className={cn('flex flex-col gap-3', className)}
     >
-      <h3 id={titleId} className="text-[1.0625rem] leading-4 font-bold text-foreground">
-        Carteira e rede
-      </h3>
+      <div className="flex items-baseline justify-between gap-3">
+        <h3 id={titleId} className="text-[1.0625rem] leading-4 font-bold text-foreground">
+          Carteira conectada
+        </h3>
+        <Link to="/carteiras" className="text-body-sm leading-4 text-accent hover:underline">
+          Trocar carteira
+        </Link>
+      </div>
 
       {wallets.length === 0 ? (
         <div className="flex flex-col items-start gap-3 rounded-field border border-border p-4 text-body-sm text-secondary">

@@ -21,5 +21,7 @@ declare module '@tanstack/react-router' {
   interface StaticDataRouteOption {
     /** No celular a rota tem barra fixa própria embaixo (compra do detalhe): esconde a navegação. */
     phoneBottomBar?: boolean;
+    /** Tela cheia no celular, sem a barra de atalhos (carrinho, pagamento, login e cadastro no layout). */
+    hidePhoneNav?: boolean;
   }
 }

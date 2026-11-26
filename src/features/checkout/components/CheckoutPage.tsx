@@ -35,6 +35,7 @@ import { loadCheckoutDraft, saveCheckoutDraft } from '../draft';
 import { BUYER_FIELDS, buyerFromWallet, buyerSchema, emptyBuyer, type BuyerFormValues } from '../schema';
 import { BuyerForm } from './BuyerForm';
 import { ReviewDialog } from './ReviewDialog';
+import { ProviderPicker } from './ProviderPicker';
 import { WalletNetworkPicker } from './WalletNetworkPicker';
 
 const GRID = 'grid gap-8 xl:grid-cols-[minmax(0,763px)_minmax(0,405px)] xl:justify-between';
@@ -70,6 +71,7 @@ function CheckoutContent(data: CheckoutData) {
   const [walletError, setWalletError] = useState<string | null>(null);
   const [review, setReview] = useState<Review | null>(null);
   const [reviewOpen, setReviewOpen] = useState(false);
+  const [buyerOpen, setBuyerOpen] = useState(true);
   const confirmRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -185,7 +187,10 @@ function CheckoutContent(data: CheckoutData) {
     (errors) => {
       setWalletError(walletProblem());
       const first = BUYER_FIELDS.find((field) => errors[field]);
-      if (first) form.setFocus(first);
+      if (first) {
+        setBuyerOpen(true);
+        requestAnimationFrame(() => form.setFocus(first));
+      }
     },
   );
 
@@ -203,10 +208,26 @@ function CheckoutContent(data: CheckoutData) {
   return (
     <div className={GRID}>
       {desktop ? null : picker}
-      <BuyerForm id={formId} form={form} onSubmit={onSubmit} />
+      {desktop ? null : <ProviderPicker control={form.control} />}
+      {desktop ? (
+        <BuyerForm id={formId} form={form} onSubmit={onSubmit} />
+      ) : (
+        <details
+          open={buyerOpen}
+          onToggle={(event) => setBuyerOpen(event.currentTarget.open)}
+          className="group"
+        >
+          <summary className="cursor-pointer py-2 text-[1.0625rem] leading-4 font-bold text-foreground">
+            Dados do colecionador
+          </summary>
+          <div className="pt-4">
+            <BuyerForm id={formId} form={form} onSubmit={onSubmit} />
+          </div>
+        </details>
+      )}
 
       <aside aria-labelledby="seus-nfts" className="flex min-w-0 flex-col gap-5">
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 max-xl:sr-only">
           <h2 id="seus-nfts" className="text-[1.0625rem] leading-4 font-bold text-foreground">
             Seus NFTs
           </h2>
@@ -259,6 +280,7 @@ function CheckoutContent(data: CheckoutData) {
           <OrderSummarySkeleton />
         )}
         {desktop ? picker : null}
+        {desktop ? <ProviderPicker control={form.control} /> : null}
 
         <Button
           ref={confirmRef}

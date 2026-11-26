@@ -41,7 +41,7 @@ export function emptyBuyer(profile: Profile): Buyer {
   };
 }
 
-/** Carteira escolhida em "Carteira e rede": os dados dela no formulário; usuário e observação ficam. */
+/** Carteira escolhida em "Carteira conectada": os dados dela no formulário; usuário e observação ficam. */
 export function buyerFromWallet(wallet: Wallet, current: Buyer): Buyer {
   return {
     ...current,

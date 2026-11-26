@@ -19,6 +19,9 @@ function RootLayout() {
   const phoneBottomBar = useMatches({
     select: (matches) => matches.some((match) => match.staticData.phoneBottomBar),
   });
+  const hidePhoneNav = useMatches({
+    select: (matches) => matches.some((match) => match.staticData.hidePhoneNav),
+  });
   return (
     <div className="flex min-h-dvh flex-col">
       <a
@@ -33,7 +36,7 @@ function RootLayout() {
         <Outlet />
       </main>
       <Footer phoneBottomBar={phoneBottomBar} />
-      <MobileNav hideOnPhone={phoneBottomBar} />
+      <MobileNav hideOnPhone={phoneBottomBar || hidePhoneNav} />
     </div>
   );
 }

@@ -50,13 +50,13 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
         hint="3 a 24 caracteres: letras, números, ponto ou _"
         error={errors.username?.message}
         required
-        labelClassName="md:sr-only"
-        hintClassName="md:sr-only"
+        labelClassName="sr-only"
+        hintClassName="sr-only"
       >
         <Input autoComplete="username" placeholder="Nome de usuário" {...form.register('username')} />
       </FormField>
 
-      <FormField label="E-mail" error={errors.email?.message} required labelClassName="md:sr-only">
+      <FormField label="E-mail" error={errors.email?.message} required labelClassName="sr-only">
         <Input
           type="email"
           autoComplete="email"
@@ -70,8 +70,8 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
         hint="Mínimo de 8 caracteres, com maiúscula, número e símbolo"
         error={errors.password?.message}
         required
-        labelClassName="md:sr-only"
-        hintClassName="md:sr-only"
+        labelClassName="sr-only"
+        hintClassName="sr-only"
       >
         <PasswordInput autoComplete="new-password" placeholder="Senha" {...form.register('password')} />
       </FormField>
@@ -80,7 +80,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
         label="Confirmar senha"
         error={errors.confirmPassword?.message}
         required
-        labelClassName="md:sr-only"
+        labelClassName="sr-only"
       >
         <PasswordInput
           autoComplete="new-password"

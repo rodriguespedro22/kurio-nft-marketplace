@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { Heart, ScanLine } from 'lucide-react';
 
+import { useSession } from '@/features/auth/session';
 import { BarCartLink } from '@/features/cart/components/CartBadge';
 import { cn } from '@/shared/lib/utils';
 import { HomeIcon, UserIcon } from '@/shared/ui/icons';
@@ -24,6 +25,7 @@ type MobileNavProps = {
  * sobe 31 px acima da barra.
  */
 export function MobileNav({ hideOnPhone = false }: MobileNavProps) {
+  const session = useSession();
   return (
     <nav
       aria-label="Atalhos"
@@ -66,7 +68,7 @@ export function MobileNav({ hideOnPhone = false }: MobileNavProps) {
           <li className={cn(slotClass, 'left-[87.9%]')}>
             <Link to="/perfil" className={itemClass}>
               <UserIcon className="size-5" />
-              <span className="sr-only">Perfil</span>
+              <span className="sr-only">{session ? `Perfil de ${session.user.displayName}` : 'Perfil'}</span>
             </Link>
           </li>
         </ul>

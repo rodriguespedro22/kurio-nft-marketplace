@@ -41,6 +41,7 @@ test('header tem Início, Mercado, Criadores e Aprenda; Criadores e Aprenda não
   page,
   isMobile,
 }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) < 768, 'no celular a navegação é a barra inferior');
   await page.goto('/');
 
   let nav = await openMainNav(page, isMobile);
@@ -93,6 +94,10 @@ test('menu mobile abre como Sheet, prende o foco e Escape devolve o foco ao bot�
   isMobile,
 }) => {
   test.skip(!isMobile, 'o menu lateral só existe abaixo de 1280 px');
+  test.skip(
+    (page.viewportSize()?.width ?? 1440) < 768,
+    'no celular o header (e o menu) dá lugar à barra inferior',
+  );
   await page.goto('/');
 
   const trigger = page.getByRole('button', { name: 'Abrir menu' });
