@@ -12,6 +12,18 @@ Decisões de arquitetura, contratos e estratégias de sincronização: [ARCHITEC
 **Demo publicada:** https://kurio-nft-marketplace-eight-theta.vercel.app (mocks e tempo real ligados; o
 painel "Cenários", no canto inferior esquerdo, troca o cenário e o perfil de rede).
 
+## Como usar a demo
+
+1. **Explore o catálogo** na página inicial: busque, filtre por categoria e preço, ordene e pagine.
+2. **Abra um NFT** para ver a galeria, escolher a edição e a quantidade, favoritar ou comprar.
+3. **Monte o carrinho** mesmo sem login. Ao entrar, os itens continuam lá. O cupom `KURIO10` dá 10% de desconto.
+4. **Entre** com `colecionador@kurio.test` / `Kurio@2026` (ou crie uma conta em /cadastro).
+5. **Finalize a compra:** escolha a carteira e a rede, revise preço e estoque e confirme. O pedido mostra o
+   status de pendente até confirmado.
+6. **Gerencie perfil e carteiras** em /perfil e /carteiras.
+7. **Teste as falhas** pelo painel "Cenários": rede lenta, erros do servidor, sessão expirada, mudanças de
+   preço e estoque em tempo real.
+
 ## Requisitos
 
 - **Node ≥ 22**
@@ -197,16 +209,6 @@ observado: rode a auditoria com a máquina ociosa.
 
 `.github/workflows/ci.yml`: typecheck, lint e unit; depois E2E no container do Playwright (relatório como
 artefato). O job de baselines visuais só roda manualmente.
-
-## Deploy na Vercel
-
-O `vercel.json` já configura tudo: `buildCommand: pnpm build:demo`, saída `dist/`, reescrita de SPA para
-`index.html` (exceto Service Workers, assets, imagens e fontes) e `Cache-Control: no-cache` nos workers
-(`mock-sw.js`, que carrega o `mockServiceWorker.js` do MSW; veja ARCHITECTURE.md §9).
-
-1. Importe o repositório na Vercel (framework: Vite; ela detecta o pnpm pelo lockfile).
-2. Não precisa de variáveis de ambiente: `.env.demo` vai versionado.
-3. Deploy. A demo roda inteira no navegador; os dados de cada visitante ficam no localStorage dele.
 
 ## Estrutura
 
